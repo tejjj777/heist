@@ -860,12 +860,15 @@ const FinMath = (() => {
       const catDaily = topCategory.dailyCost;
       // How many days of skipping this category would cover the shortfall?
       const shortfall = verdict === 'no' ? cost - Math.max(0, balanceAtEvent) : cost * 0.4;
+      // catDaily is an average day of spending, so the unit is days, and a week only has 7 of them
       const skipDays = Math.ceil(shortfall / catDaily);
-      if (skipDays <= 14) {
-        fix = `Skip ${skipDays} ${catName.toLowerCase()} ${skipDays === 1 ? 'order' : 'orders'} this week and you can`;
+      if (skipDays <= 7) {
+        fix = `Skip ${catName.toLowerCase()} for ${skipDays} ${skipDays === 1 ? 'day' : 'days'} this week and you can`;
+      } else if (skipDays <= 14) {
+        fix = `Skip ${catName.toLowerCase()} for ${Math.ceil(skipDays / 2)} days a week for 2 weeks and you can`;
       } else {
-        const perWeek = Math.ceil(shortfall / catDaily / 2);
-        fix = `Cut ${catName.toLowerCase()} by ${perWeek} orders a week for 2 weeks and you can`;
+        const weeks = Math.ceil(skipDays / 7);
+        fix = weeks <= 8 ? `Skip ${catName.toLowerCase()} completely for ${weeks} weeks and you can` : '';
       }
     }
 

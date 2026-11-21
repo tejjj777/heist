@@ -90,7 +90,12 @@ const GroupSync = {
               delete sp.id;
               return sp;
             });
-            await this.client.from('group_expense_splits').insert(splitsToInsert);
+            const { error: splitErr } = await this.client.from('group_expense_splits').insert(splitsToInsert);
+            if (splitErr) {
+              // don't leave an expense without its split: undo it, and the retry adds both again
+              await this.client.from('group_expenses').delete().eq('id', data.id);
+              throw splitErr;
+            }
           }
         }
       } catch (err) {
@@ -109,7 +114,10 @@ const GroupSync = {
         this.fetchGroupData(groupId);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_expense_splits' }, payload => {
-        this.fetchGroupData(groupId);
+        // splits have no group_id, so only refetch when the split belongs to one of this group's expenses
+        const row = payload.new && payload.new.expense_id ? payload.new : payload.old || {};
+        const mine = ((state.groupData || {})[groupId] || {}).expenses || [];
+        if (!row.expense_id || mine.some(e => e.id === row.expense_id)) this.fetchGroupData(groupId);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${groupId}` }, payload => {
         this.fetchGroupData(groupId);

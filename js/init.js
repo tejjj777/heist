@@ -153,7 +153,7 @@ function init() {
   const authLanding = takeAuthFromURL();   // came back from the sign-in email link
   if (!location.hash) history.replaceState(null, '', '#dashboard');
   redirectOldHash();
-  const deep = /^#do\//.test(location.hash);
+  const deep = /^#(do\/|settings(\/|$))/.test(location.hash);
   checkBadges(true);     // quietly record badges already earned
   dailyTick();           // new month → history; recurring payments; rewards
   render();

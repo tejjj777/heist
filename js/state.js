@@ -526,7 +526,7 @@ function irregularInfo() {
 }
 function irregularLine() {
   const r = irregularInfo();
-  return `Your usual ${fmt(baseMonthlyIncome())}${r.thisMonth > 0 ? ` + ${fmt(r.thisMonth)} logged this month` : ''}`;
+  if (r.basis === 'typical') return `Your usual ${fmt(baseMonthlyIncome())}${r.thisMonth > 0 ? ` + ${fmt(r.thisMonth)} logged this month` : ''}`;
   return r.basis === 'last' ? `Budgeting from ${FULL_MONTHS[+r.month.slice(5) - 1]}’s income` : r.basis === 'avg' ? 'Budgeting from your recent average' : (r.thisMonth > 0 ? 'Using your usual month until this month’s income passes it' : 'Budgeting from a typical month until you log some income');
 }
 function monthlyIncome() {
@@ -578,12 +578,15 @@ function syncActuals() {
 function budgetTotals() {
   const cats = state.budget.categories;
   const income = monthlyIncome();
-  const planned = sum(cats, c => c.planned), actual = sum(cats, c => c.actual);
+  const planned = sum(cats, c => c.planned);
   const byType = {};
   for (const [t] of CAT_TYPES) {
     byType[t] = { planned: sum(cats.filter(c => c.type === t), c => c.planned), actual: sum(cats.filter(c => c.type === t), c => c.actual) };
   }
-  return { income, planned, actual, remaining: income - actual, unplanned: income - planned, byType };
+  // Money moved into savings categories is saved, not spent: it stays out of "spent", but it still isn't free to spend.
+  const saved = byType.savings ? byType.savings.actual : 0, plannedSave = byType.savings ? byType.savings.planned : 0;
+  const actual = sum(cats, c => c.actual) - saved;
+  return { income, planned, plannedSpend: planned - plannedSave, actual, saved, remaining: income - actual - saved, unplanned: income - planned, byType };
 }
 
 function giftLabel(g) { return g.occasion === 'Custom' ? (g.customOccasion || 'Custom') : g.occasion; }
@@ -622,12 +625,14 @@ function allowanceLeft() {
   const next = nextPayInfo();
   const p = inc > 0 && !state.income.irregular && state.income.freq === 'monthly' ? F.payPeriod(state.income.nextPayDate, 'monthly', t) : null;
   if (p) {
-    const spent = sum(state.budget.expenses.filter(x => x.date >= p.start && x.date <= today), x => x.amount);
-    return { balance: inc - spent, spent, income: inc, daysLeft: p.daysLeft, start: p.start, end: p.end, byPayday: true };
+    const savCats = new Set(state.budget.categories.filter(c => c.type === 'savings').map(c => c.id));
+    const inPeriod = state.budget.expenses.filter(x => x.date >= p.start && x.date <= today);
+    const out = sum(inPeriod, x => x.amount), spent = sum(inPeriod.filter(x => !savCats.has(x.categoryId)), x => x.amount);
+    return { balance: inc - out, spent, income: inc, daysLeft: p.daysLeft, start: p.start, end: p.end, byPayday: true };
   }
   const daysLeft = next ? Math.max(1, next.days) : Math.max(1, F.daysLeftInMonth(t));
   const end = next ? F.toISO(next.date) : F.toISO(F.addDays(t, daysLeft));
-  const balance = inc > 0 ? inc - b.actual : Math.max(0, (state.settings.cashOnHand || 0) - b.actual);
+  const balance = inc > 0 ? inc - b.actual - b.saved : Math.max(0, (state.settings.cashOnHand || 0) - b.actual - b.saved);
   return { balance, spent: b.actual, income: inc, daysLeft, start: today.slice(0, 7) + '-01', end, byPayday: false };
 }
 /** Bank / UPI balance the student typed in, moved along by what they've logged since. */
@@ -743,7 +748,7 @@ function studentSemesterPlan() {
   const end = sem.end || F.toISO(F.addMonths(t, 4));
   const inc = monthlyIncome();
   const b = budgetTotals();
-  const monthlyBase = b.planned > 0 ? b.planned : (inc > 0 ? inc * 0.8 : 8000);
+  const monthlyBase = b.planned > 0 ? b.planned : inc * 0.8;
   const saved = sum(state.goals, g => g.saved);
   return F.semesterPlan({
     start,

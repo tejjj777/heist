@@ -466,17 +466,7 @@ function drawWrapped(d) {
   if (LOGO_IMG.complete && LOGO_IMG.naturalWidth) x.drawImage(LOGO_IMG, 210, H - 104, 150, 150 * LOGO_IMG.naturalHeight / LOGO_IMG.naturalWidth);
   return c;
 }
-function openWrapped() {
-  const d = wrappedData();
-  wrappedCanvas = drawWrapped(d);
-  const alt = `${d.monthName} wrapped. ${d.persona[1]}: ${d.persona[2]} ` + d.tiles.map(([l, v, s2]) => `${l}: ${v}, ${s2}.`).join(' ');
-  openModal({
-    title: `Your ${d.monthName}, wrapped`, hideSubmit: true, cancelLabel: 'Close', wide: true,
-    body: `<img class="wrapped-img" src="${wrappedCanvas.toDataURL('image/png')}" alt="${esc(alt)}">
-      <button type="button" class="btn btn-primary" data-action="download-wrapped">${ICON.download}<span>Download image</span></button>`
-  });
-  if (!state.badges.wrapped) { state.badges.wrapped = todayISO(); save(); celebrateBadges([BADGES.find(b => b.id === 'wrapped')]); render(); }
-}
+/* openWrapped() lives in wrapped.js (it used to be defined twice). */
 
 /* ---------- Command palette (Ctrl/Cmd + K) ---------- */
 function parseAmount(w) {

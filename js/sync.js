@@ -127,7 +127,18 @@ function syncOnSave() {
   queueSync(2500);
 }
 function queueSync(ms) { clearTimeout(Sync.timer); Sync.timer = setTimeout(() => syncNow(false), ms); }
-function parkCopy(obj, why) { try { localStorage.setItem(CLASH_KEY, JSON.stringify({ at: Date.now(), why, data: obj })); } catch (e) { /* too big or blocked */ } }
+/** Set a copy aside after a clash. The one before it moves to a second slot, so two clashes in a row don't lose data.
+    Returns false when the browser couldn't store it (too big or blocked). */
+function parkCopy(obj, why) {
+  try {
+    const prev = localStorage.getItem(CLASH_KEY);
+    if (prev) { try { localStorage.setItem(CLASH_KEY + '.prev', prev); } catch (e) { /* no room for the older one */ } }
+    localStorage.setItem(CLASH_KEY, JSON.stringify({ at: Date.now(), why, data: obj }));
+    return true;
+  } catch (e) { return false; }
+}
+const CLASH_MSG = ok => ok ? 'This device and another one both changed things. The newest copy is kept. The other is saved under Settings → Account.'
+  : 'This device and another one both changed things. The newest copy is kept. The other one was too big to save on this device.';
 function parkedCopy() { try { return JSON.parse(localStorage.getItem(CLASH_KEY)); } catch (e) { return null; } }
 function applyRemote(remote, row) {
   const keep = { tourDone: state.meta.tourDone, tourVersion: state.meta.tourVersion, tourChapters: state.meta.tourChapters };
@@ -156,13 +167,13 @@ async function syncPull(force) {
   const remote = await unlockData(row.data, a.dek);
   if (a.dirty && !state.meta.isSample) {
     if (Date.parse(row.updated_at) > (a.editedAt || 0)) {   // the other device saved later: keep theirs, park ours
-      parkCopy(JSON.parse(JSON.stringify(state)), 'this device');
+      const ok = parkCopy(JSON.parse(JSON.stringify(state)), 'this device');
       applyRemote(remote, row);
-      toast('This device and another one both changed things. The newest copy is kept. The other is saved under Settings → Account.', 7000);
+      toast(CLASH_MSG(ok), 7000);
     } else {   // ours is newer: park theirs and upload ours
-      parkCopy(remote, row.device || 'another device');
+      const ok = parkCopy(remote, row.device || 'another device');
       a.version = row.version; saveAcc();
-      toast('This device and another one both changed things. The newest copy is kept. The other is saved under Settings → Account.', 7000);
+      toast(CLASH_MSG(ok), 7000);
     }
     return;
   }
@@ -524,7 +535,7 @@ function syncSignOut() {
         if (syncReady() && Sync.acc.dirty) await syncNow(false);
         try { await sbCall('/auth/v1/logout?scope=local', { method: 'POST' }); } catch (e) { /* signing out locally is enough */ }
         Sync.acc = null; saveAcc(); Sync.status = '';
-        try { localStorage.removeItem(CLASH_KEY); } catch (e) { /* ignore */ }
+        try { localStorage.removeItem(CLASH_KEY); localStorage.removeItem(CLASH_KEY + '.prev'); } catch (e) { /* ignore */ }
         if (wipe) { state = freshStateLike(); }
         closeModal(true); commit();
         toast(wipe ? 'Signed out and removed from this device' : 'Signed out. Your data stays on this device');
@@ -569,7 +580,7 @@ function syncDeleteAccount() {
       if (form.querySelector('#acc-del').value.trim().toUpperCase() !== 'DELETE') { fieldErr(form, 'acc-err', 'Type DELETE to confirm.'); return false; }
       const done = busyBtn(form, 'Deleting…');
       sbCall('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {} })
-        .then(() => { Sync.acc = null; saveAcc(); Sync.status = ''; try { localStorage.removeItem(CLASH_KEY); } catch (e) { /* ignore */ } closeModal(true); toast('Account deleted. Your data is still on this device', 5000); })
+        .then(() => { Sync.acc = null; saveAcc(); Sync.status = ''; try { localStorage.removeItem(CLASH_KEY); localStorage.removeItem(CLASH_KEY + '.prev'); } catch (e) { /* ignore */ } closeModal(true); toast('Account deleted. Your data is still on this device', 5000); })
         .catch(e => { done(); fieldErr(form, 'acc-err', authErrText(e)); });
       return false;
     }

@@ -60,6 +60,13 @@ const SUB_ACTIONS = {
 /* ---------- App-icon shortcuts: #do/<action> ---------- */
 const DEEP_ACTIONS = ['add-expense', 'scan-receipt', 'import-sms', 'open-palette'];
 function handleDeepLink() {
+  const st = /^#settings(?:\/([a-z]+))?$/.exec(location.hash);   // #settings or #settings/account opens Settings
+  if (st) {
+    history.replaceState(null, '', '#dashboard');
+    render();
+    setTimeout(() => openSettings(st[1] || 'general'), 50);
+    return true;
+  }
   const m = /^#do\/([a-z-]+)$/.exec(location.hash);
   if (!m) return false;
   history.replaceState(null, '', '#dashboard');

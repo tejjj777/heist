@@ -73,14 +73,6 @@ function localizeSample(s) {
   });
   // round-ups again, in the new currency
   const to = roundUpFor(cur), jar = s.goals[2], ym = F.toISO(todayDate()).slice(0, 7);
-  s.budget.expenses.forEach(x => {
-    return;   // round-ups removed
-    const up = F.roundUpAmount(x.amount, to);
-    if (!(up > 0.004)) return;
-    const cid = uid(), cat = s.budget.categories.find(c => c.id === x.categoryId);
-    jar.saved += up; jar.contributions.push({ id: cid, date: x.date, amount: up, note: `Round-up · ${cat ? cat.name : 'expense'}`, roundup: true });
-    x.roundup = { goalId: jar.id, cid, amount: up };
-  });
   s.settings.roundUp.to = to;
   const w = s.wallet;
   w.cash.forEach(x => { x.amount = m(x.amount); }); w.ious.forEach(x => { x.amount = m(x.amount); }); w.transport.forEach(x => { x.amount = m(x.amount); });

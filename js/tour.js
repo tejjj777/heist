@@ -6,7 +6,7 @@
    ========================================================= */
 const q = sel => document.querySelector(sel);
 const closestCard = sel => { const el = q(sel); return el ? el.closest('.card') : null; };
-const TOUR_VERSION = 38;   // bumped: solid top bar, section bar hides on scroll
+const TOUR_VERSION = 39;   // bumped: menu fix, savings math, steadier AI
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
@@ -343,9 +343,12 @@ function showWhatsNew() {
   openModal({
     title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
-        <li><strong>Cleaner top:</strong> the top bar is solid now, so nothing shows through it.</li>
-        <li><strong>More room:</strong> on a laptop, the page menu slides away as you scroll down and comes back when you scroll up.</li></ul>
+        <li><strong>Fixed:</strong> the ⋯ menu now opens on top of the page, not behind the tiles.</li>
+        <li><strong>Savings aren’t spending:</strong> money you move into savings no longer counts as spent.</li>
+        <li><strong>Steadier AI:</strong> it waits a bit longer, tries again once, and tells you if you’re offline.</li></ul>
       <details class="wn-earlier"><summary>Earlier updates</summary><ul class="whats-new">
+        <li><strong>Cleaner top:</strong> the top bar is solid now, so nothing shows through it.</li>
+        <li><strong>More room:</strong> on a laptop, the page menu slides away as you scroll down and comes back when you scroll up.</li>
         <li><strong>Help and legal:</strong> Settings → Help has our Privacy Policy, Terms of Use and a support email.</li>
         <li><strong>Sign in:</strong> tick a box to agree to the Terms and Privacy Policy when you sign in.</li>
         <li><strong>Faster start:</strong> the app loads less on open. Charts load when you need them.</li>

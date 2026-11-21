@@ -1,4 +1,4 @@
-// YOKO! Student · AI helper (Supabase Edge Function "ai").
+// HEIST · AI helper (Supabase Edge Function "ai"). Shared with yokomoney, which calls the same function.
 // The app sends { task: "command", input: { text, context, today } }. This asks an AI model to
 // understand the message and answers with JSON the app can act on, plus a short reply to show.
 // Secrets (Edge Functions → Secrets):
@@ -36,8 +36,8 @@ function overLimit(ip: string) {
   return false;
 }
 
-const SYSTEM = (today: string) => `You are YOKO!, a friendly money buddy inside a budgeting app for college students in India.
-Today is ${today}. Money is in Indian rupees (₹).
+const SYSTEM = (today: string, currency: string) => `You are the friendly money buddy inside a budgeting app for college students.
+Today is ${today}. The student's money is in ${currency}. Always write amounts in ${currency}, never another currency.
 Read the student's message and the CONTEXT (their real numbers), then reply with ONLY one JSON object:
 {"intent":"add|afford|ask|budget|whatif|chat","amount":number,"note":string,"categoryName":string,"withPerson":string,"split":boolean,"item":string,"dayOffset":number,"period":"today|this week|this month","reductionAmount":number,"reply":string}
 Pick the intent:
@@ -45,10 +45,11 @@ Pick the intent:
 - afford: "can I afford ...". amount, item, dayOffset = days from today until it happens (0 = today).
 - ask: "how much did I spend on ...". categoryName and period.
 - budget: set a limit for a category. amount and categoryName.
-- whatif: "what if I stop/cut ...". categoryName and reductionAmount = rupees saved per day.
+- whatif: "what if I stop/cut ...". categoryName and reductionAmount = money saved per day.
 - chat: anything else (advice, why questions, greetings, explaining their numbers).
 Leave out fields that don't apply.
-"reply" is ALWAYS required: 1 to 3 short, warm, plain sentences, in the same language and script the student wrote in (Hinglish typed in English letters gets a Hinglish reply in English letters, not Devanagari).
+"reply" is ALWAYS required: 1 to 3 short, warm, plain sentences.
+Write "reply" in the SAME language as the MESSAGE. A message written in English gets an English reply, even if category names in CONTEXT are in another language. Only reply in Hinglish when the message itself is Hinglish, and then use English letters, not Devanagari.
 Use only numbers from CONTEXT; never invent balances or spending. No em dashes. At most one emoji.
 Don't give investment or loan advice beyond simple saving tips.`;
 
@@ -154,7 +155,9 @@ Deno.serve(async (req) => {
   if (!text) return json({ error: "empty message" }, 400);
   const context = typeof input === "object" && input?.context ? JSON.stringify(input.context).slice(0, 6000) : "{}";
   const today = String(input?.today || new Date().toDateString()).slice(0, 40);
-  const system = SYSTEM(today);
+  const cur = typeof input === "object" && input?.context?.currency ? String(input.context.currency).slice(0, 8) : "INR";
+  const CUR_NAMES: Record<string, string> = { INR: "Indian rupees (₹)", USD: "US dollars ($)", EUR: "euros (€)", GBP: "British pounds (£)", CAD: "Canadian dollars", AUD: "Australian dollars", SGD: "Singapore dollars", AED: "UAE dirhams", JPY: "Japanese yen (¥)" };
+  const system = SYSTEM(today, CUR_NAMES[cur] || cur);
   const user = `CONTEXT: ${context}\n\nMESSAGE: ${text}`;
 
   const started = Date.now();

@@ -54,7 +54,7 @@ function renderBudget() {
     <div class="bh-left">
       <span class="hero-chip">${leftNow < 0 ? `Overspent in ${month}` : `Left to spend in ${month}`}</span>
       <p class="big-num bh-amount">${fmt(Math.abs(leftNow))}</p>
-      <p class="small muted">Income ${fmt(b.income)} − spent ${fmt(b.actual)}</p>
+      <p class="small muted">Income ${fmt(b.income)} − spent ${fmt(b.actual)}${b.saved > 0 ? ` − saved ${fmt(b.saved)}` : ''}</p>
     </div>
     <div class="bh-right">
       <div class="bh-top small"><span class="muted">Income ${fmt(b.income)}</span><span class="${b.unplanned >= 0 ? 'bh-free' : 'bh-over'}">${b.unplanned >= 0 ? `${fmt(b.unplanned)} not planned yet` : `${fmt(-b.unplanned)} more than your income`}</span></div>
@@ -108,9 +108,10 @@ function renderBudget() {
   </div>`;
 
   // 50/30/20
-  const useActual = b.actual > 0;
+  const useActual = b.actual + b.saved > 0;
   const ruleRow = (type, label, rec) => {
-    const val = useActual ? b.byType[type].actual : b.byType[type].planned;
+    // savings uses the same definition as Home and Goals: goal deposits plus savings categories
+    const val = type === 'savings' && useActual && typeof savingsByMonth === 'function' ? savingsByMonth(todayISO().slice(0, 7)) : useActual ? b.byType[type].actual : b.byType[type].planned;
     const pct = b.income > 0 ? val / b.income * 100 : 0;
     const diff = pct - rec;
     let tone = 'tone-success-text', note = 'On track';

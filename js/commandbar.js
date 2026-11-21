@@ -157,7 +157,7 @@ function bindCommandBar() {
     if (typeof aiCall === 'function') {
       const quick = local.intent !== 'unknown';
       const slow = setTimeout(() => { if (res.querySelector('.cb-loading')) res.innerHTML = '<div class="cb-loading"><span class="status-dot"></span> Still thinking…</div>'; }, 4000);
-      const aiRes = await aiCall('command', { text: text.slice(0, 500), context: aiContext(), today: new Date().toDateString() }, quick ? 6000 : 16000);
+      const aiRes = await aiCall('command', { text: text.slice(0, 500), context: aiContext(), today: new Date().toDateString() }, quick ? 10000 : 20000);
       clearTimeout(slow);
       if (validAiCommand(aiRes)) parsed = aiRes;
       else aiDown = true;
@@ -373,7 +373,10 @@ function renderCommandResult(parsed, originalText, container) {
   } else if (parsed.intent === 'chat') {
     container.innerHTML = `<p class="cb-reply">${esc(parsed.reply)}</p>`;
   } else if (parsed.intent === 'down') {
-    container.innerHTML = `<p>The AI isn’t answering right now. Try again in a minute.</p>
+    const why = typeof aiLastError === 'string' ? aiLastError : '';
+    container.innerHTML = `<p>${why === 'offline' ? 'You’re offline, so the AI can’t answer right now.'
+      : why === 'blocked' ? 'The AI only answers on the HEIST website (tejjj777.github.io/heist). Open the app there to use it.'
+      : 'The AI isn’t answering right now. Try again in a minute.'}</p>
       <p class="small muted">I can still log spends and answer “can I afford” and “how much” questions without it.</p>`;
   } else {
     container.innerHTML = `<p>I didn't quite catch that. Try saying something like <em>"spent 200 on chai"</em>.</p>`;

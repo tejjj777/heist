@@ -522,3 +522,8 @@ html.heist .weather-label { font-family: var(--bx-display); font-style: italic; 
 html.heist .alloc-bar { height: 26px; border: 2.5px solid var(--hx-ink); border-radius: 10px; background: #FFFFFF; box-shadow: 3px 3px 0 var(--hx-ink); }
 html.heist .alloc-bar .seg { border-radius: 0; border-right: 2px solid var(--hx-ink); }
 html.heist .alloc-bar .seg:last-child { border-right: 2px solid var(--hx-ink); }
+
+/* Open ⋯ menus sit above everything on the page. The rise/pop animations leave a transform and filter on
+   headers and cards, which traps a menu in its own layer, so later tiles painted over it. */
+html.heist .view-head { position: relative; z-index: 20; }
+html.heist :is(.card, .hx-rise, .hx-tile, .view-actions):has(.menu:not([hidden])) { position: relative; z-index: 30; }

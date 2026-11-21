@@ -200,7 +200,9 @@ function runSelfTests({ log = false } = {}) {   // log: print every check to the
   check('Afford check (tight): leaves 500 for 10 days = 50/day < 65% of baseline (400)', affTight.verdict === 'tight' && affTight.perDayAfter === 50);
 
   const affFix = F.affordCheck({ balance: 1000, daysLeft: 10, amount: 1500, eventDayOffset: 0, dailySpend: 100, monthlyAllowance: 12000, topCategory: { name: 'Food', dailyCost: 200 } });
-  check('Afford check (fix): skip 3 food orders (200/day) to cover 500 shortfall', affFix.fix.includes('Skip 3 food orders'));
+  check('Afford check (fix): skip food for 3 days (200/day) to cover 500 shortfall', affFix.fix.includes('Skip food for 3 days'));
+  const affBig = F.affordCheck({ balance: 0, daysLeft: 10, amount: 22000, eventDayOffset: 0, dailySpend: 100, monthlyAllowance: 12000, topCategory: { name: 'Chai', dailyCost: 200 } });
+  check('Afford check (fix): never asks for more than 7 days a week', !/\b(\d+) days a week/.test(affBig.fix) || +affBig.fix.match(/(\d+) days a week/)[1] <= 7);
 
   // Student money math: What-if forecast
   const wiFore = F.whatIfForecast({ currentBalance: 3000, daysLeft: 20, dailySpendByCategory: { Food: 150, Fun: 50 }, categoryChanges: { Food: -50 }, startDate: '2026-10-01' });
@@ -374,8 +376,10 @@ function runSelfTests({ log = false } = {}) {   // log: print every check to the
   // Session 6 Polish: Student Demo Profile Integrity
   if (typeof sampleState === 'function') {
     const demo = sampleState();
-    check('Demo state: Indian student persona with allowance and part-time income', demo.currency === 'INR' && demo.student.allowance === 12000 && demo.student.partTimeAmount === 4000);
-    check('Demo state: Roommates with UPI IDs configured', demo.wallet.ious.some(i => i.person === 'Rahul' && i.upiId) && demo.wallet.ious.some(i => i.person === 'Aarav' && i.upiId));
+    // outside India, global.js converts the demo to local money and names, so check the shape, not the INR values
+    const inr = demo.currency === 'INR';
+    check('Demo state: student persona with allowance and part-time income', demo.student.allowance > 0 && demo.student.partTimeAmount > 0 && (!inr || (demo.student.allowance === 12000 && demo.student.partTimeAmount === 4000)));
+    check('Demo state: Roommates with UPI IDs configured', demo.wallet.ious.filter(i => i.person && i.upiId).length >= 2 && (!inr || demo.wallet.ious.some(i => i.person === 'Rahul')));
     check('Demo state: Active category freeze challenge present', demo.challenges.some(c => c.type === 'nocat'));
     check('Demo state: Semester plan with heavy months included', demo.student.semester.heavyMonths.length >= 2);
   }

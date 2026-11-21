@@ -70,7 +70,7 @@ function homeBento() {
   const maxDay = Math.max(1, ...week.map(d => d.amt));
   const cats = state.budget.categories.filter(c => c.planned > 0 && c.type !== 'savings');
   const hot = cats.map(c => ({ c, r: c.actual / c.planned })).sort((x, y) => y.r - x.r)[0];
-  const usedPct = b.planned > 0 ? Math.round(b.actual / b.planned * 100) : 0;
+  const usedPct = b.plannedSpend > 0 ? Math.round(b.actual / b.plannedSpend * 100) : 0;
   const ringLen = 2 * Math.PI * 48, ringOn = Math.min(1, usedPct / 100) * ringLen;
   const where = state.budget.categories.filter(c => c.actual > 0).sort((x, y) => y.actual - x.actual).slice(0, 5);
   const goals = state.goals.slice().sort((x, y) => goalInfo(y).pct - goalInfo(x).pct).slice(0, 3);
@@ -83,13 +83,13 @@ function homeBento() {
       <span class="tile-big"><span class="big-num">${daysPay}</span> <span class="tile-unit">${daysPay === 1 ? 'day' : 'days'}</span></span>
     </button>
     ${hot ? `<a class="card bento-tile" href="#budget/plan" data-vt="cat-${hot.c.id}" data-cat-id="${hot.c.id}">
-      <span class="tile-row"><span class="muted">${esc(hot.c.name)}</span><span class="tile-flag">${hot.r >= 1 ? 'Over limit' : hot.r >= 0.75 ? 'Close to limit' : 'On track'}</span></span>
+      <span class="tile-row"><span class="muted">${esc(hot.c.name)}</span><span class="tile-flag">${hot.r > 1 ? 'Over limit' : hot.r >= 1 ? 'Limit reached' : hot.r >= 0.75 ? 'Close to limit' : 'On track'}</span></span>
       <span class="big-num tile-accent">${Math.round(hot.r * 100)}%</span>
-      <span class="muted small">${hot.r >= 1 ? `${fmt(hot.c.actual - hot.c.planned)} over its limit` : `${fmt(dayLeft)} a day keeps you on track`}</span>
+      <span class="muted small">${hot.r > 1 ? `${fmt(hot.c.actual - hot.c.planned)} over its limit` : hot.r >= 1 ? 'Nothing left in this one' : `${fmt(dayLeft)} a day keeps you on track`}</span>
     </a>` : ''}
     <div class="card bento-tile tile-ring">
       <svg width="104" height="104" viewBox="0 0 120 120" role="img" aria-label="${usedPct}% of the ${month} budget used"><circle cx="60" cy="60" r="48" class="ring-bg"></circle><circle cx="60" cy="60" r="48" class="ring-on" style="stroke-dasharray:${ringOn.toFixed(1)} 999"></circle></svg>
-      <span><span class="big-num">${usedPct}%</span><span class="muted small">of ${month} used<br>${fmt(b.actual)} of ${fmt(b.planned)}</span></span>
+      <span><span class="big-num">${usedPct}%</span><span class="muted small">of ${month} used<br>${fmt(b.actual)} of ${fmt(b.plannedSpend)}</span></span>
     </div>
     <div class="card bento-tile tile-streak">
       <span class="muted">No-spend streak</span>
@@ -190,7 +190,7 @@ function heistToday() {
     week.push({ amt: sum(state.budget.expenses.filter(x => x.date === iso), x => x.amount), today: i === 0, noWants: !sk.spend.has(iso), label: i === 0 ? 'Today' : DOW_SHORT[d.getDay()] });
   }
   const weekSum = sum(week, d => d.amt), maxDay = Math.max(1, ...week.map(d => d.amt));
-  const usedPct = b.planned > 0 ? Math.round(b.actual / b.planned * 100) : 0;
+  const usedPct = b.plannedSpend > 0 ? Math.round(b.actual / b.plannedSpend * 100) : 0;
   const ringLen = 2 * Math.PI * 26;
   const month = FULL_MONTHS[t.getMonth()];
   const inc = monthlyIncome();
@@ -235,7 +235,7 @@ function heistToday() {
         <span class="hx-tile-k">${esc(month)} budget</span>
         <span class="hx-tile-row"><span class="hx-tile-v">${usedPct}%</span>
         <svg class="hx-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="26"></circle><circle class="on" cx="32" cy="32" r="26" style="--len:${(Math.min(1, usedPct / 100) * ringLen).toFixed(1)}"></circle></svg></span>
-        <span class="hx-tile-s">Used: ${esc(fmt(b.actual))} of ${esc(fmt(b.planned))}</span>
+        <span class="hx-tile-s">Used: ${esc(fmt(b.actual))} of ${esc(fmt(b.plannedSpend))}</span>
       </a>
       <div class="hx-tile is-lav hx-rise" style="--i:3">
         <span class="hx-tile-k">No-spend streak</span>
@@ -324,6 +324,11 @@ function semesterCard() {
   const startStr = sData.start ? fmtMonthYear(F.parseDate(sData.start)) : fmtMonthYear(t);
   const endStr = sData.end ? fmtMonthYear(F.parseDate(sData.end)) : fmtMonthYear(F.addMonths(t, 4));
   const heavy = sData.heavyMonths || [];
+  if (monthlyIncome() <= 0) return `<div class="card mb" id="semester-card">
+    <div class="card-head"><div><h2>Semester plan</h2><p class="muted small">${startStr} – ${endStr}</p></div></div>
+    <p class="muted">Add your monthly allowance first, then this shows if your money lasts the semester.</p>
+    <div class="actions no-print"><button type="button" class="btn btn-primary" data-action="open-paycheck"><span>Add allowance</span></button></div>
+  </div>`;
 
   return `<div class="card mb" id="semester-card">
     <div class="card-head">
