@@ -710,3 +710,8 @@ html.heist .hx-tiles .hx-tile-row .hx-ring { width: min(76px, 30cqi); height: mi
 /* each Today number sizes by how many characters it has: short ones stay big, long ones shrink to fit */
 html.heist .hx-tiles .hx-tile-v { font-size: min(40px, calc(150cqi / max(var(--len, 4), 4))) !important; }
 html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, calc(92cqi / max(var(--len, 4), 3))) !important; }
+
+/* Phones: the + button sits near the left, so the right-aligned Add menu ran off the left edge. Pin it across the screen under the top bar */
+@media (max-width: 767px) {
+  html.heist #quickadd-menu { position: fixed; top: calc(var(--topbar-h) + 8px); left: 12px; right: 12px; min-width: 0; max-width: none; }
+}
