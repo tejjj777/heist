@@ -263,7 +263,20 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => plac
 /* ---------- Sideways rows (category chips, page tabs): mouse wheel and drag scroll them on a laptop ---------- */
 (function sideScroll() {
   const SEL = '.sp-chips, .view > .subtabs .subtabs-inner';
-  const fade = el => el.classList.toggle('at-end', el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+  const fade = el => {
+    const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4, start = el.scrollLeft <= 4;
+    el.classList.toggle('at-end', end);
+    const w = el.parentElement && el.parentElement.classList.contains('sp-chips-wrap') ? el.parentElement : null;
+    if (w) { w.classList.toggle('can-left', !start); w.classList.toggle('can-right', !end); }
+  };
+  // arrows: show the right ones after each render, and scroll most of a screen per click
+  new MutationObserver(() => document.querySelectorAll('.sp-chips').forEach(fade)).observe(document.body, { childList: true, subtree: true });
+  addEventListener('resize', () => document.querySelectorAll('.sp-chips').forEach(fade));
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('[data-chip-scroll]'); if (!a) return;
+    const el = a.parentElement.querySelector('.sp-chips'); if (!el) return;
+    el.scrollBy({ left: Number(a.dataset.chipScroll) * el.clientWidth * 0.7, behavior: 'smooth' });
+  });
   document.addEventListener('wheel', e => {
     const el = e.target.closest && e.target.closest(SEL);
     if (!el || el.scrollWidth <= el.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;

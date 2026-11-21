@@ -256,7 +256,7 @@ function renderSpend() {
     ${commandBarHTML({ spend: true })}
     <div class="sp-controls">
       ${expFilterBar(ef, cats, moreMenu([mi('Split an expense', 'split-expense'), mi('Scan a receipt', 'scan-receipt'), mi('Paste a bank message', 'import-sms'), csvItem('expenses', 'expenses')]))}
-      ${chips}
+      <div class="sp-chips-wrap"><button type="button" class="sp-arrow prev" data-chip-scroll="-1" aria-label="Scroll categories left" tabindex="-1">‹</button>${chips}<button type="button" class="sp-arrow next" data-chip-scroll="1" aria-label="Scroll categories right" tabindex="-1">›</button></div>
     </div>
     <p class="sp-summary small"><span>${filtering ? `${plural(allExps.length, 'match', 'matches')} · <strong>${fmt(sum(allExps, x => x.amount))}</strong>${allExps.length > exps.length ? ` · newest ${exps.length} shown` : ''}${ef.q || ef.cat ? ' · <button type="button" class="linklike small" data-action="exp-clear">Clear</button>' : ''}` : `This month · ${plural(monthExps.length, 'spend')} · <strong>${fmt(sum(monthExps, x => x.amount))}</strong>`}</span>${!filtering && olderCount ? `<span class="muted">${olderCount} older: search to find them</span>` : ''}</p>${jarLine ? `<p class="small muted">${jarLine}</p>` : ''}
     ${dayList}
