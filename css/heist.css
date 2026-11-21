@@ -49,8 +49,11 @@ html.heist {
   --shadow: var(--hx-shadow-1); --shadow-sm: var(--hx-shadow-1); --shadow-lg: var(--hx-shadow-3);
   --radius: var(--hx-r-md); --radius-sm: var(--hx-r-sm);
   --focus-ring: 0 0 0 3px rgba(106, 80, 210, .35);
-  --font-display: var(--hx-sans); --font-anton: var(--hx-sans);
+  --font-display: var(--hx-sans); --font-anton: "Rubik", "Inter", "DM Sans", system-ui, sans-serif;
   --topbar-bg: rgba(246, 243, 255, .82);
+  --neutral-bg: var(--hx-mist); --grid: #ECE6FB; --heat-spend: #E3D9FC; --hard: var(--hx-ink);
+  --success: #1A8A5E; --warning: #D98A00; --danger: #C22F3A; --input-border: var(--hx-ink);
+  --tone-success: #6A50D2; --tone-danger: #C22F3A;
   --sidebar-w: 252px;
 }
 html.heist body {
@@ -340,3 +343,182 @@ html.heist .brand::before, html.heist .brand::after { content: none; display: no
 html.heist .brand-logo { display: block; height: 40px; width: auto; }
 html.heist .sidebar::before { content: ""; display: block; width: 176px; height: 70px; padding: 0; margin: 0 0 0 6px; background: url("../assets/heist-logo.png") no-repeat left center / contain; }
 @media (min-width: 768px) and (max-width: 1023px) { html.heist .sidebar::before { width: 60px; height: 30px; margin: 0; background-position: center; } }
+
+
+/* =========================================================
+   BOLD: the HEIST look, matching the logo. Ink outlines, hard offset
+   shadows, chunky italic Rubik for titles and big numbers.
+   ========================================================= */
+@font-face { font-family: "Rubik"; font-style: normal; font-weight: 800; font-display: swap; src: url("../assets/fonts/rubik-latin-800-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Rubik"; font-style: italic; font-weight: 800; font-display: swap; src: url("../assets/fonts/rubik-latin-800-italic.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC; }
+@font-face { font-family: "Rubik"; font-style: normal; font-weight: 800; font-display: swap; src: url("../assets/fonts/rubik-latin-ext-800-normal.woff2") format("woff2"); unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+
+html.heist {
+  --hx-ink: #1C1830;
+  --hx-wash: #F1ECFF;
+  --hx-line: #1C1830;
+  --bx-b: 2.5px solid var(--hx-ink);
+  --bx-s: 5px 5px 0 var(--hx-ink);
+  --bx-s-sm: 3px 3px 0 var(--hx-ink);
+  --bx-display: "Rubik", "Inter", "DM Sans", system-ui, sans-serif;
+  --hx-ease: cubic-bezier(.34, 1.56, .64, 1);
+}
+html.heist body { background: var(--hx-wash) radial-gradient(circle at 1px 1px, rgba(28, 24, 48, .07) 1px, transparent 0) 0 0 / 22px 22px; }
+html.heist .view-head h1 { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; letter-spacing: -.01em; font-size: clamp(38px, 6vw, 58px); color: #FFFFFF; -webkit-text-stroke: 2.5px var(--hx-ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--hx-lav-4), 6px 6px 0 var(--hx-ink); }
+html.heist .view-head h1 em { color: var(--hx-lav-3); font-style: italic; text-shadow: none; -webkit-text-stroke: 0; }
+html.heist .card, html.heist .hx-panel, html.heist .hx-tile, html.heist .hx-hero { border: var(--bx-b); box-shadow: var(--bx-s); border-radius: 20px; }
+html.heist .hx-hero { background: #FFFFFF; }
+html.heist .hx-aura { display: none; }
+html.heist .hx-hero::before { content: ""; position: absolute; inset: 0 0 auto auto; width: 46%; height: 100%; z-index: -1; background: var(--hx-lav-1); border-left: var(--bx-b); clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%); }
+html.heist .hx-hero.is-red::before { background: #FFD3D8; }
+html.heist .hx-label { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; font-size: 15px; letter-spacing: .04em; color: var(--hx-lav-4); }
+html.heist .hx-amount { font-family: var(--bx-display); font-style: italic; font-weight: 800; letter-spacing: -.02em; color: #FFFFFF; -webkit-text-stroke: 3px var(--hx-ink); paint-order: stroke fill; text-shadow: 5px 5px 0 var(--hx-lav-4), 7px 7px 0 var(--hx-ink); }
+html.heist .hx-amount .hx-cents { color: #FFFFFF; }
+html.heist .hx-chip, html.heist .hx-fact { border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); background: #FFFFFF; }
+html.heist .hx-fact strong, html.heist .hx-tile-v, html.heist .hx-row-end strong { font-family: var(--bx-display); font-weight: 800; letter-spacing: -.01em; }
+html.heist .hx-track { height: 16px; border: 2px solid var(--hx-ink); background: #FFFFFF; }
+html.heist .hx-track > b { background: repeating-linear-gradient(-45deg, var(--hx-lav-3) 0 8px, var(--hx-lav-4) 8px 16px); border-radius: 999px 0 0 999px; }
+html.heist .hx-track > b::after { border: 2.5px solid var(--hx-ink); background: var(--hx-lav-1); width: 22px; height: 22px; margin-top: -11px; right: -11px; }
+html.heist .btn { border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); font-weight: 700; transition: transform .15s var(--hx-ease), box-shadow .15s var(--hx-ease); }
+html.heist .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--hx-ink); background: #FFFFFF; }
+html.heist .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--hx-ink); }
+html.heist .btn-primary { background: var(--hx-lav-3); color: #FFFFFF; }
+html.heist .btn-primary:hover { background: var(--hx-lav-3); }
+html.heist .btn-primary .icon { color: #FFFFFF; }
+html.heist .hx-tile.is-ink { background: var(--hx-lav-4); }
+html.heist .hx-tile.is-lav { background: var(--hx-lav-1); }
+html.heist .hx-tile:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--hx-ink); }
+html.heist .hx-week i, html.heist .hx-streak i { border: 1.5px solid var(--hx-ink); }
+html.heist .hx-ring .bg { stroke: #FFFFFF; }
+html.heist .hx-panel-head h2 { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; font-size: 24px; letter-spacing: 0; }
+html.heist .hx-av { border: 2px solid var(--hx-ink); background: var(--hx-lav-1); color: var(--hx-ink); }
+html.heist .hx-bar { border: 1.5px solid var(--hx-ink); height: 9px; background: #FFFFFF; }
+html.heist .hx-flag { border: 1.5px solid var(--hx-ink); }
+html.heist .subtabs-inner { background: #FFFFFF; border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); }
+html.heist .subtab-ind { background: var(--hx-lav-1); border: 2px solid var(--hx-ink); box-shadow: none; }
+html.heist .sidebar { border-right: var(--bx-b); }
+html.heist .nav-pill { background: var(--hx-lav-1); border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); }
+html.heist .sidebar .nav-link { font-weight: 700; }
+html.heist .sample-banner, html.heist .nudge-banner { border: 2px dashed var(--hx-ink); }
+@media (max-width: 767px) { html.heist .tabbar { border: var(--bx-b); box-shadow: var(--bx-s); background: #FFFFFF; } html.heist .tab-link[aria-current="page"] { background: var(--hx-lav-1); box-shadow: inset 0 0 0 2px var(--hx-ink); } }
+html.heist .hx-rise { animation-name: bx-pop; animation-duration: .6s; }
+@keyframes bx-pop { 0% { opacity: 0; transform: translateY(24px) scale(.96) rotate(-1deg); } 70% { transform: translateY(-3px) scale(1.01); } }
+
+@media (prefers-reduced-motion: reduce) { html.heist .hx-rise { animation: none !important; } }
+
+/* =========================================================
+   BOLD COMPONENTS (every page)
+   ========================================================= */
+/* titles inside cards */
+html.heist .card-head h2, html.heist .card-head h3, html.heist .card > h2, html.heist .tile-h, html.heist .tile-label, html.heist .modal h2, html.heist .empty h2, html.heist .dl-head h2 {
+  font-family: var(--bx-display); font-style: italic; font-weight: 800; letter-spacing: -.005em; color: var(--hx-ink);
+}
+html.heist .card-head h2, html.heist .card > h2, html.heist .tile-h { font-size: 19px; }
+html.heist .modal h2 { font-size: 24px; text-transform: uppercase; }
+html.heist .stat-label, html.heist th { text-transform: uppercase; letter-spacing: .05em; font-size: 11.5px; font-weight: 700; color: var(--hx-ink-2); }
+
+/* numbers */
+html.heist .big-num, html.heist .stat-value, html.heist .exact-val, html.heist .gb-amt, html.heist .su-left, html.heist .safe-hero-amount, html.heist .mw-hero-amount {
+  font-family: var(--bx-display); font-style: italic; font-weight: 800; letter-spacing: -.015em;
+}
+/* page hero numbers get the logo's 3D outline */
+html.heist .bh-amount, html.heist .dh-when, html.heist .beam-totals .big-num, html.heist .bento-tile:not(.tile-green) > .big-num {
+  color: #FFFFFF; -webkit-text-stroke: 2.5px var(--hx-ink); paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--hx-lav-4), 6px 6px 0 var(--hx-ink);
+}
+html.heist .dh-when { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; }
+
+/* accent cards: lavender fill, white text, ink outline (were green in YOKO!) */
+html.heist .card.tile-green, html.heist .hang-card.is-lead { background: var(--hx-lav-3); color: #FFFFFF; border-color: var(--hx-ink); }
+html.heist .tile-green :is(p, span, small, strong, .muted, .tile-label, .tile-unit, .big-num, h2, h3, a:not(.btn)),
+html.heist .hang-card.is-lead :is(p, span:not(.hc-bar span), small, strong, .muted, h2, h3, .hc-eta, .hc-pct) { color: #FFFFFF; }
+html.heist .tile-green .big-num, html.heist .hang-card.is-lead .big-num { -webkit-text-stroke: 2.5px var(--hx-ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--hx-ink); }
+html.heist .tile-green .btn:not(.btn-primary), html.heist .hang-card.is-lead .btn:not(.hc-add) { background: #FFFFFF; color: var(--hx-ink); }
+html.heist .hang-card.is-lead .hc-bar { background: #FFFFFF; }
+html.heist .hang-card.is-lead .hc-bar span { background: var(--hx-ink); }
+html.heist .hang-card.is-lead .hc-add { background: var(--hx-ink); color: #FFFFFF; }
+html.heist .hang-card.is-lead .hang-hole { background: #FFFFFF; }
+
+/* labels and chips */
+html.heist .hero-chip, html.heist .safe-hero-label, html.heist .wn-tag, html.heist .hang-tag.is-lead, html.heist .bh-over {
+  background: var(--hx-lav-3); color: #FFFFFF; border: 2px solid var(--hx-ink); box-shadow: 2px 2px 0 var(--hx-ink); border-radius: 8px;
+  font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; letter-spacing: .02em;
+}
+html.heist .badge { border: 1.5px solid var(--hx-ink); font-weight: 700; }
+html.heist .chip { border: 2px solid var(--hx-ink); background: #FFFFFF; color: var(--hx-ink); font-weight: 700; box-shadow: 2px 2px 0 var(--hx-ink); transition: transform .12s ease, box-shadow .12s ease; }
+html.heist .chip:active { transform: translate(2px, 2px); box-shadow: none; }
+html.heist .chip-row .chip.on, html.heist .chip[aria-pressed="true"] { background: var(--hx-lav-3); border-color: var(--hx-ink); color: #FFFFFF; }
+
+/* inputs */
+html.heist .input, html.heist .select, html.heist .textarea, html.heist input.input, html.heist select, html.heist textarea {
+  border: 2px solid var(--hx-ink); border-radius: 12px; background: #FFFFFF; color: var(--hx-ink); font-weight: 500;
+}
+html.heist .input:focus, html.heist .select:focus, html.heist .textarea:focus, html.heist select:focus, html.heist textarea:focus { outline: none; box-shadow: 3px 3px 0 var(--hx-lav-3); border-color: var(--hx-ink); }
+html.heist .input::placeholder, html.heist textarea::placeholder { color: var(--hx-ink-3); }
+html.heist .settings-modal .check input[type="checkbox"], html.heist input[type="checkbox"] { accent-color: var(--hx-lav-4); }
+html.heist .settings-modal .check input[type="checkbox"]:checked { background: var(--hx-lav-3); border-color: var(--hx-ink); }
+
+/* segmented toggles */
+html.heist .seg-toggle, html.heist .seg { border: 2px solid var(--hx-ink); background: #FFFFFF; box-shadow: 3px 3px 0 var(--hx-ink); border-radius: 14px; }
+html.heist .seg-ind, html.heist .sr-ind { background: var(--hx-lav-3); border: 2px solid var(--hx-ink); }
+html.heist .seg-toggle button { font-weight: 700; color: var(--hx-ink-2); }
+html.heist .seg-toggle button[aria-checked="true"] { color: #FFFFFF; }
+
+/* bars */
+html.heist .progress, html.heist .hc-bar, html.heist .hang-bar, html.heist .bw-bar { height: 12px; border: 2px solid var(--hx-ink); background: #FFFFFF; border-radius: 999px; }
+html.heist .progress > span, html.heist .hc-bar span, html.heist .hang-bar i, html.heist .bw-bar i { background: var(--hx-lav-3); border-radius: 999px; }
+html.heist .progress.over > span, html.heist .progress .over { background: var(--hx-bad); }
+html.heist .range-slider::-webkit-slider-thumb { background: #FFFFFF; border: 3px solid var(--hx-ink); width: 24px; height: 24px; margin-top: -9px; box-shadow: 2px 2px 0 var(--hx-ink); }
+html.heist .range-slider::-moz-range-thumb { background: #FFFFFF; border: 3px solid var(--hx-ink); width: 18px; height: 18px; }
+html.heist .range-slider::-moz-range-progress { background: var(--hx-lav-3); }
+
+/* little avatars and icons */
+html.heist .sp-ico, html.heist .av-stack i, html.heist .hx-av { border: 2px solid var(--hx-ink); }
+html.heist .sp-ico { background: var(--hx-lav-1); color: var(--hx-ink); font-family: var(--bx-display); font-style: italic; font-weight: 800; }
+html.heist .sp-ico.hot { background: var(--hx-lav-3); color: #FFFFFF; border-color: var(--hx-ink); }
+html.heist .empty-icon { background: var(--hx-lav-1); color: var(--hx-ink); border: 2px solid var(--hx-ink); box-shadow: 3px 3px 0 var(--hx-ink); }
+
+/* tables */
+html.heist th { background: transparent; border-bottom: 2px solid var(--hx-ink); }
+html.heist td { border-bottom: 1.5px solid var(--hx-lav-1); }
+
+/* pop-ups, menus, toasts */
+html.heist .modal { border: 2.5px solid var(--hx-ink); box-shadow: 8px 8px 0 var(--hx-ink); border-radius: 24px; }
+html.heist .modal-backdrop { background: rgba(28, 24, 48, .45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+html.heist .menu { border: 2px solid var(--hx-ink); box-shadow: 4px 4px 0 var(--hx-ink); border-radius: 14px; }
+html.heist .toast { background: var(--hx-ink); color: #FFFFFF; border: 2px solid var(--hx-ink); box-shadow: 4px 4px 0 var(--hx-lav-3); font-weight: 700; }
+html.heist .icon-btn { border-radius: 999px; }
+html.heist .view-actions .icon-btn, html.heist .more-btn { border: 2px solid var(--hx-ink); background: #FFFFFF; box-shadow: 2px 2px 0 var(--hx-ink); }
+
+/* section heads outside cards */
+html.heist .section-head h2, html.heist .dl-head h2 { font-size: 26px; text-transform: uppercase; }
+html.heist .hc-pct, html.heist .dr-amt, html.heist .fr-amt, html.heist .carry-amt, html.heist [class$="-amt"], html.heist .num-big, html.heist .gr-pct { font-family: var(--bx-display); font-style: italic; font-weight: 800; letter-spacing: -.01em; }
+html.heist .dh-when { font-size: clamp(44px, 6vw, 76px); white-space: nowrap; line-height: 1.05; }
+html.heist .month-tile .big-num { font-size: clamp(40px, 5.2vw, 64px); }
+html.heist .bento-tile .big-num { font-size: clamp(44px, 5.6vw, 72px); }
+html.heist .dr-order { border: 2px solid var(--hx-ink); font-family: var(--bx-display); font-style: italic; font-weight: 800; }
+html.heist .dr-order.hot { background: var(--hx-lav-3); color: #FFFFFF; border-color: var(--hx-ink); }
+html.heist .range-slider { accent-color: var(--hx-lav-3); }
+html.heist .range-slider::-webkit-slider-runnable-track { height: 8px; border-radius: 999px; border: 2px solid var(--hx-ink); background: #FFFFFF; }
+html.heist .progress > span:has(+ span), html.heist .progress > span + span { border-radius: 0; }
+html.heist .progress > span:has(+ span) { border-right: 2px solid var(--hx-ink); }
+html.heist .settings-modal .set-panel .settings-group { border: 2px solid var(--hx-ink); border-radius: 18px; background: #FFFFFF; box-shadow: none; }
+html.heist .settings-modal .set-panel .settings-group:focus-within { box-shadow: 4px 4px 0 var(--hx-lav-3); border-color: var(--hx-ink); }
+html.heist .settings-modal .set-panel .settings-group h3 { font-family: var(--bx-display); font-style: italic; font-weight: 800; font-size: 19px; letter-spacing: -.005em; color: var(--hx-ink); }
+html.heist fieldset { border: 2px solid var(--hx-ink); border-radius: 14px; }
+html.heist legend { font-weight: 700; }
+html.heist .switch, html.heist .toggle { border: 2px solid var(--hx-ink); }
+html.heist .slider-item { background: var(--hx-wash); border: 2px solid var(--hx-ink); border-radius: 14px; }
+html.heist .slider-val { font-family: var(--bx-display); font-style: italic; font-weight: 800; color: var(--hx-lav-4); }
+html.heist .ch-dots i { border: 1.5px solid var(--hx-ink); background: #FFFFFF; }
+html.heist .ch-dots i.on { background: var(--hx-lav-3); }
+html.heist .badge-neutral { background: var(--hx-mist); color: var(--hx-ink-2); }
+html.heist .weather { border: 2.5px solid var(--hx-ink); box-shadow: var(--bx-s); border-radius: 20px; }
+html.heist .weather-sunny { background: var(--hx-lav-1); border-color: var(--hx-ink); }
+html.heist .weather-cloudy { background: #FFFFFF; border-color: var(--hx-ink); }
+html.heist .weather-rain { background: var(--hx-warn-bg); border-color: var(--hx-ink); }
+html.heist .weather-label { font-family: var(--bx-display); font-style: italic; font-weight: 800; }
+html.heist .alloc-bar { height: 26px; border: 2.5px solid var(--hx-ink); border-radius: 10px; background: #FFFFFF; box-shadow: 3px 3px 0 var(--hx-ink); }
+html.heist .alloc-bar .seg { border-radius: 0; border-right: 2px solid var(--hx-ink); }
+html.heist .alloc-bar .seg:last-child { border-right: 2px solid var(--hx-ink); }
