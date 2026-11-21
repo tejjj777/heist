@@ -1,0 +1,79 @@
+/* =========================================================
+   HEIST style options (while choosing). html[data-look="soft" | "bold" | "mix"]
+   soft = heist.css as is. bold = matches the logo. mix = soft layout, bold accents.
+   ========================================================= */
+@font-face { font-family: "Rubik"; font-style: normal; font-weight: 800; font-display: swap; src: url("../assets/fonts/rubik-latin-800-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Rubik"; font-style: italic; font-weight: 800; font-display: swap; src: url("../assets/fonts/rubik-latin-800-italic.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC; }
+@font-face { font-family: "Rubik"; font-style: normal; font-weight: 800; font-display: swap; src: url("../assets/fonts/rubik-latin-ext-800-normal.woff2") format("woff2"); unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+/* ---------------- BOLD: matches the logo ---------------- */
+html.heist[data-look="bold"] {
+  --hx-ink: #1C1830;
+  --hx-wash: #F1ECFF;
+  --hx-line: #1C1830;
+  --bx-b: 2.5px solid var(--hx-ink);
+  --bx-s: 5px 5px 0 var(--hx-ink);
+  --bx-s-sm: 3px 3px 0 var(--hx-ink);
+  --bx-display: "Rubik", "Inter", "DM Sans", system-ui, sans-serif;
+  --hx-ease: cubic-bezier(.34, 1.56, .64, 1);
+}
+html.heist[data-look="bold"] body { background: var(--hx-wash) radial-gradient(circle at 1px 1px, rgba(28, 24, 48, .07) 1px, transparent 0) 0 0 / 22px 22px; }
+html.heist[data-look="bold"] .view-head h1 { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; letter-spacing: -.01em; font-size: clamp(38px, 6vw, 58px); color: #FFFFFF; -webkit-text-stroke: 2.5px var(--hx-ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--hx-lav-4), 6px 6px 0 var(--hx-ink); }
+html.heist[data-look="bold"] .view-head h1 em { color: var(--hx-lav-3); font-style: italic; text-shadow: none; -webkit-text-stroke: 0; }
+html.heist[data-look="bold"] .card, html.heist[data-look="bold"] .hx-panel, html.heist[data-look="bold"] .hx-tile, html.heist[data-look="bold"] .hx-hero { border: var(--bx-b); box-shadow: var(--bx-s); border-radius: 20px; }
+html.heist[data-look="bold"] .hx-hero { background: #FFFFFF; }
+html.heist[data-look="bold"] .hx-aura { display: none; }
+html.heist[data-look="bold"] .hx-hero::before { content: ""; position: absolute; inset: 0 0 auto auto; width: 46%; height: 100%; z-index: -1; background: var(--hx-lav-1); border-left: var(--bx-b); clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%); }
+html.heist[data-look="bold"] .hx-hero.is-red::before { background: #FFD3D8; }
+html.heist[data-look="bold"] .hx-label { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; font-size: 15px; letter-spacing: .04em; color: var(--hx-lav-4); }
+html.heist[data-look="bold"] .hx-amount { font-family: var(--bx-display); font-style: italic; font-weight: 800; letter-spacing: -.02em; color: #FFFFFF; -webkit-text-stroke: 3px var(--hx-ink); paint-order: stroke fill; text-shadow: 5px 5px 0 var(--hx-lav-4), 7px 7px 0 var(--hx-ink); }
+html.heist[data-look="bold"] .hx-amount .hx-cents { color: #FFFFFF; }
+html.heist[data-look="bold"] .hx-chip, html.heist[data-look="bold"] .hx-fact { border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); background: #FFFFFF; }
+html.heist[data-look="bold"] .hx-fact strong, html.heist[data-look="bold"] .hx-tile-v, html.heist[data-look="bold"] .hx-row-end strong { font-family: var(--bx-display); font-weight: 800; letter-spacing: -.01em; }
+html.heist[data-look="bold"] .hx-track { height: 16px; border: 2px solid var(--hx-ink); background: #FFFFFF; }
+html.heist[data-look="bold"] .hx-track > b { background: repeating-linear-gradient(-45deg, var(--hx-lav-3) 0 8px, var(--hx-lav-4) 8px 16px); border-radius: 999px 0 0 999px; }
+html.heist[data-look="bold"] .hx-track > b::after { border: 2.5px solid var(--hx-ink); background: var(--hx-lav-1); width: 22px; height: 22px; margin-top: -11px; right: -11px; }
+html.heist[data-look="bold"] .btn { border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); font-weight: 700; transition: transform .15s var(--hx-ease), box-shadow .15s var(--hx-ease); }
+html.heist[data-look="bold"] .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--hx-ink); background: #FFFFFF; }
+html.heist[data-look="bold"] .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--hx-ink); }
+html.heist[data-look="bold"] .btn-primary { background: var(--hx-lav-3); color: #FFFFFF; }
+html.heist[data-look="bold"] .btn-primary:hover { background: var(--hx-lav-3); }
+html.heist[data-look="bold"] .btn-primary .icon { color: #FFFFFF; }
+html.heist[data-look="bold"] .hx-tile.is-ink { background: var(--hx-lav-4); }
+html.heist[data-look="bold"] .hx-tile.is-lav { background: var(--hx-lav-1); }
+html.heist[data-look="bold"] .hx-tile:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--hx-ink); }
+html.heist[data-look="bold"] .hx-week i, html.heist[data-look="bold"] .hx-streak i { border: 1.5px solid var(--hx-ink); }
+html.heist[data-look="bold"] .hx-ring .bg { stroke: #FFFFFF; }
+html.heist[data-look="bold"] .hx-panel-head h2 { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; font-size: 24px; letter-spacing: 0; }
+html.heist[data-look="bold"] .hx-av { border: 2px solid var(--hx-ink); background: var(--hx-lav-1); color: var(--hx-ink); }
+html.heist[data-look="bold"] .hx-bar { border: 1.5px solid var(--hx-ink); height: 9px; background: #FFFFFF; }
+html.heist[data-look="bold"] .hx-flag { border: 1.5px solid var(--hx-ink); }
+html.heist[data-look="bold"] .subtabs-inner { background: #FFFFFF; border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); }
+html.heist[data-look="bold"] .subtab-ind { background: var(--hx-lav-1); border: 2px solid var(--hx-ink); box-shadow: none; }
+html.heist[data-look="bold"] .sidebar { border-right: var(--bx-b); }
+html.heist[data-look="bold"] .nav-pill { background: var(--hx-lav-1); border: 2px solid var(--hx-ink); box-shadow: var(--bx-s-sm); }
+html.heist[data-look="bold"] .sidebar .nav-link { font-weight: 700; }
+html.heist[data-look="bold"] .sample-banner, html.heist[data-look="bold"] .nudge-banner { border: 2px dashed var(--hx-ink); }
+@media (max-width: 767px) { html.heist[data-look="bold"] .tabbar { border: var(--bx-b); box-shadow: var(--bx-s); background: #FFFFFF; } html.heist[data-look="bold"] .tab-link[aria-current="page"] { background: var(--hx-lav-1); box-shadow: inset 0 0 0 2px var(--hx-ink); } }
+html.heist[data-look="bold"] .hx-rise { animation-name: bx-pop; animation-duration: .6s; }
+@keyframes bx-pop { 0% { opacity: 0; transform: translateY(24px) scale(.96) rotate(-1deg); } 70% { transform: translateY(-3px) scale(1.01); } }
+
+/* ---------------- MIX: soft layout, bold accents ---------------- */
+html.heist[data-look="mix"] {
+  --mx-s: 4px 4px 0 var(--hx-ink);
+  --bx-display: "Rubik", "Inter", "DM Sans", system-ui, sans-serif;
+}
+html.heist[data-look="mix"] .hx-amount { font-family: var(--bx-display); font-style: italic; font-weight: 800; letter-spacing: -.02em; color: var(--hx-ink); text-shadow: 4px 4px 0 var(--hx-lav-1); }
+html.heist[data-look="mix"] .hx-amount .hx-cents { color: var(--hx-lav-4); }
+html.heist[data-look="mix"] .btn-primary { background: var(--hx-lav-3); border: 2px solid var(--hx-ink); color: #FFFFFF; box-shadow: var(--mx-s); transition: transform .15s ease, box-shadow .15s ease; }
+html.heist[data-look="mix"] .btn-primary:hover { background: var(--hx-lav-3); transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--hx-ink); }
+html.heist[data-look="mix"] .btn-primary:active { transform: translate(4px, 4px); box-shadow: none; }
+html.heist[data-look="mix"] .btn-primary .icon { color: #FFFFFF; }
+html.heist[data-look="mix"] .hx-chip { border: 2px solid var(--hx-ink); box-shadow: 2px 2px 0 var(--hx-ink); background: #FFFFFF; }
+html.heist[data-look="mix"] .hx-tile.is-ink { box-shadow: 6px 6px 0 var(--hx-lav-2); }
+html.heist[data-look="mix"] .hx-hero { border: 2px solid var(--hx-ink); box-shadow: 6px 6px 0 var(--hx-lav-3); }
+html.heist[data-look="mix"] .hx-tile-v, html.heist[data-look="mix"] .hx-fact strong { font-family: var(--bx-display); font-weight: 800; letter-spacing: -.01em; }
+html.heist[data-look="mix"] .hx-flag { border: 1.5px solid currentColor; }
+html.heist[data-look="mix"] .hx-track > b::after { border-color: var(--hx-ink); }
+
+@media (prefers-reduced-motion: reduce) { html.heist[data-look="bold"] .hx-rise { animation: none !important; } }
