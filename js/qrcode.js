@@ -1,4 +1,4 @@
-/* YOKO! Student · Offline QR Code Generator (Pure JS, zero dependencies).
+/* HEIST · Offline QR Code Generator (Pure JS, zero dependencies).
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 

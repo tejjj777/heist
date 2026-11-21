@@ -1,4 +1,4 @@
-/* YOKO! Student · Live Shared Group Budgets (Session 7)
+/* HEIST · Live Shared Group Budgets (Session 7)
    Uses Supabase JS for Realtime sync. The library is loaded only when groups are used,
    so a slow or blocked network never holds up the rest of the app. */
 'use strict';

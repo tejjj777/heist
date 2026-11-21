@@ -1,4 +1,4 @@
-/* YOKO! Student · Bill Photo Splitter, UPI Settle-Up, and Parent Top-Up.
+/* HEIST · Bill Photo Splitter, UPI Settle-Up, and Parent Top-Up.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 
@@ -82,7 +82,7 @@ function bsRenderStage(form, data, assignments) {
       <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
           <strong>📸 Snap / Upload bill receipt</strong>
-          <p class="small muted" style="margin:0">Take a photo and YOKO! reads the items and prices on this device.</p>
+          <p class="small muted" style="margin:0">Take a photo and HEIST reads the items and prices on this device.</p>
         </div>
         <div class="row" style="gap:8px">
           <button type="button" class="btn btn-sm btn-primary" id="bs-snap-btn">${ICON.upload}<span>Camera / Upload</span></button>
@@ -798,7 +798,7 @@ function openTopUpModal() {
     return `
       <div class="stack" id="tu-wrap">
         <div class="alert alert-warn small mb">
-          Your safe-to-spend is currently in the <strong>red</strong>. YOKO! helps you draft an honest, transparent breakdown to share with your parents.
+          Your safe-to-spend is currently in the <strong>red</strong>. HEIST helps you draft an honest, transparent breakdown to share with your parents.
         </div>
 
         <div class="form-grid two mb">

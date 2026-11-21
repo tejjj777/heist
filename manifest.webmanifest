@@ -1,6 +1,6 @@
 {
-  "name": "YOKO! Student",
-  "short_name": "YOKO! Student",
+  "name": "HEIST",
+  "short_name": "HEIST",
   "description": "Plan your paycheck, pay off debt, budget and save. Everything stays on your device.",
   "start_url": "./index.html",
   "scope": "./",

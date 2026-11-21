@@ -1,4 +1,4 @@
-/* YOKO! Student · Account and end-to-end encrypted sync (Supabase).
+/* HEIST · Account and end-to-end encrypted sync (Supabase).
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -216,7 +216,7 @@ async function startSync() {
   if (syncReady() && Sync.acc.dirty) queueSync(500);
 }
 function bindSync() {
-  addEventListener('hashchange', () => {   // link opened in a tab that already had YOKO! open
+  addEventListener('hashchange', () => {   // link opened in a tab that already had HEIST open
     const p = takeAuthFromURL(); if (!p) return;
     closeModal(true); render(); finishLinkSignIn(p);
   });
@@ -248,8 +248,8 @@ function syncStatusText() {
 }
 function accountPanelInner() {
   const a = Sync.acc;
-  if (!canCrypto()) return '<p class="small muted">Sync works when YOKO! is opened from its website (https), not from a saved file.</p>';
-  if (!a || !a.uid) return `<p class="small muted">Use YOKO! on your phone and computer. Your data is locked with your passphrase before it leaves this device, so nobody else can read it, not even us.</p>
+  if (!canCrypto()) return '<p class="small muted">Sync works when HEIST is opened from its website (https), not from a saved file.</p>';
+  if (!a || !a.uid) return `<p class="small muted">Use HEIST on your phone and computer. Your data is locked with your passphrase before it leaves this device, so nobody else can read it, not even us.</p>
     <div class="row"><button type="button" class="btn btn-primary" data-action="sync-signin">Sign in or make an account</button></div>`;
   const who = `<p>Signed in as <strong>${esc(a.email || '')}</strong></p>`;
   if (!a.refresh) return `${who}<p class="small muted">Your sign-in ran out. Sign in again to keep syncing.</p><div class="row"><button type="button" class="btn btn-primary" data-action="sync-signin">Sign in again</button><button type="button" class="btn" data-action="sync-signout">Sign out</button></div>`;
@@ -300,10 +300,10 @@ const sendSignInEmail = email => {
   return sbCall('/auth/v1/otp?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { method: 'POST', auth: false, body });
 };
 function syncSignIn(prefill) {
-  if (!canCrypto()) { toast('Sync works when YOKO! is opened from its website (https), not from a saved file.', 5000); return; }
+  if (!canCrypto()) { toast('Sync works when HEIST is opened from its website (https), not from a saved file.', 5000); return; }
   openModal({
     title: 'Sync across devices', submitLabel: 'Email me a link',
-    body: `<p>Sign in with your email to use YOKO! on any device. New here? This makes your account. We’ll email you a sign-in link.</p>
+    body: `<p>Sign in with your email to use HEIST on any device. New here? This makes your account. We’ll email you a sign-in link.</p>
       <p class="small muted">Your data is locked with a passphrase on this device before it’s sent. Nobody else can read it, not even us.</p>
       <div class="field"><label for="acc-email">Email</label><input id="acc-email" class="input" type="email" inputmode="email" autocomplete="email" maxlength="200" value="${esc(prefill || (Sync.acc && Sync.acc.email) || '')}" aria-describedby="acc-email-err"></div>
       <p class="field-error" id="acc-email-err"></p>
@@ -380,7 +380,7 @@ async function finishLinkSignIn(p) {
     toast(/expired|otp_expired|invalid/i.test(`${p.error} ${p.desc}`) ? 'That sign-in link expired or was already used. Ask for a new one under Settings → Account.' : `Sign-in didn’t work: ${p.desc || p.error}`, 7000);
     return;
   }
-  if (!canCrypto()) { toast('Sync works when YOKO! is opened from its website (https).'); return; }
+  if (!canCrypto()) { toast('Sync works when HEIST is opened from its website (https).'); return; }
   try {
     const res = await fetch(SYNC_URL + '/auth/v1/user', { headers: { apikey: SYNC_KEY, Authorization: 'Bearer ' + p.access_token } });
     if (!res.ok) throw new Error('That sign-in link didn’t work. Ask for a new one.');
@@ -435,7 +435,7 @@ function syncShowRecovery(code, first) {
       <label class="check" style="margin-top:12px"><input type="checkbox" id="acc-rk-ok"> I’ve saved my recovery key</label><p class="field-error" id="acc-err"></p>`,
     onMount: form => {
       form.querySelector('#acc-rk-copy').addEventListener('click', () => { (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(() => toast('Copied')).catch(() => toast('Couldn’t copy. Write it down instead.')); });
-      form.querySelector('#acc-rk-dl').addEventListener('click', () => downloadFile('yoko-recovery-key.txt', `YOKO! recovery key\r\nAccount: ${Sync.acc.email}\r\nKey: ${code}\r\nMade: ${todayISO()}\r\n\r\nKeep this safe. With your email, it opens your synced data if you forget your passphrase.\r\n`, 'text/plain'));
+      form.querySelector('#acc-rk-dl').addEventListener('click', () => downloadFile('yoko-recovery-key.txt', `HEIST recovery key\r\nAccount: ${Sync.acc.email}\r\nKey: ${code}\r\nMade: ${todayISO()}\r\n\r\nKeep this safe. With your email, it opens your synced data if you forget your passphrase.\r\n`, 'text/plain'));
     },
     onSubmit: form => {
       if (!form.querySelector('#acc-rk-ok').checked) { fieldErr(form, 'acc-err', 'Save it first, then tick the box.'); return false; }
@@ -503,7 +503,7 @@ function syncChoose(row, remote) {
   if (!hasAnyData() || state.meta.isSample) { finish(true); return; }
   Sync.acc.setup = 'choose'; saveAcc();
   openModal({
-    title: 'Which data should YOKO! use?', hideSubmit: true, cancelLabel: 'Decide later',
+    title: 'Which data should HEIST use?', hideSubmit: true, cancelLabel: 'Decide later',
     body: `<p>This device already has data, and so does your account.</p>
       <div class="welcome-actions"><button type="button" class="btn btn-primary" id="acc-use-acct">Use my account’s data</button><button type="button" class="btn" id="acc-use-here">Use this device’s data</button></div>
       <p class="small muted">The one you don’t pick is set aside on this device. You can switch to it later under Settings → Account.</p>`,

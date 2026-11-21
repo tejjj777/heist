@@ -1,4 +1,4 @@
-/* YOKO! Student · Payslip reader (pdf.js, loaded on demand).
+/* HEIST · Payslip reader (pdf.js, loaded on demand).
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -210,12 +210,12 @@ function psReviewStage(form, r, meta) {
       <div class="field span-2"><label for="ps-next">Next pay date</label><input id="ps-next" class="input" type="date" value="${defaultNextPay(r)}"></div>
     </div>
     <div class="calc-line" id="ps-check" aria-live="polite"></div>
-    <fieldset><legend>What should YOKO! do with it?</legend><div style="display:grid;gap:8px">
+    <fieldset><legend>What should HEIST do with it?</legend><div style="display:grid;gap:8px">
       <label class="check"><input type="checkbox" id="ps-use-income" checked> Set my paycheck from this payslip</label>
       <label class="check"><input type="checkbox" id="ps-use-tax" checked> Log the tax in Wallet → Taxes</label>
       <label class="check"><input type="checkbox" id="ps-use-history" checked> Save it to my payslip history</label>
     </div></fieldset>
-    ${meta.lines && meta.lines.length ? `<details class="collapsible"><summary>See the text YOKO! read</summary><div class="details-body"><pre class="ps-text">${esc(meta.lines.slice(0, 80).join('\n'))}</pre></div></details>` : ''}
+    ${meta.lines && meta.lines.length ? `<details class="collapsible"><summary>See the text HEIST read</summary><div class="details-body"><pre class="ps-text">${esc(meta.lines.slice(0, 80).join('\n'))}</pre></div></details>` : ''}
     ${meta.source === 'history' ? '' : '<p class="small"><button type="button" class="linklike" id="ps-again">Use a different file</button></p>'}`;
   const num = id => { const v = parseNum(st.querySelector('#ps-' + id).value); return Number.isFinite(v) ? v : 0; };
   const check = () => {

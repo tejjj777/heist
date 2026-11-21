@@ -1,4 +1,4 @@
-/* YOKO! Student · Validation, modals, forms, paycheck, settings.
+/* HEIST · Validation, modals, forms, paycheck, settings.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -566,8 +566,8 @@ function openSettings(tab = 'general') {
   const helpGroups = `<div class="settings-group"><h3>Checks</h3><div class="test-badge" id="test-badge"><span class="tb-icon" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20"></circle><path d="M13 22.5l6 6 12-13"></path></svg></span><div><p class="tb-count" aria-live="polite">Checking…</p><p class="small muted">The app’s maths, tested on your device just now.</p></div></div></div>
       <div class="settings-group"><h3>Tutorials</h3><p class="small muted">The full tutorial is also on the Home page.</p>
       <div class="row"><button type="button" class="btn btn-primary btn-sm" data-action="tour-all">Full tutorial</button><button type="button" class="btn btn-sm" data-action="open-tutorials">Pick a page</button><button type="button" class="btn btn-sm" data-action="whats-new">What’s new</button></div></div>
-      <div class="settings-group"><h3>Contact and legal</h3><p class="small muted">${SUPPORT_EMAIL ? `Questions, bugs or a data request? Email us at ${esc(SUPPORT_EMAIL)}.` : 'How YOKO! handles your data, and the terms for using it.'}</p>
-      <div class="row">${SUPPORT_EMAIL ? `<a class="btn btn-sm" href="mailto:${esc(SUPPORT_EMAIL)}?subject=${encodeURIComponent('YOKO! Student help')}">Email support</a>` : ''}<a class="btn btn-sm" href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a><a class="btn btn-sm" href="terms.html" target="_blank" rel="noopener">Terms of Use</a></div></div>
+      <div class="settings-group"><h3>Contact and legal</h3><p class="small muted">${SUPPORT_EMAIL ? `Questions, bugs or a data request? Email us at ${esc(SUPPORT_EMAIL)}.` : 'How HEIST handles your data, and the terms for using it.'}</p>
+      <div class="row">${SUPPORT_EMAIL ? `<a class="btn btn-sm" href="mailto:${esc(SUPPORT_EMAIL)}?subject=${encodeURIComponent('HEIST help')}">Email support</a>` : ''}<a class="btn btn-sm" href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a><a class="btn btn-sm" href="terms.html" target="_blank" rel="noopener">Terms of Use</a></div></div>
       <div class="settings-group"><h3>Self-tests</h3><details class="set-details"><summary class="small">For checking the app’s math</summary><p class="small muted">Checks loan payments, payoff order, goals, safe-to-spend and amount words like “2 lakh”.</p>
       <div class="row"><button type="button" class="btn btn-sm" data-action="run-tests">Run self-tests</button></div><div id="test-out"></div></details></div>`;
   const groups = (prefsHTML() + moreSettingsHTML() + accountGroupHTML() + dataGroups + helpGroups).split(/(?=<div class="settings-group">)/).filter(g => g.trim());
@@ -627,14 +627,14 @@ function importJSON(file) {
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      if (!data || typeof data !== 'object' || (!data.income && !data.debts && !data.goals)) throw new Error('Not a YOKO! backup');
+      if (!data || typeof data !== 'object' || (!data.income && !data.debts && !data.goals)) throw new Error('Not a HEIST backup');
       if (!confirm('Replace all current data with the imported file?')) return;
       const seenTour = state.meta.tourDone, seenVer = state.meta.tourVersion;
       state = normalizeState(data);
       state.meta.tourDone = seenTour || state.meta.tourDone;
       state.meta.tourVersion = Math.max(seenVer || 0, state.meta.tourVersion || 0);
       closeModal(true); commit(); toast('Data imported');
-    } catch (err) { toast('That file isn’t a valid YOKO! backup.'); }
+    } catch (err) { toast('That file isn’t a valid HEIST backup.'); }
   };
   reader.onerror = () => toast('Couldn’t read that file.');
   reader.readAsText(file);

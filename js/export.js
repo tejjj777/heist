@@ -1,4 +1,4 @@
-/* YOKO! Student · CSV exports.
+/* HEIST · CSV exports.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

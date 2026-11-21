@@ -1,4 +1,4 @@
-/* YOKO! Student · Fun layer: feels-like, badges, confetti, money actions, cards, Money Wrapped, command palette, preferences, theme.
+/* HEIST · Fun layer: feels-like, badges, confetti, money actions, cards, Money Wrapped, command palette, preferences, theme.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -674,7 +674,7 @@ function prefsHTML() {
   return `
   <div class="settings-group"><h3>Theme and sound</h3><div class="form-grid two">
     <fieldset class="theme-pick span-2"><legend class="field-label">Theme</legend>${THEME_KEYS.map(k => `<label class="theme-opt"><input type="radio" name="set-theme" id="set-theme-${k}" value="${k}" data-setting="theme" data-kind="select" ${resolvedTheme() === k ? 'checked' : ''}><span class="swatch" aria-hidden="true"><i style="background:${THEMES[k].swatch[0]}"></i><i style="background:${THEMES[k].swatch[1]}"></i></span>${esc(THEMES[k].label)}</label>`).join('')}</fieldset>
-    <div class="field"><span class="field-label">Chart colors</span>${segRadio({ name: 'set-chartc', label: 'Chart colors', value: s.chartColors === 'rainbow' ? 'rainbow' : 'yoko', attrs: 'data-setting="chartColors" data-kind="select"', options: [['yoko', 'YOKO theme', 'YOKO theme, shades of your theme'], ['rainbow', 'Rainbow', 'Rainbow, every slice a different color']] })}</div>
+    <div class="field"><span class="field-label">Chart colors</span>${segRadio({ name: 'set-chartc', label: 'Chart colors', value: s.chartColors === 'rainbow' ? 'rainbow' : 'yoko', attrs: 'data-setting="chartColors" data-kind="select"', options: [['yoko', 'HEIST theme', 'HEIST theme, shades of your theme'], ['rainbow', 'Rainbow', 'Rainbow, every slice a different color']] })}</div>
     <div class="field"><span class="field-label">Sound effects</span><label class="check"><input type="checkbox" id="set-sound" data-setting="sound" data-kind="bool" ${s.sound ? 'checked' : ''}> Play sounds</label></div>
   </div></div>
   <div class="settings-group"><h3>Hours of work</h3><p class="small muted">Prices also show as how long you’d have to work for them.</p><div class="form-grid two">
@@ -728,7 +728,7 @@ function applyTheme() {
   if (btn) { btn.innerHTML = ICON.palette; btn.title = `Theme: ${THEMES[th].label} (click to change)`; btn.setAttribute('aria-label', `Change theme. Current: ${THEMES[th].label}`); }
   setupChartDefaults();
 }
-/** Cycle YOKO! → Black & Blue → Black & Red. */
+/** Cycle HEIST → Black & Blue → Black & Red. */
 function toggleTheme() {
   const i = THEME_KEYS.indexOf(resolvedTheme());
   setTheme(THEME_KEYS[(i + 1) % THEME_KEYS.length]);

@@ -1,4 +1,4 @@
-/* YOKO! Student · Click delegation (data-action handlers), quick add menu.
+/* HEIST · Click delegation (data-action handlers), quick add menu.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -174,7 +174,7 @@ const ACTIONS = {
   'tour-page': el => startTour([el.dataset.chapter]),
   'enable-notifs': () => {
     state.meta.notifPromptDismissed = true;
-    const done = p => { commit(); toast(p === 'granted' ? 'Alerts are on. You’ll hear from YOKO! at 80% and 100% of a budget.' : 'No problem. Alerts will show inside YOKO! instead.', 4500); };
+    const done = p => { commit(); toast(p === 'granted' ? 'Alerts are on. You’ll hear from HEIST at 80% and 100% of a budget.' : 'No problem. Alerts will show inside HEIST instead.', 4500); };
     try { Promise.resolve(Notification.requestPermission()).then(done, () => done('denied')); } catch (e) { done('denied'); }
   },
   'dismiss-notifs': () => { state.meta.notifPromptDismissed = true; commit(); },

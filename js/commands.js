@@ -1,4 +1,4 @@
-/* YOKO! Student · Daily tick (month rollover, recurring, rewards), actions, CSV and commands.
+/* HEIST · Daily tick (month rollover, recurring, rewards), actions, CSV and commands.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* ---------- Daily tick: month rollover, recurring payments, rewards ---------- */

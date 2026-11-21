@@ -1,4 +1,4 @@
-/* YOKO! Student · Budget page, irregular income, yearly bills, where did my money go, price list.
+/* HEIST · Budget page, irregular income, yearly bills, where did my money go, price list.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

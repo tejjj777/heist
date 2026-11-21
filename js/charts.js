@@ -1,4 +1,4 @@
-/* YOKO! Student · Chart.js wrappers.
+/* HEIST · Chart.js wrappers.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

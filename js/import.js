@@ -1,4 +1,4 @@
-/* YOKO! Student · Bank SMS and statement import, OCR (Tesseract).
+/* HEIST · Bank SMS and statement import, OCR (Tesseract).
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* ---------- Import from bank SMS and statements ---------- */

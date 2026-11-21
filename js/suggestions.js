@@ -1,4 +1,4 @@
-/* YOKO! Student · Pick-from-a-list suggestions, checklists, subscription spotting, expense search and split.
+/* HEIST · Pick-from-a-list suggestions, checklists, subscription spotting, expense search and split.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

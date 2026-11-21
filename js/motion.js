@@ -1,4 +1,4 @@
-/* YOKO! Student · Motion: cards rise in, the tab pill slides, big numbers count up.
+/* HEIST · Motion: cards rise in, the tab pill slides, big numbers count up.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md).
    Runs after every render (see render() in router.js). Animations only play when you open a page or tab,
    not on every re-render, and never with reduced motion or when printing. */

@@ -1,4 +1,4 @@
-/* YOKO! Student · Debt payoff planner page.
+/* HEIST · Debt payoff planner page.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

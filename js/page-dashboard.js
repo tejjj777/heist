@@ -1,4 +1,4 @@
-/* YOKO! Student · Dashboard page (Home).
+/* HEIST · Dashboard page (Home).
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -11,7 +11,7 @@ function safeToSpendHero(week, maxDay) {
   if (!(inc > 0)) {   // no allowance yet: nothing is "overspent", there's just nothing to divide
     return `<div class="card safe-hero" id="safe-hero">
       <p class="stat-label">Safe to spend today</p>
-      <p class="safe-hero-reason">Add your allowance and YOKO! works out how much you can spend each day.</p>
+      <p class="safe-hero-reason">Add your allowance and HEIST works out how much you can spend each day.</p>
       <div class="safe-hero-actions no-print"><button type="button" class="btn btn-primary btn-sm" data-action="open-paycheck"><span>Set allowance</span></button></div>
     </div>`;
   }

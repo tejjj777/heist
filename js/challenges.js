@@ -1,4 +1,4 @@
-/* YOKO! Student · Challenges, should-I-buy-it and wishlist, split the bill, dashboard/goals extras.
+/* HEIST · Challenges, should-I-buy-it and wishlist, split the bill, dashboard/goals extras.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* ---------- Challenges ---------- */

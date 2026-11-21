@@ -1,4 +1,4 @@
-/* YOKO! Student · Rendering and hash router, app-icon shortcuts.
+/* HEIST · Rendering and hash router, app-icon shortcuts.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

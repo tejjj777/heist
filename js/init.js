@@ -1,4 +1,4 @@
-/* YOKO! Student · Startup.
+/* HEIST · Startup.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -133,7 +133,7 @@ function init() {
   applyPrivacy();
   applyCountry();        // day-first or month-first dates
   loadPriceUpdates();
-  if (loadFailed) setTimeout(() => toast('Your saved data couldn’t be read, so YOKO! started fresh. An untouched copy is kept in this browser.', 8000), 600);
+  if (loadFailed) setTimeout(() => toast('Your saved data couldn’t be read, so HEIST started fresh. An untouched copy is kept in this browser.', 8000), 600);
   bindEvents();
   bindMore();
   let fitT; addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitNumbers, 150); });

@@ -1,4 +1,4 @@
-/* YOKO! Student · Money Wrapped Story.
+/* HEIST · Money Wrapped Story.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 
@@ -283,7 +283,7 @@ function renderWrappedStory(form) {
       <div class="mw-card-tag">${esc(card.tag)}</div>
       ${card.render()}
       <div class="mw-brand-footer">
-        <span class="small font-bold" style="letter-spacing:1px">YOKO! WRAPPED</span>
+        <span class="small font-bold" style="letter-spacing:1px">HEIST WRAPPED</span>
         <span class="small muted">${activeWrappedCard + 1} of ${totalCards}</span>
       </div>
     </div>
@@ -363,7 +363,7 @@ function drawWrappedSquareCard(d, cardIndex) {
   // Top header: Brand & Month
   ctx.fillStyle = accent;
   ctx.font = font(700, 36);
-  ctx.fillText('YOKO! WRAPPED', 80, 110);
+  ctx.fillText('HEIST WRAPPED', 80, 110);
 
   ctx.fillStyle = '#94A3B8';
   ctx.font = font(600, 28);
@@ -518,7 +518,7 @@ function drawWrappedSquareCard(d, cardIndex) {
   // Footer: App watermark
   ctx.fillStyle = '#64748B';
   ctx.font = font(500, 24);
-  ctx.fillText('Personal Finance for University Students · yokomoney.app', 80, S - 70);
+  ctx.fillText('Personal Finance for University Students · HEIST', 80, S - 70);
 
   return c;
 }

@@ -1,4 +1,4 @@
-/* YOKO! Student · New-feature state, undo bar, privacy, backups, PWA install, recurring payments, month history.
+/* HEIST · New-feature state, undo bar, privacy, backups, PWA install, recurring payments, month history.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -135,7 +135,7 @@ async function writeBackupNow(announce) {
 async function linkBackupFile() {
   if (!BK.supported) { toast('This browser can’t link a file. Use “Download backup” instead.'); return; }
   try {
-    const h = await window.showSaveFilePicker({ suggestedName: 'yoko-backup.json', types: [{ description: 'YOKO! backup', accept: { 'application/json': ['.json'] } }] });
+    const h = await window.showSaveFilePicker({ suggestedName: 'yoko-backup.json', types: [{ description: 'HEIST backup', accept: { 'application/json': ['.json'] } }] });
     BK.handle = h; BK.perm = 'granted';
     try { await idbSet('backupHandle', h); } catch (e) { /* this browser can't remember the file; it still works until you close the tab */ }
     await writeBackupNow(true);
@@ -350,7 +350,7 @@ function installHTML() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   if (standalone) return '<p class="small"><span class="badge badge-success">Installed</span> You’re already using it as an app.</p>';
   const hosted = /^https?:$/.test(location.protocol);
-  return `${installPrompt ? '<div class="row"><button type="button" class="btn btn-primary" data-action="install-app">Install YOKO! on this device</button></div>' : ''}
+  return `${installPrompt ? '<div class="row"><button type="button" class="btn btn-primary" data-action="install-app">Install HEIST on this device</button></div>' : ''}
     <ol class="small steps-list">
       ${hosted ? '' : '<li>First the <strong>yoko</strong> folder has to be online. Easiest free way: drag it onto <strong>app.netlify.com/drop</strong>. There are steps in <em>HOW-TO-INSTALL.md</em>.</li>'}
       <li><strong>Android (Chrome):</strong> open the link, tap ⋮ → <em>Install app</em> or <em>Add to Home screen</em>.</li>

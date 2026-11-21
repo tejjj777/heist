@@ -1,8 +1,8 @@
-/* YOKO! Student service worker: makes the installed app open offline.
+/* HEIST service worker: makes the installed app open offline.
    The page and its own code (js/, css/) are fetched fresh when online (so updates arrive together) and fall back to the cached copy offline.
    Everything else is cache-first; the large OCR files are cached the first time they're used. */
-const CACHE = 'yoko-student-v49';   // bump the number every session
-const PREFIX = 'yoko-student-';    // only ever delete our own caches (main YOKO! may share this origin)
+const CACHE = 'yoko-student-v50';   // bump the number every session
+const PREFIX = 'yoko-student-';    // only ever delete our own caches (main HEIST may share this origin)
 const CORE = [
   './', './index.html', './manifest.webmanifest', './prices.json',
   './assets/chart.umd.min.js', './assets/logo.png', './assets/favicon.png', './assets/icon-192.png', './assets/icon-512.png',

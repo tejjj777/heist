@@ -1,4 +1,4 @@
-/* YOKO! Student · XP and levels, roast mode, money weather.
+/* HEIST · XP and levels, roast mode, money weather.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* ---------- XP & levels ---------- */

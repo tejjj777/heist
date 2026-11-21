@@ -1,4 +1,4 @@
-/* YOKO! Student · AI Command Bar & Budget Autopilot.
+/* HEIST · AI Command Bar & Budget Autopilot.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 
@@ -210,7 +210,7 @@ function bindCommandBar() {
       mic.innerHTML = ICON.mic;
       inp.placeholder = "Ask AI: 'can I afford a 1500 concert on Saturday?'";
       toast(event.error === 'no-speech' ? 'Didn’t catch that. Tap the mic and try again.'
-        : event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'YOKO! can’t use the mic. Allow it in your browser, or just type.'
+        : event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'HEIST can’t use the mic. Allow it in your browser, or just type.'
         : 'Voice isn’t working right now. You can type it instead.', 4000);
     };
 

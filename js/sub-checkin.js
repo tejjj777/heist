@@ -1,4 +1,4 @@
-/* YOKO! Student · Monthly subscription check-in.
+/* HEIST · Monthly subscription check-in.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

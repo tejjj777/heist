@@ -1,4 +1,4 @@
-/* YOKO! Student · Guided tour and what's new.
+/* HEIST · Guided tour and what's new.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -10,7 +10,7 @@ const TOUR_VERSION = 38;   // bumped: solid top bar, section bar hides on scroll
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
-    { title: 'Hey, welcome to YOKO!', text: `<img class="welcome-logo" src="${LOGO_URI}" alt="YOKO! Student">This app helps you see where your allowance goes before it’s gone. No bank login needed. Use the arrow keys or the buttons to move along, and Esc to stop whenever you like.` },
+    { title: 'Hey, welcome to HEIST', text: `<img class="welcome-logo" src="${LOGO_URI}" alt="HEIST">This app helps you see where your allowance goes before it’s gone. No bank login needed. Use the arrow keys or the buttons to move along, and Esc to stop whenever you like.` },
     { target: ['#side-nav', '#tab-nav'], title: 'Six main screens', text: 'Home, Spend, Budget, Split, Goals and Debt. Tap any of them at the bottom of the screen (or along the top on a laptop). Each screen has tabs along the top for the details.' },
     { target: ['#quickadd-btn'], title: 'The green + button', text: 'This is how you add almost anything: an expense, a receipt photo, a bank message, cash in or out, a bill to split, income, your pocket money, a recurring payment, a semester fee, a goal, a gift, a subscription, an IOU or a travel trip.' },
     { target: ['#palette-btn'], title: 'Search and shortcuts', text: 'Type things like “250 food”, “save 500 laptop” or “pay 3000 credit” and hit Enter. It also finds any screen or setting. On a laptop, Ctrl+K opens it.' },
@@ -19,7 +19,7 @@ const CHAPTERS = [
     { title: 'Your data stays with you', text: 'Everything saves on your phone as you go, and the app works offline. If you make an account, your data is locked with your passphrase before it syncs, so nobody else can read it.' }
   ] },
   { id: 'dashboard', icon: '🏠', title: 'Home', blurb: 'Safe to spend, savings, forecast, semester and your pet.', route: 'dashboard/overview', tryIt: ['See my Money Wrapped', () => openWrapped()], steps: [
-    { route: 'dashboard/overview', target: ['#view-dashboard [data-action="scan-receipt"]', '#quickadd-btn'], title: 'Scan a receipt', text: 'Take a photo of any bill and YOKO! reads the shop, total and date for you. Check it, pick a category, done. It reads the photo on your phone, nothing gets uploaded.' },
+    { route: 'dashboard/overview', target: ['#view-dashboard [data-action="scan-receipt"]', '#quickadd-btn'], title: 'Scan a receipt', text: 'Take a photo of any bill and HEIST reads the shop, total and date for you. Check it, pick a category, done. It reads the photo on your phone, nothing gets uploaded.' },
     { route: 'dashboard/overview', target: ['#view-dashboard [data-action="tour-all"]'], title: 'Full tutorial', text: 'This button brings you back here any time. What’s new next to it shows the latest changes. Every screen also has a short tour in its ⋯ menu.' },
     { route: 'dashboard/overview', target: ['#view-dashboard .view-actions .menu-wrap', '#view-dashboard .view-actions'], title: 'The ⋯ menu', text: 'Money Wrapped, loading or removing demo data, a tour of just this page, and printing or saving as PDF.' },
     { route: 'dashboard/overview', target: ['#safe-hero'], title: 'Safe to spend today', text: 'The most important number in the app. It’s exactly how much you can still spend today. We take what’s left of your allowance, remove bills and debt payments that are still due, split it over the days until your next allowance, then subtract what you already spent today.' },
@@ -32,10 +32,10 @@ const CHAPTERS = [
     { route: 'dashboard/overview', target: ['#semester-card'], title: 'Semester plan', text: 'Add the expensive months coming up, like exam fees or a fest. It tells you if what you’re saving now will cover them.' },
     { route: 'dashboard/overview', target: ['#pet-card'], title: 'Meet Yoko', text: 'Your money pet. It earns XP when you log spends, stick to your budget and finish challenges, and it reacts to how your month is going. Rename it in Settings.' },
     { route: 'dashboard/overview', target: ['#quests-card'], title: 'Coming up', text: 'Challenges in progress, things on your wishlist, birthdays you’re buying gifts for and bills due soon, all in one list.' },
-    { route: 'dashboard/overview', target: ['#sub-check', '#safe-hero'], title: 'Subscription check-in', text: 'Once a month YOKO! asks if you actually used each subscription. If you didn’t, it shows what it costs you in a year, so cancelling is an easy call.' },
+    { route: 'dashboard/overview', target: ['#sub-check', '#safe-hero'], title: 'Subscription check-in', text: 'Once a month HEIST asks if you actually used each subscription. If you didn’t, it shows what it costs you in a year, so cancelling is an easy call.' },
     { route: 'dashboard/forecast', target: ['#weather', '#view-dashboard .subtabs-inner'], title: 'Money weather', text: 'A quick mood check for your month. Sunny when you’re on track, stormy when things are getting tight.' },
     { route: 'dashboard/calendar', target: ['#cal-card'], title: 'Bill calendar', text: 'Every bill, fee and allowance day on one calendar. From its ⋯ menu you can add them all to your phone’s calendar.' },
-    { route: 'dashboard/charts', target: ['#view-dashboard .grid-2', '#view-dashboard .subtabs-inner'], title: 'Charts', text: 'Where your money goes by category, and how close each goal is. Change graph color switches between YOKO theme and Rainbow.' }
+    { route: 'dashboard/charts', target: ['#view-dashboard .grid-2', '#view-dashboard .subtabs-inner'], title: 'Charts', text: 'Where your money goes by category, and how close each goal is. Change graph color switches between HEIST theme and Rainbow.' }
   ] },
   { id: 'ai', icon: '✨', title: 'Ask the AI', blurb: 'Type or talk to log spends and ask questions.', route: 'dashboard/overview', steps: [
     { route: 'dashboard/overview', target: ['#command-bar'], title: 'Just ask', text: 'Type the way you’d text a friend. “Spent 120 on chai.” “Can I afford a 1500 concert on Saturday?” “How much did I spend on food this week?” It answers with your real numbers.' },
@@ -53,23 +53,23 @@ const CHAPTERS = [
     { route: 'spend/insights', target: ['#w-ghost-spending'], title: 'Ghost spending', text: 'Small payments you don’t notice, like ₹20 here and ₹40 there. This adds them up so you can see what they really cost.' },
     { route: 'spend/insights', target: ['#w-time-of-day', '#w-spending-heatmap', '#view-spend .subtabs-inner'], title: 'When you spend', text: 'Morning, afternoon, evening or late night. Most people find their late-night spends are the ones they regret.' },
     { route: 'spend/insights', target: ['#w-spending-heatmap'], title: 'Spending heatmap', text: 'Every day as a little square. Darker means you spent more. Tap a day to see what happened.' },
-    { route: 'spend/recurring', target: ['#recurring-card'], title: 'Recurring payments', text: 'Rent, mess fees, phone recharge, subscriptions. Add them once and YOKO! logs them on the right day and counts them before telling you what’s safe to spend.' },
+    { route: 'spend/recurring', target: ['#recurring-card'], title: 'Recurring payments', text: 'Rent, mess fees, phone recharge, subscriptions. Add them once and HEIST logs them on the right day and counts them before telling you what’s safe to spend.' },
     { route: 'spend/cash', target: ['#w-cash'], title: 'Cash', text: 'Took ₹500 out of the ATM? Log it here so cash spends don’t vanish from your budget. You can also log auto, metro and cab trips from the + button.' }
   ] },
   { id: 'budget', icon: '📊', title: 'Budget', blurb: 'Your plan, your income, and what changed.', route: 'budget/plan', steps: [
     { route: 'budget/plan', target: ['#budget-hero'], title: 'The month at a glance', text: 'How much is left this month, and a bar showing how your income is split across categories.' },
     { route: 'budget/plan', target: ['#income-log', '#budget-hero'], title: 'Income', text: 'Pocket money, part-time pay, money from home. Log what comes in so the plan matches reality. If your allowance comes at random times, mark it as irregular when you set it up.' },
     { route: 'budget/plan', target: ['#cat-card'], title: 'Category limits', text: 'Drag a slider to change a limit. Add your own with Add category (or “+ New category” while logging a spend). Edit categories lets you rename, change type or bucket, and tap ↻ to carry unspent money into next month. You get a heads-up at 80% and 100%.' },
-    { route: 'budget/plan', target: ['#cat-card'], title: 'Freeze a category', text: 'Trying to cut back on something? Freeze it for 7 to 30 days from Goals → Challenges. If you log a spend there, YOKO! reminds you how many days you have left.' },
+    { route: 'budget/plan', target: ['#cat-card'], title: 'Freeze a category', text: 'Trying to cut back on something? Freeze it for 7 to 30 days from Goals → Challenges. If you log a spend there, HEIST reminds you how many days you have left.' },
     { route: 'budget/plan', target: ['#view-budget .grid-2'], title: '50 / 30 / 20 check', text: 'Compares your needs, wants and savings with the common 50/30/20 split. Next to it, your allowance is split into pots like Hostel & Mess, Daily spending and Savings.' },
     { route: 'budget/where', target: ['#where-card'], title: 'Where did it go?', text: 'This month against the same point last month, category by category. You see right away what went up and what went down.' },
-    { route: 'budget/yearly', target: ['#yearly-card'], title: 'Yearly and semester fees', text: 'Exam fees, hostel deposits, yearly subscriptions. YOKO! tells you how much to put aside each month so they don’t wipe you out.' },
+    { route: 'budget/yearly', target: ['#yearly-card'], title: 'Yearly and semester fees', text: 'Exam fees, hostel deposits, yearly subscriptions. HEIST tells you how much to put aside each month so they don’t wipe you out.' },
     { route: 'budget/history', target: ['#history-card'], title: 'History', text: 'Every past month saved automatically, so you can look back and spot patterns.' }
   ] },
   { id: 'split', icon: '👥', title: 'Split', blurb: 'IOUs, bill splitting, UPI and live groups.', route: 'split/ious', tryIt: ['Split a bill', () => billSplitterModal()], steps: [
     { route: 'split/ious', target: ['#w-balances'], title: 'Who owes who', text: 'What friends owe you and what you owe them, totalled per person. The moving lines show which way the money goes.' },
     { route: 'split/ious', target: ['.friend-list', '#w-balances'], title: 'Settle up', text: 'Tap Pay or Remind next to a name. If you owe them, pick GPay, PhonePe or Paytm and pay in one tap. If they owe you, copy your UPI ID or the ready-made message and send it. Then mark it settled.' },
-    { route: 'split/ious', target: ['[data-action="split-bill"]', '#w-ious'], title: 'Split a bill from a photo', text: 'Snap the restaurant bill. YOKO! reads every item, you tap who had what, and tax and service charge get shared fairly. Your share goes into your expenses, the rest become IOUs.' },
+    { route: 'split/ious', target: ['[data-action="split-bill"]', '#w-ious'], title: 'Split a bill from a photo', text: 'Snap the restaurant bill. HEIST reads every item, you tap who had what, and tax and service charge get shared fairly. Your share goes into your expenses, the rest become IOUs.' },
     { route: 'split/ious', target: ['#w-ious'], title: 'IOUs', text: 'Lent someone ₹200 for an auto? Add an IOU with a due date so it doesn’t get forgotten.' },
     { route: 'split/groups', target: ['[data-action="create-group"]', '#view-split .view-head'], title: 'Live groups', text: 'For a flat, a trip or a club. Create a group and share the 6-letter code, or join with a friend’s code. Expenses anyone adds show up for everyone straight away, split equally or by amount, and your share lands in your own budget.' },
     { route: 'split/groups', target: ['#view-split .view-head'], title: 'Pay inside a group', text: 'Open a group to see who paid what. Add your UPI ID once and everyone in the group sees it. Tap Pay with UPI next to anyone you owe and it’s already filled in.' },
@@ -77,7 +77,7 @@ const CHAPTERS = [
   ] },
   { id: 'goals', icon: '🎯', title: 'Goals & Savings', blurb: 'What you save, what you want, and staying on track.', route: 'goals/savings', tryIt: ['Try “Should I buy it?”', () => shouldIBuy()], steps: [
     { route: 'goals/savings', target: ['#savings-card'], title: 'How much you save', text: 'Your total, this month, savings rate and a six-month chart. Money added to goals and spent in savings categories both count.' },
-    { route: 'goals/goals', target: ['.hang-card', '#view-goals .view-head'], title: 'Goals', text: 'A laptop, a trip, an emergency fund. Give it a target and a deadline and YOKO! tells you how much to save each month. Tap the Add button on a tag whenever you put some aside, or + for another amount. Plan and history has the details.' },
+    { route: 'goals/goals', target: ['.hang-card', '#view-goals .view-head'], title: 'Goals', text: 'A laptop, a trip, an emergency fund. Give it a target and a deadline and HEIST tells you how much to save each month. Tap the Add button on a tag whenever you put some aside, or + for another amount. Plan and history has the details.' },
     { route: 'goals/wishlist', target: ['#wishlist-card'], title: 'Wishlist with a 48-hour wait', text: 'Want something pricey? Add it here first. After 48 hours you decide if you still want it. Most of the time, you won’t. “Should I buy it?” gives you a straight yes, wait or no based on your budget.' },
     { route: 'goals/challenges', target: ['#challenges-card'], title: 'Challenges', text: 'No-spend days, a spending cap, the 52-week savings challenge, or freezing a category like food delivery. Finish them for bonus XP.' },
     { route: 'goals/gifts', target: ['#gifts-card', '#view-goals .view-head'], title: 'Gifts', text: 'Birthdays and festivals coming up, with a budget for each so they don’t sneak up on you.' }
@@ -92,9 +92,9 @@ const CHAPTERS = [
   { id: 'settings', icon: '⚙️', title: 'Settings', blurb: 'Country, currency, account, backups and help.', tryIt: ['Open Settings', () => openSettings()], steps: [
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Basics', text: 'Pick your language, country and currency, switch theme and chart colors, flip sounds or privacy on and off, and rename your pet.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Money', text: 'Add your monthly work hours and prices also show as how long you’d work for them. Add savings that aren’t in a goal to see how long your money would last.' },
-    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Account', text: 'Make an account to use YOKO! on more than one device. Everything is locked with your passphrase before it leaves your phone. Keep your recovery key somewhere safe.' },
+    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Account', text: 'Make an account to use HEIST on more than one device. Everything is locked with your passphrase before it leaves your phone. Keep your recovery key somewhere safe.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Data', text: 'Download a backup, set up automatic backups to a file, import a backup, see the shop categories it has learned, load demo data, redo the setup questions, or reset everything.' },
-    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Help', text: 'A live check of the app’s math (it should say 133 of 133), all the tutorials, how to add YOKO! to your home screen, and our Privacy Policy, Terms and support email.' }
+    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Help', text: 'A live check of the app’s math (it should say 133 of 133), all the tutorials, how to add HEIST to your home screen, and our Privacy Policy, Terms and support email.' }
   ] },
   { id: 'new', icon: '✨', title: 'What’s new', blurb: 'A solid top bar and a page menu that slides away as you scroll.', hidden: true, steps: [
     { target: ['#side-nav'], title: 'More room', text: 'On a laptop, the page menu slides away while you scroll down. Scroll up a little and it comes back.' },
@@ -129,10 +129,10 @@ function showOnboarding(opts = {}) {
   const sym = CURRENCIES[state.currency] ? CURRENCIES[state.currency].symbol : '₹';
 
   openModal({
-    title: 'Welcome to YOKO! Student',
+    title: 'Welcome to HEIST',
     submitLabel: 'Build my student budget',
     cancelLabel: 'Skip',
-    body: `<img class="welcome-logo" src="${LOGO_URI}" alt="YOKO! Student">
+    body: `<img class="welcome-logo" src="${LOGO_URI}" alt="HEIST">
       <p class="small muted">Pick your country and currency, then three quick questions to set your budget and daily safe-to-spend.</p>
 
       <div class="form-grid two">
@@ -327,8 +327,8 @@ function showWelcome() {
   markTourSeen();
   const empty = !hasAnyData();
   openModal({
-    title: 'Welcome to YOKO! Student', hideSubmit: true, cancelLabel: 'Not now',
-    body: `<img class="welcome-logo" src="${LOGO_URI}" alt="YOKO! Student"><p>YOKO! Student helps you understand where your pocket money goes, budget for hostel and college life, and keep spending on track without advanced financial knowledge.</p><p class="muted">Want a quick walkthrough? The student tour takes about a minute.</p>
+    title: 'Welcome to HEIST', hideSubmit: true, cancelLabel: 'Not now',
+    body: `<img class="welcome-logo" src="${LOGO_URI}" alt="HEIST"><p>HEIST helps you understand where your pocket money goes, budget for hostel and college life, and keep spending on track without advanced financial knowledge.</p><p class="muted">Want a quick walkthrough? The student tour takes about a minute.</p>
       <div class="welcome-actions">${empty
         ? '<button type="button" class="btn btn-primary" data-action="tour-sample">Show me around (with sample data)</button><button type="button" class="btn" data-action="tour-all">Show me around (empty)</button>'
         : '<button type="button" class="btn btn-primary" data-action="tour-all">Show me around</button>'}
@@ -341,7 +341,7 @@ function showWhatsNew() {
   markTourSeen();
   if (typeof save === 'function') save();
   openModal({
-    title: 'What’s new in YOKO! Student', hideSubmit: true, cancelLabel: 'Got it',
+    title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
         <li><strong>Cleaner top:</strong> the top bar is solid now, so nothing shows through it.</li>
         <li><strong>More room:</strong> on a laptop, the page menu slides away as you scroll down and comes back when you scroll up.</li></ul>
@@ -349,8 +349,8 @@ function showWhatsNew() {
         <li><strong>Help and legal:</strong> Settings → Help has our Privacy Policy, Terms of Use and a support email.</li>
         <li><strong>Sign in:</strong> tick a box to agree to the Terms and Privacy Policy when you sign in.</li>
         <li><strong>Faster start:</strong> the app loads less on open. Charts load when you need them.</li>
-        <li><strong>Share it:</strong> sending a YOKO! link now shows a proper preview card.</li>
-        <li><strong>Wrong link?</strong> A mistyped address now shows a YOKO! page with a way back.</li>
+        <li><strong>Share it:</strong> sending a HEIST link now shows a proper preview card.</li>
+        <li><strong>Wrong link?</strong> A mistyped address now shows a HEIST page with a way back.</li>
         <li><strong>Fixed:</strong> switching pages or tabs no longer plays the title animation twice.</li>
         <li><strong>Rolling numbers:</strong> when an amount changes, its digits roll to the new value and bars glide to their new size.</li>
         <li><strong>Spends fly:</strong> log a spend and a little chip flies to its category, then the category pulses.</li>
@@ -371,7 +371,7 @@ function showWhatsNew() {
         <li><strong>Yoko is back:</strong> your pet is the green blob again.</li>
         <li><strong>What’s new on Home:</strong> a button next to Scan receipt, so you can open this anytime.</li>
         <li><strong>Fixed:</strong> this screen and the tour no longer vanish when the app updates.</li>
-        <li><strong>Change graph color:</strong> switch Spending by category between YOKO theme and Rainbow, right on the chart.</li>
+        <li><strong>Change graph color:</strong> switch Spending by category between HEIST theme and Rainbow, right on the chart.</li>
         <li><strong>Rainbow charts:</strong> Settings, Chart colors. Every slice gets its own color.</li>
         <li><strong>New look:</strong> new fonts for titles, buttons and money.</li>
         <li><strong>Forecast fixed:</strong> one big bill like rent no longer says you run out tomorrow.</li>

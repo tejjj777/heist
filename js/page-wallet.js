@@ -1,4 +1,4 @@
-/* YOKO! Student · Wallet page: cash, IOUs, transport, taxes, payslips.
+/* HEIST · Wallet page: cash, IOUs, transport, taxes, payslips.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

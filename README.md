@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo.png" alt="YOKO! logo" width="120">
+  <img src="assets/logo.png" alt="HEIST logo" width="120">
 </p>
 
-<h1 align="center">YOKO! Student</h1>
+<h1 align="center">HEIST</h1>
 
 <p align="center">
   A money planner for students. Track spending, set a budget, split bills and save for goals.<br>

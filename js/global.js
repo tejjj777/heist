@@ -1,4 +1,4 @@
-/* YOKO! Student · Country settings, sample data.
+/* HEIST · Country settings, sample data.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

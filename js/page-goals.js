@@ -1,4 +1,4 @@
-/* YOKO! Student · Gifts and savings goals pages.
+/* HEIST · Gifts and savings goals pages.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================

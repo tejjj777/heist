@@ -1,4 +1,4 @@
-/* YOKO! Student · Spending Insights: Ghost Spending, Time-of-Day, and Interactive Heatmap.
+/* HEIST · Spending Insights: Ghost Spending, Time-of-Day, and Interactive Heatmap.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 

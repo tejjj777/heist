@@ -1,4 +1,4 @@
-/* YOKO! Student · Bill calendar.
+/* HEIST · Bill calendar.
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 /* =========================================================
@@ -74,7 +74,7 @@ function downloadIcs() {
   const ev = calEvents(t, end);
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   const escI = x => String(x).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//YOKO!//Bill calendar//EN', 'CALSCALE:GREGORIAN'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//HEIST//Bill calendar//EN', 'CALSCALE:GREGORIAN'];
   ev.forEach((e, i) => {
     const d = e.date.replace(/-/g, ''), next = F.toISO(F.addDays(F.parseDate(e.date), 1)).replace(/-/g, '');
     lines.push('BEGIN:VEVENT', `UID:yoko-${d}-${i}@yoko.local`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${next}`,

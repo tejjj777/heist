@@ -1,6 +1,6 @@
-# YOKO! Student
+# HEIST
 
-> A free money planner web app for students, made by YOKOMONEY. It tracks pocket money and part-time income, shows a daily "safe to spend" amount, splits bills with roommates, and helps students save for goals. It works offline and keeps data on the device; optional sync is end-to-end encrypted.
+> A free money planner web app for students, made by HEIST. It tracks pocket money and part-time income, shows a daily "safe to spend" amount, splits bills with roommates, and helps students save for goals. It works offline and keeps data on the device; optional sync is end-to-end encrypted.
 
 ## What it does
 - Safe to spend today: one daily number based on allowance, bills still due and spending so far
