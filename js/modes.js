@@ -10,8 +10,8 @@ const INCOME_TYPES = [['allowance', 'Pocket money'], ['parttime', 'Part-time job
 function isWorking() { return state.settings.lifeMode === 'working'; }
 function hasIncome(t) { return (state.settings.incomeTypes || []).includes(t); }
 /** XP, Slime, quests and money weather: on for students by default, off for working people (a switch in Settings). */
-function funOn() { return !isSimple() && state.settings.funLayer !== false; }
-/** Simple view: bigger text, calmer screens and only the main tabs, for parents and grandparents. */
+function funOn() { return state.settings.funLayer !== false; }
+/** Simple view: the same app with a clean, flat look and bigger text, for parents and grandparents. */
 function isSimple() { return !!(typeof state !== 'undefined' && state && state.settings && state.settings.simple); }
 function toggleSimple() {
   state.settings.simple = !state.settings.simple;
@@ -33,17 +33,6 @@ function applyLifeMode() {
   TABS.split = BASE_TABS.split.map(([k, l]) => [k, w && k === 'ious' ? 'IOUs & Flatmates' : l]);
   const sp = ROUTES.find(r => r.id === 'split');
   if (sp) sp.long = w ? 'Split & Shared costs' : BASE_SPLIT_LONG;
-  // Simple view has its own three screens (js/simple.js) with plainer names in the menus
-  for (const a of document.querySelectorAll('#side-nav [data-route], #tab-nav [data-route]')) {
-    const r = ROUTES.find(x => x.id === a.dataset.route); if (!r) continue;
-    const off = simple && !SIMPLE_ROUTES.includes(r.id);
-    (a.closest('li') || a).hidden = off;
-    const long = simple ? SIMPLE_LABELS[r.id] || r.label : r.long || r.label, short = simple ? SIMPLE_LABELS[r.id] || r.label : r.short || r.label;
-    a.querySelectorAll('.nl-long').forEach(x => { x.textContent = long; });
-    a.querySelectorAll('.nl-short').forEach(x => { x.textContent = short; });
-    if (a.classList.contains('tab-link')) { const lab = a.querySelector('span'); if (lab) lab.textContent = short; }
-    if (a.title) a.title = long;
-  }
   document.documentElement.classList.toggle('simple', simple);
   document.body.classList.toggle('mode-working', w);
   document.body.classList.toggle('mode-student', !w);
@@ -133,20 +122,15 @@ function modeSettingsHTML() {
   return `<div class="settings-group"><h3>About you</h3><div class="form-grid two">
     <div class="field"><span class="field-label">I’m a</span>${segRadio({ name: 'set-lifemode', label: 'Student or working', value: s.lifeMode, attrs: 'data-setting="lifeMode" data-kind="select"', options: LIFE_MODES })}
       <p class="help">Students see the semester plan and allowance. Working shows payday and household costs.</p></div>
-    <div class="field span-2 simple-field"><span class="field-label">Simple view</span><label class="check"><input type="checkbox" id="set-simple" data-setting="simple" data-kind="bool" ${isSimple() ? 'checked' : ''}> Big text, three plain screens, nothing extra</label>
-      <p class="help">Good for parents and grandparents. Just three plain screens: Home, Spending and Savings. Turn it off here any time.</p></div>
-    <div class="field"><span class="field-label">Games and Slime</span><label class="check"><input type="checkbox" id="set-fun" data-setting="funLayer" data-kind="bool" ${state.settings.funLayer !== false ? 'checked' : ''} ${isSimple() ? 'disabled' : ''}> Show XP, Slime and quests</label>${isSimple() ? '<p class="help" id="fun-off-help">Off while Simple view is on.</p>' : ''}</div>
+    <div class="field span-2 simple-field"><span class="field-label">Simple view</span><label class="check"><input type="checkbox" id="set-simple" data-setting="simple" data-kind="bool" ${isSimple() ? 'checked' : ''}> Clean, plain look with bigger text</label>
+      <p class="help">Good for parents and grandparents. Every feature stays, just calmer: no bold shadows or animations.</p></div>
+    <div class="field"><span class="field-label">Games and Slime</span><label class="check"><input type="checkbox" id="set-fun" data-setting="funLayer" data-kind="bool" ${funOn() ? 'checked' : ''}> Show XP, Slime and quests</label></div>
     <fieldset class="field span-2"><legend class="field-label">Where your money comes from</legend><div class="chip-row">${INCOME_TYPES.map(([k, l]) =>
       `<label class="pl-choice"><input type="checkbox" data-income-type="${k}" ${hasIncome(k) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
       <p class="help">Tick all that apply. Freelance or business income can vary month to month.</p></fieldset>
   </div></div>`;
 }
 function bindModeSettings(form) {
-  const simpleBox = form.querySelector('#set-simple'), funBox = form.querySelector('#set-fun');
-  if (simpleBox && funBox) simpleBox.addEventListener('change', () => {
-    funBox.disabled = simpleBox.checked;
-    const h = form.querySelector('#fun-off-help'); if (h) h.hidden = !simpleBox.checked;
-  });
   form.querySelectorAll('[data-income-type]').forEach(cb => cb.addEventListener('change', () => {
     state.settings.incomeTypes = INCOME_TYPES.map(([k]) => k).filter(k => form.querySelector(`[data-income-type="${k}"]`).checked);
     save(); scheduleRender(300);

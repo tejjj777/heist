@@ -233,7 +233,7 @@ function sendBudgetNotification(title, body, tone = 'info') {
     const viaSw = () => navigator.serviceWorker && navigator.serviceWorker.getRegistration().then(r => r && r.showNotification(title, opts)).catch(() => {});
     try { new Notification(title, opts); } catch (e) { viaSw(); }   // Android Chrome only allows the service worker route
   }
-  if (!isSimple()) toast(`${title}. ${body}`, 4500);   // Simple view has no budgets to point to
+  toast(`${title}. ${body}`, 4500);
 }
 
 /** Bills due today or tomorrow, for reminders and the Home card. */

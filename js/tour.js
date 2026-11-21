@@ -17,7 +17,7 @@ const CHAPTERS = [
     { target: ['#privacy-btn'], title: 'Hide your numbers', text: 'Tap the eye when someone’s looking over your shoulder. Every amount turns into •••• until you tap it again.' },
     { target: ['#dark-btn'], title: 'Dark mode', text: 'Tap the moon for dark mode, easier on the eyes at night. Tap the sun to go back.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Settings', text: 'Country, currency, theme, your account and backups live here. More on that at the end.' },
-    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Simple view', text: 'Setting this up for a parent or grandparent? Settings → About you → Simple view swaps the app for three plain screens: what you can spend today, your spends and your savings. Big text, nothing extra.' },
+    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Simple view', text: 'Setting this up for a parent or grandparent? Settings → About you → Simple view gives the whole app a clean, plain look with bigger text. Nothing is taken away.' },
     { title: 'Your data stays with you', text: 'Everything saves on your phone as you go, and the app works offline. If you make an account, your data is locked with your passphrase before it syncs, so nobody else can read it.' }
   ] },
   { id: 'dashboard', icon: '🏠', title: 'Home', blurb: 'Safe to spend, savings, forecast, semester and your pet.', route: 'dashboard/overview', tryIt: ['See my Money Wrapped', () => openWrapped()], steps: [
@@ -137,7 +137,7 @@ function showOnboarding(opts = {}) {
     cancelLabel: 'Skip',
     body: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">
       <p class="small muted">A few quick questions to set your budget and what you can safely spend each day.</p>
-      <label class="check ob-simple"><input type="checkbox" id="ob-simple" ${isSimple() ? 'checked' : ''}> Simple view: big text, three plain screens</label>
+      <label class="check ob-simple"><input type="checkbox" id="ob-simple" ${isSimple() ? 'checked' : ''}> Simple view: clean look, bigger text</label>
 
       <div class="field"><span class="field-label">I’m a</span>
         <div class="chip-row ob-mode" role="radiogroup" aria-label="Student or working">${LIFE_MODES.map(([k, l]) => `<label class="pl-choice"><input type="radio" name="ob-mode" value="${k}" ${(state.settings.lifeMode || 'student') === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></div>
@@ -388,7 +388,7 @@ function showWhatsNew() {
   openModal({
     title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
-        <li><strong>Simple view:</strong> three plain screens (Home, Spending, Savings) with big text and big buttons, made for parents and grandparents. Turn it on in Settings → About you, or type “simple view” in search.</li>
+        <li><strong>Simple view:</strong> a clean, plain look with bigger text, made for parents and grandparents. Every feature stays. Turn it on in Settings → About you, or type “simple view” in search.</li>
         <li><strong>Smarter screenshots:</strong> payment screenshots from GPay, PhonePe or Paytm are now read by AI, so the amount and who you paid come out right. No internet? It still reads them on your phone.</li>
         <li><strong>Student or working:</strong> pick what fits you in Settings → About you. Working mode talks about payday, flatmates and household costs. Tick every way you earn, like pocket money and a part-time job.</li>
         <li><strong>Crew heists:</strong> save for a trip or a big plan with friends. Everyone puts in their share and the vault fills live. Turn any plan from Plan it into a heist.</li>
