@@ -10,16 +10,32 @@ const INCOME_TYPES = [['allowance', 'Pocket money'], ['parttime', 'Part-time job
 function isWorking() { return state.settings.lifeMode === 'working'; }
 function hasIncome(t) { return (state.settings.incomeTypes || []).includes(t); }
 /** XP, Slime, quests and money weather: on for students by default, off for working people (a switch in Settings). */
-function funOn() { return state.settings.funLayer !== false; }
+function funOn() { return !isSimple() && state.settings.funLayer !== false; }
+/** Simple view: bigger text, calmer screens and only the main tabs, for parents and grandparents. */
+function isSimple() { return !!(typeof state !== 'undefined' && state && state.settings && state.settings.simple); }
+/* The tabs Simple view keeps on each page. Pages not listed keep all their tabs. */
+const SIMPLE_TABS = { dashboard: ['overview', 'calendar'], spend: ['log', 'categories'], budget: ['plan', 'history'],
+  split: ['ious', 'history'], goals: ['savings', 'goals'], debt: ['debts', 'plan'] };
+function toggleSimple() {
+  state.settings.simple = !state.settings.simple;
+  save(); applyLifeMode(); render();
+  toast(state.settings.simple ? 'Simple view on. Turn it off in Settings.' : 'Simple view off', 4000);
+}
 
 /* ---------- Tabs and labels that change with the mode ---------- */
 const BASE_TABS = JSON.parse(JSON.stringify(TABS));
+let tabsFor = null;   // which mode the tab lists were last built for
+function lifeModeStale() { return tabsFor !== (isWorking() ? 'w' : 's') + (isSimple() ? '1' : '0'); }
 const BASE_SPLIT_LONG = (ROUTES.find(r => r.id === 'split') || {}).long;
 function applyLifeMode() {
-  const w = isWorking();
+  const w = isWorking(), simple = isSimple();
+  tabsFor = (w ? 'w' : 's') + (simple ? '1' : '0');
+  for (const r of Object.keys(BASE_TABS)) TABS[r] = BASE_TABS[r].slice();
   TABS.dashboard = BASE_TABS.dashboard.filter(([k]) => !(w && k === 'semester'));
   TABS.budget = BASE_TABS.budget.map(([k, l]) => [k, w && k === 'yearly' ? 'Yearly bills' : l]);
   TABS.split = BASE_TABS.split.map(([k, l]) => [k, w && k === 'ious' ? 'IOUs & Flatmates' : l]);
+  if (simple) for (const r of Object.keys(SIMPLE_TABS)) if (TABS[r]) TABS[r] = TABS[r].filter(([k]) => SIMPLE_TABS[r].includes(k));
+  document.documentElement.classList.toggle('simple', simple);
   const sp = ROUTES.find(r => r.id === 'split');
   if (sp) sp.long = w ? 'Split & Shared costs' : BASE_SPLIT_LONG;
   document.body.classList.toggle('mode-working', w);
@@ -110,13 +126,20 @@ function modeSettingsHTML() {
   return `<div class="settings-group"><h3>About you</h3><div class="form-grid two">
     <div class="field"><span class="field-label">I’m a</span>${segRadio({ name: 'set-lifemode', label: 'Student or working', value: s.lifeMode, attrs: 'data-setting="lifeMode" data-kind="select"', options: LIFE_MODES })}
       <p class="help">Students see the semester plan and allowance. Working shows payday and household costs.</p></div>
-    <div class="field"><span class="field-label">Games and Slime</span><label class="check"><input type="checkbox" id="set-fun" data-setting="funLayer" data-kind="bool" ${funOn() ? 'checked' : ''}> Show XP, Slime and quests</label></div>
+    <div class="field span-2 simple-field"><span class="field-label">Simple view</span><label class="check"><input type="checkbox" id="set-simple" data-setting="simple" data-kind="bool" ${isSimple() ? 'checked' : ''}> Bigger text, fewer buttons, no games or animations</label>
+      <p class="help">Good for parents and grandparents. Only the main tabs show. Turn it off here any time.</p></div>
+    <div class="field"><span class="field-label">Games and Slime</span><label class="check"><input type="checkbox" id="set-fun" data-setting="funLayer" data-kind="bool" ${state.settings.funLayer !== false ? 'checked' : ''} ${isSimple() ? 'disabled' : ''}> Show XP, Slime and quests</label>${isSimple() ? '<p class="help" id="fun-off-help">Off while Simple view is on.</p>' : ''}</div>
     <fieldset class="field span-2"><legend class="field-label">Where your money comes from</legend><div class="chip-row">${INCOME_TYPES.map(([k, l]) =>
       `<label class="pl-choice"><input type="checkbox" data-income-type="${k}" ${hasIncome(k) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
       <p class="help">Tick all that apply. Freelance or business income can vary month to month.</p></fieldset>
   </div></div>`;
 }
 function bindModeSettings(form) {
+  const simpleBox = form.querySelector('#set-simple'), funBox = form.querySelector('#set-fun');
+  if (simpleBox && funBox) simpleBox.addEventListener('change', () => {
+    funBox.disabled = simpleBox.checked;
+    const h = form.querySelector('#fun-off-help'); if (h) h.hidden = !simpleBox.checked;
+  });
   form.querySelectorAll('[data-income-type]').forEach(cb => cb.addEventListener('change', () => {
     state.settings.incomeTypes = INCOME_TYPES.map(([k]) => k).filter(k => form.querySelector(`[data-income-type="${k}"]`).checked);
     save(); scheduleRender(300);

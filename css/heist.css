@@ -759,3 +759,29 @@ html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, calc(92cqi /
 .heist-open { display: grid; gap: 4px; width: 100%; text-align: left; background: none; border: 0; padding: 4px 0; color: inherit; font: inherit; cursor: pointer; }
 .heist-li-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .heist-member .hc-bar.heist-mini { width: 90px; height: 10px; }
+
+
+/* ---------- Simple view (Settings → About you): bigger text, calm screens, fewer buttons ----------
+   For parents and grandparents. The tab list shrinks in applyLifeMode() (js/modes.js); motion and confetti
+   check the html.simple class. Zoom scales the px-based sizes in one go; the bars get their own sizes. */
+html.heist.simple { --hx-ink-3: var(--hx-ink-2); --muted: var(--hx-ink-2); }
+html.simple main, html.simple #modal-root .modal { zoom: 1.18; }
+html.simple .tour-card { zoom: 1.15; }
+html.simple #toast, html.simple #undo-bar { font-size: 17px; }
+html.simple .tab-link { font-size: 13.5px; font-weight: 600; }
+html.simple .tab-link .icon { width: 24px; height: 24px; }
+html.simple .nav-link { font-size: 16.5px; min-height: 48px; }
+html.simple .menu button { font-size: 17px; min-height: 48px; }
+html.simple .menu-label { font-size: 14px; }
+html.simple :is(.qa-adv, #palette-btn, #side-palette) { display: none !important; }
+html.simple :is(.small, .help, .muted, .stat-sub, .stat-label, th) { font-size: max(1em, 14px); }
+html.simple :is(p, li, .help) > a:not(.btn):not(.nav-link) { text-decoration: underline; }
+html.simple *, html.simple *::before, html.simple *::after {
+  animation-duration: .001ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+}
+html.simple .ob-simple { font-weight: 600; }
+.ob-simple { margin: 4px 0 12px; }
+/* Bigger text needs more room: the search gets its own line on phones */
+html.simple .sp-controls, html.simple .sp-controls .exp-filter { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 520px) { html.simple .sp-toolbar { flex-wrap: wrap; } html.simple .sp-search { flex: 1 1 100%; } }

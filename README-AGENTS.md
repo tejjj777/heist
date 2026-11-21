@@ -123,3 +123,9 @@ One-time setup: `npm install` then `npx playwright install chromium`.
 - **Service worker:** only the app page (`/` or `/index.html`) is cached as `./index.html`. Other pages (privacy, terms, 404) are cached under their own URL, and failed responses are never cached.
 - `404.html` is self-contained (works at any path on both hosts). `assets/og-image.png` is the 1200x630 share image.
 - **Screenshot reading** (`js/ai.js` `aiReadScreenshot`, `js/import.js`): images go to the Supabase Edge Function `vision` (source in `supabase/functions/vision/index.ts`, deployed Nov 2026, JWT check off). It uses OpenRouter's free router `openrouter/free` when the `OPENROUTER_API_KEY` secret is set (it picks a free model that can read images; about 50 free requests a day per OpenRouter account, 1000 a day after buying $10 of credits), otherwise Groq `qwen/qwen3.8-27b`. A reply that isn't JSON counts as a failure; the app waits once on a rate limit, then falls back to on-device Tesseract OCR. The `ai` function's `plan` task (planner) was deployed at the same time.
+
+## Session 12: Simple view
+- **`state.settings.simple`** (Settings → About you, onboarding checkbox, welcome dialog button, palette "simple view", action `toggle-simple`). `isSimple()` / `toggleSimple()` / `SIMPLE_TABS` live in `js/modes.js`.
+- `applyLifeMode()` rebuilds every `TABS` list from `BASE_TABS`, then keeps only `SIMPLE_TABS` when simple, and sets `html.simple`. `render()` calls it when `lifeModeStale()`. `theme-boot.js` adds `html.simple` before first paint.
+- Simple view turns off: the fun layer (`funOn()` is false), `motionOK()`, confetti, the search button and the quick-add items marked `.qa-adv` in `index.html`.
+- Styles are at the end of `css/heist.css`: `zoom: 1.18` on `main` and modals scales the px sizes, darker quiet text, bigger bars. Anything that overflows at 360px with the zoom gets a `html.simple` fix there.

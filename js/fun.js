@@ -110,7 +110,7 @@ function celebrateBadges(list) {
 
 /* ---------- Confetti + sound ---------- */
 function confetti() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || isSimple()) return;
   const c = document.createElement('canvas');
   c.className = 'confetti'; c.setAttribute('aria-hidden', 'true');
   document.body.appendChild(c);

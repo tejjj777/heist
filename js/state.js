@@ -48,7 +48,7 @@ function defaultState() {
     goals: [],
     goalSettings: { selectedGoalId: null },
     subscriptions: [],
-    settings: { theme: 'lavender', themeV: 2, sound: true, workHours: 176, unit: { name: 'chai', plural: 'chais', emoji: '☕', price: 20 }, cashOnHand: 0, roundUp: { enabled: false, to: roundUpFor(ci.currency), goalId: null }, privacy: false, roast: 'nice', petName: 'Slime', country: ci.code, myUpiId: '' },
+    settings: { theme: 'lavender', themeV: 2, sound: true, workHours: 176, unit: { name: 'chai', plural: 'chais', emoji: '☕', price: 20 }, cashOnHand: 0, roundUp: { enabled: false, to: roundUpFor(ci.currency), goalId: null }, privacy: false, roast: 'nice', petName: 'Slime', country: ci.code, myUpiId: '', simple: false },
     badges: {},
     meta: { startedAt: todayISO(), tourDone: false, budgetMonth: todayISO().slice(0, 7), periodStart: todayISO().slice(0, 7) + '-01', closedEarly: '', lastBackup: '', backupSnooze: '', skippedTotal: 0, streakRewarded: 0, xpDay: { date: '', n: 0 }, xpBackup: '', tourVersion: 0, tourChapters: {} },
     wallet: { cash: [], ious: [], transport: [], taxes: [], deadlines: [], taxYearStart: ci.fy, taxEstimate: 0, upiIds: {} },
@@ -202,6 +202,7 @@ function normalizeMore(s, raw) {
   s.settings.roast = 'off';
   s.settings.petName = str(rs.petName, 'Slime', 20);
   s.settings.lifeMode = rs.lifeMode === 'working' ? 'working' : 'student';
+  s.settings.simple = rs.simple === true;
   s.settings.incomeTypes = arr(rs.incomeTypes).filter(x => ['allowance', 'parttime', 'salary', 'freelance', 'business'].includes(x));
   if (!s.settings.incomeTypes.length) s.settings.incomeTypes = s.settings.lifeMode === 'working' ? ['salary'] : ['allowance'];
   s.settings.funLayer = typeof rs.funLayer === 'boolean' ? rs.funLayer : s.settings.lifeMode !== 'working';

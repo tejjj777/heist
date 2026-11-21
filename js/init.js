@@ -86,7 +86,7 @@ function bindEvents() {
     }
     // Quick add menu keyboard support
     if (!qaMenu().hidden) {
-      const items = [...qaMenu().querySelectorAll('[role="menuitem"]')];
+      const items = [...qaMenu().querySelectorAll('[role="menuitem"]')].filter(b => b.offsetParent !== null);
       const i = items.indexOf(document.activeElement);
       if (e.key === 'Escape') { e.preventDefault(); setMenu(false, false); qaBtn().focus(); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }

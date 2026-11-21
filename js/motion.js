@@ -4,7 +4,7 @@
    not on every re-render, and never with reduced motion or when printing. */
 'use strict';
 const Motion = { lastKey: '', tabPos: {}, enterTimer: null, counters: [], tabRO: null };
-const motionOK = () => !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) && document.documentElement.dataset.theme !== 'print';
+const motionOK = () => !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) && document.documentElement.dataset.theme !== 'print' && !document.documentElement.classList.contains('simple');
 
 /** Called at the end of render(). */
 function afterRenderMotion(route) {

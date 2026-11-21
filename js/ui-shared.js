@@ -19,7 +19,7 @@ function currentTab(route) {
   if (!tabs) return null;
   const [r, want] = location.hash.replace('#', '').split('/');
   ui.tab = ui.tab || {};
-  const t = r === route && tabs.some(x => x[0] === want) ? want : (ui.tab[route] || tabs[0][0]);
+  const t = r === route && tabs.some(x => x[0] === want) ? want : (tabs.some(x => x[0] === ui.tab[route]) ? ui.tab[route] : tabs[0][0]);
   ui.tab[route] = t;
   return t;
 }

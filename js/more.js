@@ -107,6 +107,7 @@ function togglePrivacy() {
 }
 function settingHook(key) {
   if (key === 'privacy') applyPrivacy();
+  if (key === 'simple') applyLifeMode();
   if (key === 'lifeMode') { applyLifeMode(); if (state.settings.lifeMode === 'working' && !state.settings.incomeTypes.some(t => t !== 'allowance')) state.settings.incomeTypes = ['salary']; }
 }
 

@@ -63,5 +63,6 @@ document.documentElement.dataset.theme = 'lavender';
 document.documentElement.classList.add('heist');
 try { var hs = (JSON.parse(localStorage.getItem('heist.v1') || '{}').settings || {});
   var dk = typeof hs.dark === 'boolean' ? hs.dark : matchMedia('(prefers-color-scheme: dark)').matches;
-  if (dk) document.documentElement.classList.add('dark'); } catch (e) { /* first visit */ }
+  if (dk) document.documentElement.classList.add('dark');
+  if (hs.simple === true) document.documentElement.classList.add('simple'); } catch (e) { /* first visit */ }
 try { if (localStorage.getItem('heist.sideCollapsed') === '1') document.documentElement.classList.add('side-collapsed'); } catch (e) { /* storage blocked */ }

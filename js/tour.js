@@ -6,7 +6,7 @@
    ========================================================= */
 const q = sel => document.querySelector(sel);
 const closestCard = sel => { const el = q(sel); return el ? el.closest('.card') : null; };
-const TOUR_VERSION = 43;   // bumped: AI reads payment screenshots
+const TOUR_VERSION = 44;   // bumped: Simple view
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
@@ -17,6 +17,7 @@ const CHAPTERS = [
     { target: ['#privacy-btn'], title: 'Hide your numbers', text: 'Tap the eye when someone’s looking over your shoulder. Every amount turns into •••• until you tap it again.' },
     { target: ['#dark-btn'], title: 'Dark mode', text: 'Tap the moon for dark mode, easier on the eyes at night. Tap the sun to go back.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Settings', text: 'Country, currency, theme, your account and backups live here. More on that at the end.' },
+    { target: ['#side-settings', '#settings-mobile-btn'], title: 'Simple view', text: 'Setting this up for a parent or grandparent? Settings → About you → Simple view makes the text bigger, shows only the main tabs and turns off games and animations.' },
     { title: 'Your data stays with you', text: 'Everything saves on your phone as you go, and the app works offline. If you make an account, your data is locked with your passphrase before it syncs, so nobody else can read it.' }
   ] },
   { id: 'dashboard', icon: '🏠', title: 'Home', blurb: 'Safe to spend, savings, forecast, semester and your pet.', route: 'dashboard/overview', tryIt: ['See my Money Wrapped', () => openWrapped()], steps: [
@@ -136,6 +137,7 @@ function showOnboarding(opts = {}) {
     cancelLabel: 'Skip',
     body: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">
       <p class="small muted">A few quick questions to set your budget and what you can safely spend each day.</p>
+      <label class="check ob-simple"><input type="checkbox" id="ob-simple" ${isSimple() ? 'checked' : ''}> Simple view: bigger text and fewer buttons</label>
 
       <div class="field"><span class="field-label">I’m a</span>
         <div class="chip-row ob-mode" role="radiogroup" aria-label="Student or working">${LIFE_MODES.map(([k, l]) => `<label class="pl-choice"><input type="radio" name="ob-mode" value="${k}" ${(state.settings.lifeMode || 'student') === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></div>
@@ -248,6 +250,8 @@ function showOnboarding(opts = {}) {
       const setSym = () => { const c = CURRENCIES[curSel.value]; form.querySelectorAll('.affix-sym').forEach(el => { el.textContent = c ? c.symbol : ''; }); };
       form.querySelector('#ob-country').addEventListener('change', e => { const cur = countryInfo(e.target.value).currency; if (CURRENCIES[cur]) { curSel.value = cur; setSym(); } });
       curSel.addEventListener('change', setSym);
+      // Simple view switches on right away, so the bigger text shows while they answer
+      form.querySelector('#ob-simple').addEventListener('change', e => { state.settings.simple = e.target.checked; save(); applyLifeMode(); });
 
       form.querySelector('#ob-allowance').focus();
     },
@@ -373,7 +377,8 @@ function showWelcome() {
         ? '<button type="button" class="btn btn-primary" data-action="tour-sample">Show me around (with sample data)</button><button type="button" class="btn" data-action="tour-all">Show me around (empty)</button>'
         : '<button type="button" class="btn btn-primary" data-action="tour-all">Show me around</button>'}
       <button type="button" class="btn" data-action="open-tutorials">Pick what to learn</button></div>
-      <p class="small muted">You can find these tutorials anytime in Settings or on each screen.</p>`
+      <p class="small muted">You can find these tutorials anytime in Settings or on each screen.</p>
+      <button type="button" class="btn btn-sm" data-action="toggle-simple">${isSimple() ? 'Turn off Simple view' : 'Use Simple view (bigger text)'}</button>`
   });
 }
 
@@ -383,6 +388,7 @@ function showWhatsNew() {
   openModal({
     title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
+        <li><strong>Simple view:</strong> bigger text, fewer buttons and calm screens, made for parents and grandparents. Turn it on in Settings → About you, or type “simple view” in search.</li>
         <li><strong>Smarter screenshots:</strong> payment screenshots from GPay, PhonePe or Paytm are now read by AI, so the amount and who you paid come out right. No internet? It still reads them on your phone.</li>
         <li><strong>Student or working:</strong> pick what fits you in Settings → About you. Working mode talks about payday, flatmates and household costs. Tick every way you earn, like pocket money and a part-time job.</li>
         <li><strong>Crew heists:</strong> save for a trip or a big plan with friends. Everyone puts in their share and the vault fills live. Turn any plan from Plan it into a heist.</li>

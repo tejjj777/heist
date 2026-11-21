@@ -60,7 +60,7 @@ function evaluateRewards() {
     if (st.state === 'won') {
       c.rewarded = true; changed = true;
       awardXP(150, 'challenge', true);
-      setTimeout(() => { toast(`You won a challenge! +150 XP`, 4500); confetti(); playSound('fanfare'); }, 400);
+      setTimeout(() => { toast(`You won a challenge!${funOn() ? ' +150 XP' : ''}`, 4500); confetti(); playSound('fanfare'); }, 400);
     } else if (st.state === 'lost') { c.failed = true; changed = true; setTimeout(() => toast(`Challenge lost: ${challengeTitle(c)}. You can try again`, 4000), 400); }
   }
   const cur = state.budget.expenses.length ? streakInfo().current : 0;   // streak cards only once you're actually logging
