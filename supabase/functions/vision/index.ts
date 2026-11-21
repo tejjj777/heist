@@ -1,12 +1,15 @@
-// HEIST · "vision" Edge Function: reads a payment screenshot (UPI app, bank SMS, receipt) with a Groq vision model.
+// HEIST · "vision" Edge Function: reads a payment screenshot (UPI app, bank SMS, receipt) with a vision model.
 // The app sends { image: "data:image/jpeg;base64,..." , today: "YYYY-MM-DD" }.
 // Answers { txns: [{ amount, type, merchant, date, note }], provider }.
-// Secrets: GROQ_API_KEY (already set), VISION_MODEL (optional, default qwen/qwen3.8-27b),
-// ALLOWED_ORIGINS (shared with the "ai" function), VISION_PER_DAY (optional, default 60 per IP).
+// Secrets: OPENROUTER_API_KEY (uses OpenRouter's free router, which picks a free model that can read images),
+//   OPENROUTER_MODEL (optional, default openrouter/free). Only if OPENROUTER_API_KEY is missing: GROQ_API_KEY with
+//   VISION_MODEL (default qwen/qwen3.8-27b). ALLOWED_ORIGINS (shared with "ai"), VISION_PER_DAY (optional, default 60 per IP).
 const ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") || "https://tejjj777.github.io")
   .split(",").map((o) => o.trim()).filter(Boolean);
 const okOrigin = (o: string | null) => !!o && ORIGINS.some((a) => o === a || (a.endsWith("localhost") && o.startsWith(a)));
-const MODEL = Deno.env.get("VISION_MODEL") || "qwen/qwen3.8-27b";
+const OR_KEY = Deno.env.get("OPENROUTER_API_KEY");
+const OR_MODEL = Deno.env.get("OPENROUTER_MODEL") || "openrouter/free";
+const GROQ_MODEL = Deno.env.get("VISION_MODEL") || "qwen/qwen3.8-27b";
 const PER_DAY = Number(Deno.env.get("VISION_PER_DAY") || 60);
 const hits = new Map<string, number[]>();
 function overLimit(ip: string) {
@@ -52,29 +55,39 @@ Deno.serve(async (req) => {
   if (image.length > 4_000_000) return json({ error: "image too big, shrink it first" }, 413);
   const today = /^\d{4}-\d{2}-\d{2}$/.test(body?.today) ? body.today : new Date().toISOString().slice(0, 10);
 
-  const key = Deno.env.get("GROQ_API_KEY");
-  if (!key) return json({ error: "GROQ_API_KEY not set" }, 500);
+  const groqKey = Deno.env.get("GROQ_API_KEY");
+  if (!OR_KEY && !groqKey) return json({ error: "no AI key set" }, 500);
+  const useOR = !!OR_KEY;
+  const model = useOR ? OR_MODEL : GROQ_MODEL;
+  const url = useOR ? "https://openrouter.ai/api/v1/chat/completions" : "https://api.groq.com/openai/v1/chat/completions";
+  const headers: Record<string, string> = { "Authorization": `Bearer ${useOR ? OR_KEY : groqKey}`, "Content-Type": "application/json" };
+  if (useOR) { headers["HTTP-Referer"] = "https://tejjj777.github.io/heist/"; headers["X-Title"] = "HEIST"; }
   try {
-    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const r = await fetch(url, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
-        model: MODEL,
+        model,
         temperature: 0,
-        max_completion_tokens: 1200,
-        response_format: { type: "json_object" },
+        max_tokens: 1200,
+        // free models don't all support JSON mode, so the prompt asks for JSON and the reply is parsed below
+        ...(useOR ? {} : { response_format: { type: "json_object" } }),
         messages: [{ role: "user", content: [
           { type: "text", text: PROMPT(today) },
           { type: "image_url", image_url: { url: image } },
         ] }],
       }),
-      signal: AbortSignal.timeout(25000),
+      signal: AbortSignal.timeout(28000),
     });
     const raw = await r.text();
     if (!r.ok) return json({ error: "model error", status: r.status, detail: raw.slice(0, 300) }, 502);
-    const content = JSON.parse(raw)?.choices?.[0]?.message?.content || "";
+    const reply = JSON.parse(raw);
+    const content = String(reply?.choices?.[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "");
+    const used = reply?.model || model;
     const m = content.match(/\{[\s\S]*\}/);
-    const parsed = m ? JSON.parse(m[0]) : { txns: [] };
+    // a free model that didn't answer in JSON: let the app read it on the device instead
+    if (!m) return json({ error: "model gave no JSON", provider: used }, 502);
+    const parsed = JSON.parse(m[0]);
     const txns = (Array.isArray(parsed.txns) ? parsed.txns : [])
       .map((t: any) => ({
         amount: Math.round(Number(String(t.amount).replace(/[^\d.]/g, "")) * 100) / 100,
@@ -84,7 +97,7 @@ Deno.serve(async (req) => {
         note: String(t.note || "").trim().slice(0, 60),
       }))
       .filter((t: any) => t.amount > 0 && t.amount < 10_000_000);
-    return json({ txns, provider: "groq:" + MODEL });
+    return json({ txns, provider: (useOR ? "openrouter:" : "groq:") + used });
   } catch (e) {
     return json({ error: "vision failed", detail: String(e).slice(0, 200) }, 502);
   }
