@@ -212,25 +212,28 @@ function getFmt(digits, compact) {
   }
   return fmtCache[key];
 }
+/** Privacy mode: every formatted amount shows as •••• (digits only; the currency sign stays). */
+const privMask = s => (typeof state !== 'undefined' && state && state.settings && state.settings.privacy) ? String(s).replace(/\d(?:[\d.,\s\u00a0\u202f]*\d)?/g, '••••') : s;
 /** Whole units by default; paise/cents only for small non-round amounts. */
 function fmt(v) {
   if (!Number.isFinite(v)) return '-';
   if (Math.abs(v) < 0.005) v = 0;
   const small = Math.abs(v) < 100 && Math.abs(v - Math.round(v)) > 0.004;
-  return getFmt(NO_DECIMALS.has(state.currency) || !small ? 0 : 2).format(v);
+  return privMask(getFmt(NO_DECIMALS.has(state.currency) || !small ? 0 : 2).format(v));
 }
 function fmtExact(v) {
   if (!Number.isFinite(v)) return '-';
   if (Math.abs(v) < 0.005) v = 0;
-  return getFmt(NO_DECIMALS.has(state.currency) ? 0 : 2).format(v);
+  return privMask(getFmt(NO_DECIMALS.has(state.currency) ? 0 : 2).format(v));
 }
 function fmtCompact(v) {
   if (!Number.isFinite(v)) return '-';
   const s = getFmt(1, true).format(v);
-  return CURRENCIES[state.currency].locale === 'en-IN' ? s.replace(/(\d)\s?T$/, '$1K') : s;   // en-IN writes thousands as “T”, which reads as trillions
+  return privMask(CURRENCIES[state.currency].locale === 'en-IN' ? s.replace(/(\d)\s?T$/, '$1K') : s);   // en-IN writes thousands as “T”, which reads as trillions
 }
 function fmtPct(p) {
   if (!Number.isFinite(p)) return '-';
+  if (state.settings && state.settings.privacy) return '••%';
   const a = Math.abs(p);
   return (a > 0 && a < 10 ? p.toFixed(1).replace(/\.0$/, '') : String(Math.round(p))) + '%';
 }

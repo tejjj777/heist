@@ -22,9 +22,9 @@ function ghostSpendingCard() {
         </div>
         <div class="row no-print" style="align-items:center;gap:8px">
           <span class="small muted">Under:</span>
-          <div class="affix" style="width:90px">
+          <div class="affix" style="width:130px">
             <span class="affix-sym">${esc(CURRENCIES[state.currency].symbol)}</span>
-            <input type="number" id="ghost-thresh-inp" class="input input-sm" value="${customGhostThreshold}" step="20">
+            <input type="number" id="ghost-thresh-inp" class="input input-sm ghost-inp" inputmode="decimal" min="1" value="${customGhostThreshold}" step="20" aria-label="Small payment limit">
           </div>
         </div>
       </div>
@@ -117,11 +117,11 @@ function timeOfDayCard() {
 let selectedHeatmapIso = '';
 
 function spendingHeatmapCard() {
-  const t = todayDate();
-  const ym = todayISO().slice(0, 7);
-  // Start of month to end of month
-  const start = new Date(t.getFullYear(), t.getMonth(), 1);
-  const end = new Date(t.getFullYear(), t.getMonth() + 1, 0);
+  const ym = ui.hmMonth || todayISO().slice(0, 7);
+  const [hy, hmo] = ym.split('-').map(Number);
+  const t = new Date(hy, hmo - 1, 1);   // the month being shown (arrows move it back or forward)
+  const start = new Date(hy, hmo - 1, 1);
+  const end = new Date(hy, hmo, 0);
 
   const exps = state.budget.expenses.filter(x => (x.date || '').slice(0, 7) === ym);
   const hm = F.calculateDailyHeatmap(exps, start, end);
@@ -133,8 +133,9 @@ function spendingHeatmapCard() {
       <div class="card-head">
         <div>
           <h2>Spending heatmap</h2>
-          <p class="muted small">${FULL_MONTHS[t.getMonth()]} ${t.getFullYear()} daily intensity (tap a day to see expenses).</p>
+          <p class="muted small">Tap a day to see or add what you spent.</p>
         </div>
+        <div class="actions no-print"><button type="button" class="icon-btn" data-action="hm-prev" aria-label="Previous month">‹</button><strong class="cal-month">${FULL_MONTHS[t.getMonth()]} ${t.getFullYear()}</strong><button type="button" class="icon-btn" data-action="hm-next" aria-label="Next month">›</button></div>
       </div>
       
       <!-- Day-of-week header -->
@@ -194,7 +195,8 @@ function spendingHeatmapCard() {
                   </li>
                 `).join('')}
               </ul>
-            ` : '<p class="small muted" style="margin:0">No expenses recorded on this day. 🎉</p>'}
+            ` : '<p class="small muted" style="margin:0">No expenses recorded on this day.</p>'}
+            <button type="button" class="btn btn-sm no-print" style="margin-top:8px" data-action="add-expense-on" data-date="${selectedDay.iso}">${ICON.plus}<span>Add what I spent this day</span></button>
           </div>
         ` : '<p class="small muted" style="text-align:center;margin:8px 0 0">Tap any day cell above to inspect transactions.</p>'}
       </div>

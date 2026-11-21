@@ -90,6 +90,7 @@ const MORE_ACTIONS = {
   'more-menu': el => toggleMoreMenu(el),
   'dismiss-undo': () => hideUndo(),
   'toggle-privacy': () => togglePrivacy(),
+  'toggle-dark': () => toggleDark(),
   'delete-debt': el => { const d = byId(state.debts, el.dataset.id); if (d) undoable(`Deleted “${d.name}”`, () => { state.debts = state.debts.filter(x => x !== d); state.recurring.forEach(r => { if (r.debtId === d.id) r.debtId = null; }); }); },
   'delete-goal': el => { const g = byId(state.goals, el.dataset.id); if (g) undoable(`Deleted goal “${g.name}”`, () => { state.goals = state.goals.filter(x => x !== g); }); },
   'delete-contribution': el => {
@@ -243,6 +244,7 @@ function moreCommands() {
     { label: 'Split a bill…', keys: 'split bill dinner friends iou', run: () => billSplitterModal() },
     { label: 'Should I buy it?…', keys: 'buy should wishlist impulse', run: () => shouldIBuy() },
     { label: 'New challenge…', keys: 'challenge no-spend 52 week cap', run: challengeForm },
+    { label: state.settings.dark ? 'Light mode' : 'Dark mode', keys: 'dark mode night theme light', run: toggleDark },
     { label: state.settings.privacy ? 'Privacy mode off (show amounts)' : 'Privacy mode on (blur amounts)', keys: 'privacy blur hide amounts', run: togglePrivacy },
     { label: 'Download backup', keys: 'backup download save json', run: downloadBackup },
     ...(BK.supported ? [{ label: 'Auto-backup to a file…', keys: 'backup link file auto', run: linkBackupFile }] : []),

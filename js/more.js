@@ -8,6 +8,8 @@
    cards, wishlist and bill splitting
    ========================================================= */
 Object.assign(ICON, {
+  moon: svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
+  sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
   eye: svg('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
   eyeOff: svg('<path d="M3 3l18 18"/><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.9 0 3.6-.6 5-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'),
   repeat: svg('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>', 18),
@@ -60,6 +62,20 @@ function doUndo() {
   toast('Undone');
 }
 
+/* ---------- Dark mode ---------- */
+function applyDark() {
+  const on = !!state.settings.dark;
+  document.documentElement.classList.toggle('dark', on);
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = on ? '#110E20' : '#F7F4FF';
+  const b = document.getElementById('dark-btn');
+  if (b) { b.innerHTML = on ? ICON.sun : ICON.moon; b.setAttribute('aria-pressed', String(on)); b.title = on ? 'Light mode' : 'Dark mode'; b.setAttribute('aria-label', on ? 'Switch to light mode' : 'Switch to dark mode'); }
+  if (typeof setupChartDefaults === 'function') { try { setupChartDefaults(); } catch (e) { /* charts not loaded yet */ } }
+}
+function toggleDark() {
+  state.settings.dark = !state.settings.dark;
+  save(); applyDark(); render();
+}
+
 /* ---------- Privacy mode ---------- */
 function applyPrivacy() {
   const on = !!state.settings.privacy;
@@ -73,7 +89,7 @@ function applyPrivacy() {
 }
 function togglePrivacy() {
   state.settings.privacy = !state.settings.privacy;
-  save(); applyPrivacy();
+  save(); applyPrivacy(); render();
   toast(state.settings.privacy ? 'Amounts hidden' : 'Amounts showing again');
 }
 function settingHook(key) {
@@ -352,7 +368,7 @@ function installHTML() {
   const hosted = /^https?:$/.test(location.protocol);
   return `${installPrompt ? '<div class="row"><button type="button" class="btn btn-primary" data-action="install-app">Install HEIST on this device</button></div>' : ''}
     <ol class="small steps-list">
-      ${hosted ? '' : '<li>First the <strong>yoko</strong> folder has to be online. Easiest free way: drag it onto <strong>app.netlify.com/drop</strong>. There are steps in <em>HOW-TO-INSTALL.md</em>.</li>'}
+      ${hosted ? '' : '<li>First the <strong>heist</strong> folder has to be online. Easiest free way: drag it onto <strong>app.netlify.com/drop</strong>. There are steps in <em>HOW-TO-INSTALL.md</em>.</li>'}
       <li><strong>Android (Chrome):</strong> open the link, tap ⋮ → <em>Install app</em> or <em>Add to Home screen</em>.</li>
       <li><strong>iPhone (Safari):</strong> open the link, tap Share → <em>Add to Home Screen</em>.</li>
       <li>Once it’s installed, press and hold the app icon for shortcuts like <em>Scan a receipt</em> (Android and computers).</li>

@@ -264,7 +264,7 @@ function heistToday() {
 /** Count the hero amount up from zero (cents stay put until it lands). */
 function hxCountUp() {
   const el = document.querySelector('.hx-amount[data-hx-count]');
-  if (!el || !motionOK() || el.dataset.hxDone) return;
+  if (!el || !motionOK() || el.dataset.hxDone || state.settings.privacy) return;
   el.dataset.hxDone = '1';
   const target = parseFloat(el.dataset.hxCount), html = el.innerHTML;
   if (!(target >= 10)) return;

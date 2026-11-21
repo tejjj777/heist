@@ -48,7 +48,7 @@ function defaultState() {
     goals: [],
     goalSettings: { selectedGoalId: null },
     subscriptions: [],
-    settings: { theme: 'lavender', themeV: 2, sound: true, workHours: 176, unit: { name: 'chai', plural: 'chais', emoji: '☕', price: 20 }, cashOnHand: 0, roundUp: { enabled: false, to: roundUpFor(ci.currency), goalId: null }, privacy: false, roast: 'nice', petName: 'Yoko', country: ci.code, myUpiId: '' },
+    settings: { theme: 'lavender', themeV: 2, sound: true, workHours: 176, unit: { name: 'chai', plural: 'chais', emoji: '☕', price: 20 }, cashOnHand: 0, roundUp: { enabled: false, to: roundUpFor(ci.currency), goalId: null }, privacy: false, roast: 'nice', petName: 'Slime', country: ci.code, myUpiId: '' },
     badges: {},
     meta: { startedAt: todayISO(), tourDone: false, budgetMonth: todayISO().slice(0, 7), periodStart: todayISO().slice(0, 7) + '-01', closedEarly: '', lastBackup: '', backupSnooze: '', skippedTotal: 0, streakRewarded: 0, xpDay: { date: '', n: 0 }, xpBackup: '', tourVersion: 0, tourChapters: {} },
     wallet: { cash: [], ious: [], transport: [], taxes: [], deadlines: [], taxYearStart: ci.fy, taxEstimate: 0, upiIds: {} },
@@ -197,8 +197,9 @@ function normalizeMore(s, raw) {
   s.xp = { total: nn(raw.xp && raw.xp.total) };
   const rs = raw.settings || {};
   s.settings.privacy = !!rs.privacy;
+  s.settings.dark = typeof rs.dark === 'boolean' ? rs.dark : !!(typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches);
   s.settings.roast = 'off';
-  s.settings.petName = str(rs.petName, 'Yoko', 20);
+  s.settings.petName = (v => /^yoko!?$/i.test(v) ? 'Slime' : v)(str(rs.petName, 'Slime', 20));   // the pet is called Slime in HEIST
   s.settings.myUpiId = str(rs.myUpiId, '', 60);   // the student's own UPI ID, for 'they owe you' QR codes
   s.settings.country = COUNTRIES[rs.country] ? rs.country : countryFromCurrency(s.currency);
   const rm = raw.meta || {};

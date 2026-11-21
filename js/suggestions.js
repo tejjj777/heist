@@ -189,7 +189,8 @@ function checklistModal(mode, then) {
   let idx = 0;
   const body = `<p>${mode === 'sub' ? 'Do you pay for any of these? Tick them and check the price.' : 'Which bills do you pay? Tick them and put in what you usually pay.'}</p>
     <div class="field"><label for="ck-q" class="sr-only">Search</label><input id="ck-q" class="input" type="search" placeholder="Search" autocomplete="off"></div>
-    <div class="ck-list">${groups.map(gr => `<section class="ck-group" data-group="${esc(gr.g)}"><h3>${esc(gr.g)}</h3>${gr.items.map(it => row(it, idx++)).join('')}</section>`).join('')}</div>
+    <div class="ck-list">${groups.map(gr => `<section class="ck-group" data-group="${esc(gr.g)}"><h3>${esc(gr.g)}</h3>${gr.items.map(it => row(it, idx++)).join('')}</section>`).join('')}
+      <section class="ck-group ck-other-group"><h3>Other</h3><div class="ck-item"><button type="button" class="ck-row linklike ck-other-btn" style="width:100%;text-align:left">${ICON.plus}<span class="ck-name">Other (type your own ${mode === 'sub' ? 'subscription' : 'bill'})</span></button></div></section></div>
     ${mode === 'sub' ? `<label class="check"><input type="checkbox" id="ck-rec" checked> Log them in my budget when they renew</label>` : '<p class="small muted">Monthly bills get logged in your budget when they’re due. Yearly ones go under Budget → Yearly bills so you can put a little aside each month.</p>'}
     <p class="small">Not on the list? <button type="button" class="linklike" id="ck-other">Add it by hand</button></p>
     ${priced ? `<details class="collapsible"><summary>Where these prices come from</summary><div class="details-body small"><p>Typical prices for ${esc(sugPlaceLabel(d))}, checked ${sugCheckedLabel()}. Prices change, so check your own bill.</p><ul class="src-list">${d.subs.filter(s => safeUrl(s.s) && s.p.length).map(s => `<li>${esc(s.n)}: <a href="${esc(s.s)}" target="_blank" rel="noopener">source</a></li>`).join('')}</ul></div></details>`
@@ -206,9 +207,9 @@ function checklistModal(mode, then) {
       form.querySelector('#ck-q').addEventListener('input', e => {
         const q = e.target.value.trim().toLowerCase();
         form.querySelectorAll('.ck-item').forEach(el => { el.hidden = !!q && !el.dataset.name.includes(q) && !el.querySelector('.ck-on').checked; });
-        form.querySelectorAll('.ck-group').forEach(gr => { gr.hidden = ![...gr.querySelectorAll('.ck-item')].some(el => !el.hidden); });
+        form.querySelectorAll('.ck-group:not(.ck-other-group)').forEach(gr => { gr.hidden = ![...gr.querySelectorAll('.ck-item')].some(el => !el.hidden); });
       });
-      form.querySelector('#ck-other').addEventListener('click', () => { closeModal(true); if (mode === 'sub') subscriptionForm(null); else recurringForm(null); });
+      form.querySelectorAll('#ck-other, .ck-other-btn').forEach(b => b.addEventListener('click', () => { closeModal(true); if (mode === 'sub') subscriptionForm(null); else recurringForm(null); }));
       count();
     },
     onSubmit: form => {

@@ -6,31 +6,32 @@
    ========================================================= */
 const q = sel => document.querySelector(sel);
 const closestCard = sel => { const el = q(sel); return el ? el.closest('.card') : null; };
-const TOUR_VERSION = 39;   // bumped: menu fix, savings math, steadier AI
+const TOUR_VERSION = 40;   // bumped: menu fix, savings math, steadier AI
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
     { title: 'Hey, welcome to HEIST', text: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">This app helps you see where your allowance goes before it’s gone. No bank login needed. Use the arrow keys or the buttons to move along, and Esc to stop whenever you like.` },
     { target: ['#side-nav', '#tab-nav'], title: 'Six main screens', text: 'Home, Spend, Budget, Split, Goals and Debt. Tap any of them at the bottom of the screen (or along the top on a laptop). Each screen has tabs along the top for the details.' },
-    { target: ['#quickadd-btn'], title: 'The green + button', text: 'This is how you add almost anything: an expense, a receipt photo, a bank message, cash in or out, a bill to split, income, your pocket money, a recurring payment, a semester fee, a goal, a gift, a subscription, an IOU or a travel trip.' },
+    { target: ['#quickadd-btn'], title: 'The + Add button', text: 'This is how you add almost anything: an expense, a receipt photo, a bank message, cash in or out, a bill to split, income, your pocket money, a recurring payment, a semester fee, a goal, a gift, a subscription, an IOU or a travel trip.' },
     { target: ['#palette-btn'], title: 'Search and shortcuts', text: 'Type things like “250 food”, “save 500 laptop” or “pay 3000 credit” and hit Enter. It also finds any screen or setting. On a laptop, Ctrl+K opens it.' },
-    { target: ['#privacy-btn'], title: 'Hide your numbers', text: 'Tap the eye when someone’s looking over your shoulder. Every amount gets blurred until you tap it again.' },
+    { target: ['#privacy-btn'], title: 'Hide your numbers', text: 'Tap the eye when someone’s looking over your shoulder. Every amount turns into •••• until you tap it again.' },
+    { target: ['#dark-btn'], title: 'Dark mode', text: 'Tap the moon for dark mode, easier on the eyes at night. Tap the sun to go back.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Settings', text: 'Country, currency, theme, your account and backups live here. More on that at the end.' },
     { title: 'Your data stays with you', text: 'Everything saves on your phone as you go, and the app works offline. If you make an account, your data is locked with your passphrase before it syncs, so nobody else can read it.' }
   ] },
   { id: 'dashboard', icon: '🏠', title: 'Home', blurb: 'Safe to spend, savings, forecast, semester and your pet.', route: 'dashboard/overview', tryIt: ['See my Money Wrapped', () => openWrapped()], steps: [
     { route: 'dashboard/overview', target: ['#view-dashboard [data-action="scan-receipt"]', '#quickadd-btn'], title: 'Scan a receipt', text: 'Take a photo of any bill and HEIST reads the shop, total and date for you. Check it, pick a category, done. It reads the photo on your phone, nothing gets uploaded.' },
-    { route: 'dashboard/overview', target: ['#view-dashboard [data-action="tour-all"]'], title: 'Full tutorial', text: 'This button brings you back here any time. What’s new next to it shows the latest changes. Every screen also has a short tour in its ⋯ menu.' },
-    { route: 'dashboard/overview', target: ['#view-dashboard .view-actions .menu-wrap', '#view-dashboard .view-actions'], title: 'The ⋯ menu', text: 'Money Wrapped, loading or removing demo data, a tour of just this page, and printing or saving as PDF.' },
-    { route: 'dashboard/overview', target: ['#safe-hero'], title: 'Safe to spend today', text: 'The most important number in the app. It’s exactly how much you can still spend today. We take what’s left of your allowance, remove bills and debt payments that are still due, split it over the days until your next allowance, then subtract what you already spent today.' },
-    { route: 'dashboard/overview', target: ['#safe-hero .safe-badge', '#safe-hero'], title: 'Green, amber, red', text: 'Green means you’re fine. Amber means you’re spending a bit fast. Red means the money won’t last, and a button shows up to ask your parents for a top-up with a polite message ready to send.' },
+    { route: 'dashboard/overview', target: ['#view-dashboard .view-actions .menu-wrap', '#view-dashboard .view-actions'], title: 'Full tutorial', text: 'Open this ⋯ menu and pick Full tutorial to come back here any time. What’s new, in the same menu, shows the latest changes. Every screen has a short tour in its own ⋯ menu.' },
+    { route: 'dashboard/overview', target: ['#view-dashboard .view-actions .menu-wrap', '#view-dashboard .view-actions'], title: 'More in the ⋯ menu', text: 'Money Wrapped, loading or removing demo data, a tour of just this page, and printing or saving as PDF.' },
+    { route: 'dashboard/overview', target: ['#safe-hero'], title: 'Clean take today', text: 'The most important number in HEIST. It’s exactly how much you can still spend today. We take what’s left of your allowance, remove bills and debt payments that are still due, split it over the days until your next allowance, then subtract what you already spent today.' },
+    { route: 'dashboard/overview', target: ['#safe-hero .hx-chip', '#safe-hero'], title: 'On track, careful, red', text: 'On track means you’re fine. Careful means you’re spending a bit fast. Red means the money won’t last, and a button shows up to ask your parents for a top-up with a polite message ready to send.' },
     { route: 'dashboard/overview', target: ['[data-action="set-bank"]', '#safe-hero'], title: 'This week and your bank', text: 'Under safe to spend you see what’s left this week. Add your bank or UPI balance and safe to spend works from your real money. Bills due today or tomorrow show up here too.' },
     { route: 'dashboard/overview', target: ['#view-dashboard .stats-grid'], title: 'Quick numbers', text: 'Your monthly allowance and when the next one lands, what’s left until then, and your no-spend streak (days in a row without spending on wants).' },
     { route: 'dashboard/overview', target: ['#savings-card'], title: 'Your savings', text: 'Total saved, how much this month, your savings rate and whether you’re ahead of last month. The bars show the last six months and each goal’s progress is right under it.' },
     { route: 'dashboard/overview', target: ['#forecast-card'], title: 'Will I make it?', text: 'This line is where your balance is heading, based on how you spent in the last 30 days. If it hits zero before your allowance, you’ll see the day it runs out.' },
     { route: 'dashboard/overview', target: ['#forecast-card .slider-panel', '#forecast-card'], title: 'Your habits', text: 'These are things you spend on often. Tap Edit habits to write your own, with what each costs. Drag a slider and the line moves right away.' },
     { route: 'dashboard/overview', target: ['#semester-card'], title: 'Semester plan', text: 'Add the expensive months coming up, like exam fees or a fest. It tells you if what you’re saving now will cover them.' },
-    { route: 'dashboard/overview', target: ['#pet-card'], title: 'Meet Yoko', text: 'Your money pet. It earns XP when you log spends, stick to your budget and finish challenges, and it reacts to how your month is going. Rename it in Settings.' },
+    { route: 'dashboard/overview', target: ['#pet-card'], title: 'Meet Slime', text: 'Your money pet. It earns XP when you log spends, stick to your budget and finish challenges, and it reacts to how your month is going. Rename it in Settings.' },
     { route: 'dashboard/overview', target: ['#quests-card'], title: 'Coming up', text: 'Challenges in progress, things on your wishlist, birthdays you’re buying gifts for and bills due soon, all in one list.' },
     { route: 'dashboard/overview', target: ['#sub-check', '#safe-hero'], title: 'Subscription check-in', text: 'Once a month HEIST asks if you actually used each subscription. If you didn’t, it shows what it costs you in a year, so cancelling is an easy call.' },
     { route: 'dashboard/forecast', target: ['#weather', '#view-dashboard .subtabs-inner'], title: 'Money weather', text: 'A quick mood check for your month. Sunny when you’re on track, stormy when things are getting tight.' },
@@ -108,8 +109,8 @@ const CHAPTERS = [
     { route: 'spend/log', target: ['#command-bar'], title: 'Type a spend', text: 'Type “120 chai” and tap Log it. Below, tap a chip to see one category. Spends are grouped by day.' },
     { route: 'budget/plan', target: ['#cat-card'], title: 'Drag to set a limit', text: 'Each category has a slider. Drag it and the new limit saves when you let go. The bar at the top shows how your income is split.' },
     { route: 'dashboard/overview', target: ['.bento .tile-green'], title: 'Home in tiles', text: 'Days to your next allowance, the category closest to its limit, the month so far and your streak. Tap a tile to go there.' },
-    { route: 'dashboard/overview', target: ['#safe-hero'], title: 'A new look', text: 'Bold numbers, green frames and a little motion. Safe to spend now counts up when you open Home.' },
-    { route: 'spend/log', target: ['#view-spend .subtabs-inner'], title: 'Sliding tabs', text: 'The green pill slides to the tab you pick, on every page.' }
+    { route: 'dashboard/overview', target: ['#safe-hero'], title: 'A new look', text: 'Bold numbers, lavender frames and a little motion. Safe to spend now counts up when you open Home.' },
+    { route: 'spend/log', target: ['#view-spend .subtabs-inner'], title: 'Sliding tabs', text: 'The lavender pill slides to the tab you pick, on every page.' }
   ] }
 ];
 const CHAPTER_ORDER = ['quick', 'dashboard', 'ai', 'spend', 'budget', 'split', 'goals', 'debt', 'settings'];
@@ -343,6 +344,9 @@ function showWhatsNew() {
   openModal({
     title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
+        <li><strong>Dark mode:</strong> tap the moon at the top.</li>
+        <li><strong>Add spends by day:</strong> tap a day on the calendar or heatmap to add what you spent. Arrows move between months.</li>
+        <li><strong>Meet Slime:</strong> your money pet has a new name.</li>
         <li><strong>Fixed:</strong> the ⋯ menu now opens on top of the page, not behind the tiles.</li>
         <li><strong>Savings aren’t spending:</strong> money you move into savings no longer counts as spent.</li>
         <li><strong>Steadier AI:</strong> it waits a bit longer, tries again once, and tells you if you’re offline.</li></ul>
@@ -370,8 +374,8 @@ function showWhatsNew() {
         <li><strong>Budget sliders:</strong> drag a slider to change a limit. A bar shows how your income is split, plus planned vs spent and a carry over tile.</li>
         <li><strong>Home in tiles:</strong> safe to spend with your week, next allowance, the category closest to its limit, the month ring, streak, where it went and goals.</li>
         <li><strong>Menu on top:</strong> on a laptop the pages run along the top, so there is more room for your money.</li>
-        <li><strong>New look:</strong> bold numbers, green frames and smooth motion. Money counts up, cards slide in, tabs glide.</li>
-        <li><strong>Yoko is back:</strong> your pet is the green blob again.</li>
+        <li><strong>New look:</strong> bold numbers, lavender frames and smooth motion. Money counts up, cards slide in, tabs glide.</li>
+        
         <li><strong>What’s new on Home:</strong> a button next to Scan receipt, so you can open this anytime.</li>
         <li><strong>Fixed:</strong> this screen and the tour no longer vanish when the app updates.</li>
         <li><strong>Change graph color:</strong> switch Spending by category between HEIST theme and Rainbow, right on the chart.</li>

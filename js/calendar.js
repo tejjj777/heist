@@ -66,7 +66,8 @@ function calendarCard() {
     <div class="actions no-print"><button type="button" class="icon-btn" data-action="cal-prev" aria-label="Previous month">‹</button><strong class="cal-month">${FULL_MONTHS[mo - 1]} ${y}</strong><button type="button" class="icon-btn" data-action="cal-next" aria-label="Next month">›</button>
       ${moreMenu([ym !== todayISO().slice(0, 7) ? mi('Back to this month', 'cal-today') : '', mi('Add to my phone’s calendar (.ics file)', 'cal-ics')])}</div></div>
     <div class="cal-grid" role="group" aria-label="${FULL_MONTHS[mo - 1]} ${y}">${names.map(n => `<span class="cal-head" aria-hidden="true">${n}</span>`).join('')}${cells}</div>
-    <div class="cal-below"><h3>${sel ? fmtDate(F.parseDate(sel)) : (ym === todayISO().slice(0, 7) ? 'Still to come this month' : `${FULL_MONTHS[mo - 1]}`)}</h3>${list}</div>
+    <div class="cal-below"><h3>${sel ? fmtDate(F.parseDate(sel)) : (ym === todayISO().slice(0, 7) ? 'Still to come this month' : `${FULL_MONTHS[mo - 1]}`)}</h3>${list}
+      ${sel ? (() => { const spent = state.budget.expenses.filter(x => x.date === sel); return `${spent.length ? `<p class="small" style="margin-top:8px">Spent this day: <strong>${fmt(sum(spent, x => x.amount))}</strong> (${plural(spent.length, 'spend')})</p>` : ''}<button type="button" class="btn btn-sm no-print" style="margin-top:8px" data-action="add-expense-on" data-date="${sel}">${ICON.plus}<span>Add what I spent this day</span></button>`; })() : '<p class="small muted no-print" style="margin-top:8px">Tap a day to add what you spent on it.</p>'}</div>
     ${!state.recurring.length ? '<p class="small muted" style="margin-top:12px">Tip: add rent, loans and subscriptions as recurring payments (Budget → Spending) and they’ll show up here.</p>' : ''}</div>`;
 }
 function downloadIcs() {

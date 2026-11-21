@@ -66,7 +66,7 @@ function renderBudget() {
   const slideRow = c => {
     const carry = c.carryIn || 0, lim = c.planned + carry, ratio = lim > 0 ? c.actual / lim : (c.actual > 0 ? 2 : 0);
     const over = c.actual > lim + 0.004, close = !over && lim > 0 && ratio >= 0.75;
-    const top = Math.max(b.income * 0.4, c.planned * 2, c.actual * 1.2, 1000), step = niceStep(top), mx = Math.ceil(top / step) * step;
+    const top = Math.max(b.income, c.planned, c.actual, 1000), step = niceStep(top), mx = Math.ceil(top / step) * step;   // fixed scale (your income), so the thumb doesn't jump back to the middle after each drag
     const note = over ? `Over by ${fmt(c.actual - lim)}` : lim > 0 && ratio >= 1 ? (c.type === 'savings' ? 'Saved in full' : 'Limit reached') : close ? 'Close to limit' : c.actual === 0 ? 'Nothing yet' : `${fmt(lim - c.actual)} left`;
     return `<div class="card slide-row${over || close ? ' is-hot' : ''}" data-cat-id="${c.id}" data-vt-target="cat-${c.id}">
       <div class="sr-head"><button type="button" class="linklike sr-name" data-action="cat-expenses" data-id="${c.id}">${esc(c.name)}</button><span class="small sr-note">${note}${carry > 0.004 ? ` · +${fmt(carry)} carried` : ''}</span></div>

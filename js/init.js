@@ -124,12 +124,13 @@ function bindEvents() {
   });
 
   // Keep other tabs in sync
-  window.addEventListener('storage', e => { if (e.key === STORAGE_KEY) { state = loadState(); applyTheme(); applyPrivacy(); applyCountry(); render(); } });
+  window.addEventListener('storage', e => { if (e.key === STORAGE_KEY) { state = loadState(); applyTheme(); applyDark(); applyPrivacy(); applyCountry(); render(); } });
 }
 
 function init() {
   buildChrome();
   applyTheme();          // also sets chart colours for the theme
+  applyDark();
   applyPrivacy();
   applyCountry();        // day-first or month-first dates
   loadPriceUpdates();

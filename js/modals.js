@@ -296,7 +296,7 @@ function newCategoryInline(sel) {
 document.addEventListener('focusin', e => { if (e.target.tagName === 'SELECT') e.target.dataset.prev = e.target.value; });
 document.addEventListener('change', e => { if (e.target.tagName === 'SELECT' && e.target.value === NEW_CAT) newCategoryInline(e.target); });
 
-function expenseForm(exp) {
+function expenseForm(exp, presetDate) {
   const cats = state.budget.categories;
   if (!cats.length) { toast('Add a budget category first.'); location.hash = '#budget'; return; }
   if (exp) {
@@ -323,7 +323,7 @@ function expenseForm(exp) {
     { name: 'note', label: 'Note', kind: 'text', max: 120, placeholder: 'Optional' }
   ];
   formModal({
-    title: 'Add expense', fields, values: { date: todayISO(), categoryId: cats[0].id }, submitLabel: 'Add expense',
+    title: 'Add expense', fields, values: { date: /^\d{4}-\d{2}-\d{2}$/.test(presetDate || '') ? presetDate : todayISO(), categoryId: cats[0].id }, submitLabel: 'Add expense',
     onMount: form => {
       bindNoteAutocomplete(form);
       if (cats.length < 2) return;
