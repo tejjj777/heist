@@ -649,3 +649,22 @@ html.heist .sp-arrow.next { right: -4px; }
 html.heist .sp-chips-wrap.can-left .sp-arrow.prev, html.heist .sp-chips-wrap.can-right .sp-arrow.next { display: grid; }
 html.heist .sp-chips-wrap.can-left .sp-chips { -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
 html.heist .sp-chips-wrap.can-left:not(.can-right) .sp-chips { -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%); mask-image: linear-gradient(90deg, transparent, #000 12%); }
+
+/* Today: the four tiles fill the full height of the hero card next to them, with bigger numbers */
+@media (min-width: 1024px) {
+  html.heist .hx-today { align-items: stretch; }
+  html.heist .hx-today > .hx-tiles { grid-row: span 2; align-self: stretch; grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  html.heist .hx-tiles .hx-tile { min-height: 0; height: 100%; padding: 22px; gap: 10px; }
+  html.heist .hx-tiles .hx-tile-k { font-size: 14px; font-weight: 600; }
+  html.heist .hx-tiles .hx-tile-v { font-size: clamp(30px, 2.6vw, 40px); }
+  html.heist .hx-tiles .hx-tile-s { font-size: 14px; }
+  html.heist .hx-tiles .hx-week { height: 40%; min-height: 70px; }
+  html.heist .hx-tiles .hx-ring { width: 84px; height: 84px; }
+  html.heist .hx-tiles .hx-streak { margin-top: auto; }
+  html.heist .hx-tiles .hx-streak i { height: 12px; }
+}
+@media (min-width: 1024px) {
+  html.heist .hx-tiles .hx-tile-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: auto 0; }
+  html.heist .hx-tiles .hx-tile-row .hx-ring { margin: 0; width: 76px; height: 76px; flex: 0 1 auto; min-width: 48px; }
+  html.heist .hx-tiles .hx-tile-row .hx-tile-v { flex: 0 1 auto; min-width: 0; }
+}
