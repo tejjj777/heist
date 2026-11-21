@@ -259,3 +259,36 @@ function placeNavPill(animate) {
 }
 addEventListener('resize', () => requestAnimationFrame(() => placeNavPill(false)));
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeNavPill(false));
+
+/* ---------- Sideways rows (category chips, page tabs): mouse wheel and drag scroll them on a laptop ---------- */
+(function sideScroll() {
+  const SEL = '.sp-chips, .view > .subtabs .subtabs-inner';
+  const fade = el => el.classList.toggle('at-end', el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+  document.addEventListener('wheel', e => {
+    const el = e.target.closest && e.target.closest(SEL);
+    if (!el || el.scrollWidth <= el.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const before = el.scrollLeft;
+    el.style.scrollBehavior = 'auto'; el.scrollLeft += e.deltaY; el.style.scrollBehavior = '';
+    if (el.scrollLeft !== before) e.preventDefault();   // only take the wheel while there's still room to scroll
+    fade(el);
+  }, { passive: false });
+  document.addEventListener('scroll', e => { if (e.target.matches && e.target.matches('.sp-chips')) fade(e.target); }, true);
+  let drag = null;
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const el = e.target.closest && e.target.closest('.sp-chips');
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    drag = { el, x: e.clientX, left: el.scrollLeft, moved: false };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    if (!drag.moved && Math.abs(dx) > 5) { drag.moved = true; drag.el.classList.add('is-dragging'); }
+    if (drag.moved) { drag.el.scrollLeft = drag.left - dx; fade(drag.el); }
+  });
+  document.addEventListener('pointerup', () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (d.moved) setTimeout(() => d.el.classList.remove('is-dragging'), 0);   // a drag isn't a tap on a chip
+  });
+})();
