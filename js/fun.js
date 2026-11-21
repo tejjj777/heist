@@ -718,7 +718,7 @@ function bindPrefs(form) {
 }
 
 /* ---------- Theme ---------- */
-function resolvedTheme() { return THEMES[state.settings.theme] ? state.settings.theme : 'yoko'; }
+function resolvedTheme() { return THEMES[state.settings.theme] ? state.settings.theme : 'lavender'; }
 function applyTheme() {
   const th = resolvedTheme();
   document.documentElement.dataset.theme = th;
@@ -726,15 +726,16 @@ function applyTheme() {
   if (meta) meta.content = THEMES[th].meta;
   const btn = document.getElementById('theme-btn');
   if (btn) { btn.innerHTML = ICON.palette; btn.title = `Theme: ${THEMES[th].label} (click to change)`; btn.setAttribute('aria-label', `Change theme. Current: ${THEMES[th].label}`); }
+  document.querySelectorAll('img.yoko-logo').forEach(img => { img.src = logoUri(); });
   setupChartDefaults();
 }
-/** Cycle HEIST → Black & Blue → Black & Red. */
+/** Cycle Lavender → Black & Green → Black & Blue → Black & Red. */
 function toggleTheme() {
   const i = THEME_KEYS.indexOf(resolvedTheme());
   setTheme(THEME_KEYS[(i + 1) % THEME_KEYS.length]);
 }
 function setTheme(key) {
-  state.settings.theme = THEMES[key] ? key : 'yoko';
+  state.settings.theme = THEMES[key] ? key : 'lavender'; state.settings.themeV = 2;
   save(); applyTheme(); render();
   toast(`Theme: ${THEMES[state.settings.theme].label}`);
 }

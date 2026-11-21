@@ -48,7 +48,7 @@ function defaultState() {
     goals: [],
     goalSettings: { selectedGoalId: null },
     subscriptions: [],
-    settings: { theme: 'yoko', sound: true, workHours: 176, unit: { name: 'chai', plural: 'chais', emoji: '☕', price: 20 }, cashOnHand: 0, roundUp: { enabled: false, to: roundUpFor(ci.currency), goalId: null }, privacy: false, roast: 'nice', petName: 'Yoko', country: ci.code, myUpiId: '' },
+    settings: { theme: 'lavender', themeV: 2, sound: true, workHours: 176, unit: { name: 'chai', plural: 'chais', emoji: '☕', price: 20 }, cashOnHand: 0, roundUp: { enabled: false, to: roundUpFor(ci.currency), goalId: null }, privacy: false, roast: 'nice', petName: 'Yoko', country: ci.code, myUpiId: '' },
     badges: {},
     meta: { startedAt: todayISO(), tourDone: false, budgetMonth: todayISO().slice(0, 7), periodStart: todayISO().slice(0, 7) + '-01', closedEarly: '', lastBackup: '', backupSnooze: '', skippedTotal: 0, streakRewarded: 0, xpDay: { date: '', n: 0 }, xpBackup: '', tourVersion: 0, tourChapters: {} },
     wallet: { cash: [], ious: [], transport: [], taxes: [], deadlines: [], taxYearStart: ci.fy, taxEstimate: 0, upiIds: {} },
@@ -135,7 +135,8 @@ function normalizeState(raw) {
   const rs = raw.settings || {}, ru = rs.roundUp || {}, un = rs.unit || {};
   const unitName = str(un.name, 'chai', 20);
   s.settings = {
-    theme: THEME_KEYS.includes(rs.theme) ? rs.theme : 'yoko',
+    theme: THEME_KEYS.includes(rs.theme) && (rs.themeV === 2 || rs.theme !== 'yoko') ? rs.theme : 'lavender',
+    themeV: 2,
     sound: rs.sound !== false,
     workHours: clamp(nn(rs.workHours) || 176, 1, 744),
     unit: { name: unitName, plural: str(un.plural, unitName + 's', 20), emoji: str(un.emoji, '☕', 8), price: nn(un.price) || 20 },

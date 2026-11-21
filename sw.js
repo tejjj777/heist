@@ -1,12 +1,12 @@
 /* HEIST service worker: makes the installed app open offline.
    The page and its own code (js/, css/) are fetched fresh when online (so updates arrive together) and fall back to the cached copy offline.
    Everything else is cache-first; the large OCR files are cached the first time they're used. */
-const CACHE = 'yoko-student-v50';   // bump the number every session
+const CACHE = 'yoko-student-v51';   // bump the number every session
 const PREFIX = 'yoko-student-';    // only ever delete our own caches (main HEIST may share this origin)
 const CORE = [
   './', './index.html', './manifest.webmanifest', './prices.json',
   './assets/chart.umd.min.js', './assets/logo.png', './assets/favicon.png', './assets/icon-192.png', './assets/icon-512.png',
-  './assets/fonts/dm-sans-latin-400-normal.woff2', './assets/fonts/dm-sans-latin-500-normal.woff2', './assets/fonts/dm-sans-latin-600-normal.woff2', './assets/fonts/dm-sans-latin-700-normal.woff2', './assets/fonts/dm-sans-latin-ext-400-normal.woff2', './assets/fonts/dm-sans-latin-ext-500-normal.woff2', './assets/fonts/dm-sans-latin-ext-600-normal.woff2', './assets/fonts/dm-sans-latin-ext-700-normal.woff2', './assets/fonts/space-grotesk-latin-500-normal.woff2', './assets/fonts/space-grotesk-latin-600-normal.woff2', './assets/fonts/space-grotesk-latin-700-normal.woff2', './assets/fonts/space-grotesk-latin-ext-500-normal.woff2', './assets/fonts/space-grotesk-latin-ext-600-normal.woff2', './assets/fonts/space-grotesk-latin-ext-700-normal.woff2', './assets/fonts/anton-latin-400-normal.woff2', './assets/fonts/anton-latin-ext-400-normal.woff2',
+  './assets/fonts/inter-400.woff2', './assets/fonts/inter-500.woff2', './assets/fonts/inter-600.woff2', './assets/fonts/inter-700.woff2', './assets/fonts/dm-sans-latin-400-normal.woff2', './assets/fonts/dm-sans-latin-500-normal.woff2', './assets/fonts/dm-sans-latin-600-normal.woff2', './assets/fonts/dm-sans-latin-700-normal.woff2', './assets/fonts/dm-sans-latin-ext-400-normal.woff2', './assets/fonts/dm-sans-latin-ext-500-normal.woff2', './assets/fonts/dm-sans-latin-ext-600-normal.woff2', './assets/fonts/dm-sans-latin-ext-700-normal.woff2', './assets/fonts/space-grotesk-latin-500-normal.woff2', './assets/fonts/space-grotesk-latin-600-normal.woff2', './assets/fonts/space-grotesk-latin-700-normal.woff2', './assets/fonts/space-grotesk-latin-ext-500-normal.woff2', './assets/fonts/space-grotesk-latin-ext-600-normal.woff2', './assets/fonts/space-grotesk-latin-ext-700-normal.woff2', './assets/fonts/anton-latin-400-normal.woff2', './assets/fonts/anton-latin-ext-400-normal.woff2',
   './assets/pdfjs/pdf.min.js', './assets/pdfjs/pdf.worker.min.js',
   './assets/sc-add.png', './assets/sc-receipt.png', './assets/sc-message.png', './assets/sc-calendar.png',
   // app code: keep in sync with the <script> tags in index.html

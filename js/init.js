@@ -10,7 +10,7 @@ function buildChrome() {
   document.getElementById('side-settings').innerHTML = `${ICON.settings}<span>Settings</span>`;
   document.getElementById('settings-mobile-btn').innerHTML = ICON.settings;
   document.getElementById('palette-btn').innerHTML = ICON.search;
-  document.querySelectorAll('img.yoko-logo').forEach(img => { img.src = LOGO_URI; });
+  document.querySelectorAll('img.yoko-logo').forEach(img => { img.src = logoUri(); });
   document.getElementById('side-palette').innerHTML = `${ICON.search}<span>Commands</span><kbd>Ctrl K</kbd>`;
   document.getElementById('plus-icon').outerHTML = ICON.plus;
 

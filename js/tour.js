@@ -10,7 +10,7 @@ const TOUR_VERSION = 38;   // bumped: solid top bar, section bar hides on scroll
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
-    { title: 'Hey, welcome to HEIST', text: `<img class="welcome-logo" src="${LOGO_URI}" alt="HEIST">This app helps you see where your allowance goes before it’s gone. No bank login needed. Use the arrow keys or the buttons to move along, and Esc to stop whenever you like.` },
+    { title: 'Hey, welcome to HEIST', text: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">This app helps you see where your allowance goes before it’s gone. No bank login needed. Use the arrow keys or the buttons to move along, and Esc to stop whenever you like.` },
     { target: ['#side-nav', '#tab-nav'], title: 'Six main screens', text: 'Home, Spend, Budget, Split, Goals and Debt. Tap any of them at the bottom of the screen (or along the top on a laptop). Each screen has tabs along the top for the details.' },
     { target: ['#quickadd-btn'], title: 'The green + button', text: 'This is how you add almost anything: an expense, a receipt photo, a bank message, cash in or out, a bill to split, income, your pocket money, a recurring payment, a semester fee, a goal, a gift, a subscription, an IOU or a travel trip.' },
     { target: ['#palette-btn'], title: 'Search and shortcuts', text: 'Type things like “250 food”, “save 500 laptop” or “pay 3000 credit” and hit Enter. It also finds any screen or setting. On a laptop, Ctrl+K opens it.' },
@@ -132,7 +132,7 @@ function showOnboarding(opts = {}) {
     title: 'Welcome to HEIST',
     submitLabel: 'Build my student budget',
     cancelLabel: 'Skip',
-    body: `<img class="welcome-logo" src="${LOGO_URI}" alt="HEIST">
+    body: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">
       <p class="small muted">Pick your country and currency, then three quick questions to set your budget and daily safe-to-spend.</p>
 
       <div class="form-grid two">
@@ -328,7 +328,7 @@ function showWelcome() {
   const empty = !hasAnyData();
   openModal({
     title: 'Welcome to HEIST', hideSubmit: true, cancelLabel: 'Not now',
-    body: `<img class="welcome-logo" src="${LOGO_URI}" alt="HEIST"><p>HEIST helps you understand where your pocket money goes, budget for hostel and college life, and keep spending on track without advanced financial knowledge.</p><p class="muted">Want a quick walkthrough? The student tour takes about a minute.</p>
+    body: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST"><p>HEIST helps you understand where your pocket money goes, budget for hostel and college life, and keep spending on track without advanced financial knowledge.</p><p class="muted">Want a quick walkthrough? The student tour takes about a minute.</p>
       <div class="welcome-actions">${empty
         ? '<button type="button" class="btn btn-primary" data-action="tour-sample">Show me around (with sample data)</button><button type="button" class="btn" data-action="tour-all">Show me around (empty)</button>'
         : '<button type="button" class="btn btn-primary" data-action="tour-all">Show me around</button>'}
