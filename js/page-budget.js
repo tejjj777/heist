@@ -79,7 +79,7 @@ function renderBudget() {
     <div class="no-print slide-actions"><button type="button" class="btn btn-sm" data-action="add-category">${ICON.plus}<span>Add category</span></button></div></section>`;
   // Fixed order (by what's been spent) and a fixed scale (income), so dragging a slider only moves that one bar
   const pvaCats = cats.filter(c => c.planned > 0 || c.actual > 0).sort((x, y) => y.actual - x.actual || x.name.localeCompare(y.name)).slice(0, 6);
-  const pvaMax = Math.max(1, b.income, ...pvaCats.map(c => Math.max(c.planned, c.actual)));
+  const pvaMax = Math.max(1, b.income * 0.35, ...pvaCats.map(c => Math.max(c.planned, c.actual)));   // a steady scale: only moves if one category passes 35% of income
   const pvaCard = pvaCats.length ? `<div class="card pva-card"><h2 class="tile-h">Planned vs actual</h2>
     <p class="pva-key small muted"><span><i class="k-plan"></i>Planned</span><span><i class="k-act"></i>Spent</span></p>
     <div class="pva" role="img" aria-label="Planned and spent for your biggest categories">${pvaCats.map((c, i) => `<span class="pva-col" style="--d:${i}"><i class="p" style="height:${Math.max(2, c.planned / pvaMax * 100)}%"></i><i class="a" style="height:${Math.max(1, c.actual / pvaMax * 100)}%"></i></span>`).join('')}</div>

@@ -668,3 +668,12 @@ html.heist .sp-chips-wrap.can-left:not(.can-right) .sp-chips { -webkit-mask-imag
   html.heist .hx-tiles .hx-tile-row .hx-ring { margin: 0; width: 76px; height: 76px; flex: 0 1 auto; min-width: 48px; }
   html.heist .hx-tiles .hx-tile-row .hx-tile-v { flex: 0 1 auto; min-width: 0; }
 }
+
+/* Budget plan and Spend log: the right-hand column fills the full height of the list next to it */
+@media (min-width: 1024px) {
+  html.heist #view-budget .budget-split { align-items: stretch; }
+  html.heist #view-spend .budget-aside { position: sticky; top: calc(var(--topbar-h) + 12px); align-self: flex-start; }
+  html.heist #view-budget .budget-aside > .card { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+  html.heist #view-budget .budget-aside > .pva-card { flex-grow: 2; justify-content: flex-start; }
+  html.heist #view-budget .budget-aside > .pva-card .pva { flex: 1; height: auto; min-height: 180px; }
+}
