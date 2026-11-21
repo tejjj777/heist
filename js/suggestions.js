@@ -428,19 +428,19 @@ function filterExpenses(f) {
     return true;
   }).sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 }
-function expFilterBar(f, cats) {
+function expFilterBar(f, cats, menu = '') {
   const more = ui.expMore || !!(f.min || f.max || f.from || f.to);
   const on = expFilterActive(f);
+  const n = [f.min || f.max, f.from || f.to].filter(Boolean).length;
   return `<div class="exp-filter no-print" role="search" aria-label="Search expenses">
-    <div class="exp-filter-row">
-      <label class="sr-only" for="exp-q">Search expenses</label>
-      <input id="exp-q" class="input input-sm" type="search" placeholder="Search shop, note or amount" value="${esc(f.q)}" data-filter="q" autocomplete="off">
-      <label class="sr-only" for="exp-cat">Category</label>
-      <select id="exp-cat" class="select input-sm" data-filter="cat"><option value="">All categories</option>${cats.map(c => `<option value="${c.id}" ${f.cat === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
-      <button type="button" class="btn btn-sm" data-action="exp-more" aria-expanded="${more}" aria-controls="exp-more-row">Filters</button>
-      ${on ? '<button type="button" class="linklike small" data-action="exp-clear">Clear</button>' : ''}
+    <div class="sp-toolbar">
+      <label class="sp-search"><span class="sr-only">Search expenses</span>${ICON.search}<input id="exp-q" type="search" placeholder="Search shop, note or amount" value="${esc(f.q)}" data-filter="q" autocomplete="off"></label>
+      <button type="button" class="btn btn-sm sp-filter-btn${n ? ' is-on' : ''}" data-action="exp-more" aria-expanded="${more}" aria-controls="exp-more-row">Filters${n ? ` <b>${n}</b>` : ''}</button>
+      ${menu}
     </div>
-    <div class="exp-filter-row" id="exp-more-row" ${more ? '' : 'hidden'}>
+    <div class="sp-filters" id="exp-more-row" ${more ? '' : 'hidden'}>
+      <div class="exp-pair"><label for="exp-cat" class="small muted">Category</label>
+        <select id="exp-cat" class="select input-sm" data-filter="cat"><option value="">All categories</option>${cats.map(c => `<option value="${c.id}" ${f.cat === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
       <div class="exp-pair"><label for="exp-min" class="small muted">Amount</label>
         <input id="exp-min" class="input input-sm" inputmode="decimal" placeholder="Min" value="${esc(f.min)}" data-filter="min" autocomplete="off">
         <span class="muted" aria-hidden="true">to</span><label class="sr-only" for="exp-max">Maximum amount</label>
@@ -449,6 +449,7 @@ function expFilterBar(f, cats) {
         <input id="exp-from" class="input input-sm" type="date" value="${esc(f.from)}" data-filter="from">
         <span class="muted" aria-hidden="true">to</span><label class="sr-only" for="exp-to">To date</label>
         <input id="exp-to" class="input input-sm" type="date" value="${esc(f.to)}" data-filter="to"></div>
+      ${on ? '<button type="button" class="linklike small" data-action="exp-clear">Clear all</button>' : ''}
     </div></div>`;
 }
 

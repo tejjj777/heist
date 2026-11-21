@@ -210,8 +210,7 @@ function renderSpend() {
   const jarLine = ruGoal ? `🫙 Round-up jar: ${fmt(jarMonth)} saved this month → ${esc(ruGoal.name)}` : '';
   const catName = id => { const c = cats.find(x => x.id === id); return c ? c.name : 'Deleted category'; };
 
-  const head = viewHeader('spend', 'Spend', `${FULL_MONTHS[t.getMonth()]} ${t.getFullYear()}`,
-    `<button type="button" class="btn btn-primary" data-action="add-expense">${ICON.plus}<span>Add expense</span></button>`);
+  const head = viewHeader('spend', 'Spend', `${FULL_MONTHS[t.getMonth()]} ${t.getFullYear()}`, '');   // the add bar and the top + Add button already add spends
 
   const catBreakdown = `<div class="grid-2">
     ${chartCard('Spending by category', sp.useActual ? 'Actual this month' : (sp.list.length ? 'Planned' : ''), 'spend-doughnut', sp.list.length > 0, 'Log expenses to see this chart.', '', true)}
@@ -237,7 +236,7 @@ function renderSpend() {
   monthExps.forEach(x => { counts[x.categoryId] = (counts[x.categoryId] || 0) + 1; });
   const chipCats = cats.filter(c => counts[c.id]).sort((x, y) => counts[y.id] - counts[x.id]).slice(0, 6);
   if (ef.cat && !chipCats.some(c => c.id === ef.cat) && catOf(ef.cat)) chipCats.push(catOf(ef.cat));
-  const chips = `<div class="chip-row no-print" role="group" aria-label="Show one category">${[{ id: '', name: 'All' }].concat(chipCats).map(c => `<button type="button" class="chip${ef.cat === c.id ? ' on' : ''}" data-action="exp-chip" data-cat="${c.id}" aria-pressed="${ef.cat === c.id}">${esc(c.name)}</button>`).join('')}</div>`;
+  const chips = `<div class="chip-row sp-chips no-print" role="group" aria-label="Show one category">${[{ id: '', name: 'All' }].concat(chipCats).map(c => `<button type="button" class="chip${ef.cat === c.id ? ' on' : ''}" data-action="exp-chip" data-cat="${c.id}" aria-pressed="${ef.cat === c.id}">${esc(c.name)}</button>`).join('')}</div>`;
   const groupsByDay = [];
   exps.forEach(x => { const last = groupsByDay[groupsByDay.length - 1]; if (last && last.iso === x.date) last.list.push(x); else groupsByDay.push({ iso: x.date, list: [x] }); });
   let rowN = 0;
@@ -255,9 +254,11 @@ function renderSpend() {
     : `<p class="muted">${filtering ? 'Nothing matches. Try fewer filters.' : 'No spends logged yet this month. Type one above, like “120 chai”.'}</p>`;
   const logMain = `<section class="slide-list" id="exp-log" aria-label="Expense log">
     ${commandBarHTML({ spend: true })}
-    ${chips}
-    <div class="exp-tools no-print">${expFilterBar(ef, cats)}<div class="actions">${moreMenu([mi('Add an expense', 'add-expense'), mi('Split an expense', 'split-expense'), mi('Scan a receipt', 'scan-receipt'), mi('Paste a bank message', 'import-sms'), csvItem('expenses', 'expenses')])}</div></div>
-    <p class="small muted">${filtering ? `${plural(allExps.length, 'match', 'matches')} · ${fmt(sum(allExps, x => x.amount))} in total${allExps.length > exps.length ? `. Showing newest ${exps.length}` : ''}` : `This month${olderCount ? `. Search to find ${olderCount} older ones` : ''}`}.${jarLine ? ` ${jarLine}` : ''}</p>
+    <div class="sp-controls">
+      ${expFilterBar(ef, cats, moreMenu([mi('Split an expense', 'split-expense'), mi('Scan a receipt', 'scan-receipt'), mi('Paste a bank message', 'import-sms'), csvItem('expenses', 'expenses')]))}
+      ${chips}
+    </div>
+    <p class="sp-summary small"><span>${filtering ? `${plural(allExps.length, 'match', 'matches')} · <strong>${fmt(sum(allExps, x => x.amount))}</strong>${allExps.length > exps.length ? ` · newest ${exps.length} shown` : ''}${ef.q || ef.cat ? ' · <button type="button" class="linklike small" data-action="exp-clear">Clear</button>' : ''}` : `This month · ${plural(monthExps.length, 'spend')} · <strong>${fmt(sum(monthExps, x => x.amount))}</strong>`}</span>${!filtering && olderCount ? `<span class="muted">${olderCount} older: search to find them</span>` : ''}</p>${jarLine ? `<p class="small muted">${jarLine}</p>` : ''}
     ${dayList}
   </section>`;
   const monthTotal = sum(monthExps, x => x.amount);

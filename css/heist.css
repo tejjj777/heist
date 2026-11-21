@@ -593,3 +593,40 @@ html.heist.dark :is(.view-head h1, .hx-amount, .hx-amount .hx-cents, .tile-green
   -webkit-text-stroke-color: var(--hx-outline); text-shadow: 4px 4px 0 var(--hx-lav-3), 6px 6px 0 var(--hx-outline);
 }
 html.heist.dark .view-head h1 em { text-shadow: none; }
+
+/* ---------- Spend → Expense log: calmer top (add bar, one toolbar, one swipeable chip row) ---------- */
+html.heist #exp-log .cb-card { padding: 8px 8px 8px 14px; margin-bottom: 0; box-shadow: 3px 3px 0 var(--hx-ink); border-width: 2px; }
+html.heist #exp-log .cb-card .input { border: 0; background: transparent; box-shadow: none; padding-left: 4px; }
+html.heist #exp-log .cb-card .input:focus { outline: none; }
+html.heist .sp-controls { display: grid; gap: 10px; margin: 14px 0 6px; }
+html.heist .sp-controls .exp-filter { margin: 0; gap: 10px; }
+html.heist .sp-toolbar { display: flex; align-items: center; gap: 8px; }
+html.heist .sp-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border: 2px solid var(--hx-ink); border-radius: 999px; background: var(--hx-paper); color: var(--hx-ink-3); cursor: text; }
+html.heist .sp-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--hx-ink); }
+html.heist .sp-search:focus-within { box-shadow: 3px 3px 0 var(--hx-lav-3); }
+html.heist .sp-filter-btn { height: 42px; border-radius: 999px; }
+html.heist .sp-filter-btn b { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 4px; border-radius: 999px; background: var(--hx-lav-3); color: #FFFFFF; font-size: 12px; }
+html.heist .sp-toolbar .more-btn { width: 42px; height: 42px; flex: 0 0 auto; }
+html.heist .sp-filters { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; padding: 12px 14px; border: 2px dashed var(--hx-lav-2); border-radius: 16px; }
+html.heist .sp-filters[hidden] { display: none; }
+html.heist .sp-chips { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 2px 2px 6px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
+html.heist .sp-chips::-webkit-scrollbar { display: none; }
+html.heist .sp-chips .chip { flex: 0 0 auto; height: 32px; padding: 0 14px; font-size: 13px; font-weight: 600; box-shadow: none; border-width: 1.5px; }
+html.heist .sp-chips .chip.on { box-shadow: 2px 2px 0 var(--hx-ink); }
+html.heist .sp-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 4px 2px 14px; padding-bottom: 10px; border-bottom: 1.5px solid var(--hx-line); color: var(--hx-ink-2); }
+html.heist.dark .sp-summary { border-bottom-color: var(--hx-mist); }
+/* Phones: the top bar holds logo, + and five icons, so keep them compact */
+@media (max-width: 440px) {
+  html.heist .topbar { padding: 0 10px; }
+  html.heist .topbar-actions { gap: 2px; }
+  html.heist .topbar-actions .icon-btn { width: 36px; height: 36px; min-width: 36px; padding: 0; }
+  html.heist .topbar .brand-logo { height: 32px; }
+  html.heist #quickadd-btn { padding: 0 12px; min-width: 0; }
+}
+@media (max-width: 600px) {
+  html.heist .sp-filters { display: grid; gap: 12px; }
+  html.heist .sp-filters .exp-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px 8px; width: 100%; }
+  html.heist .sp-filters .exp-pair > label:first-child { grid-column: 1 / -1; }
+  html.heist .sp-filters .exp-pair select { grid-column: 1 / -1; width: 100%; }
+  html.heist .sp-filters .exp-pair .input { width: 100%; min-width: 0; }
+}
