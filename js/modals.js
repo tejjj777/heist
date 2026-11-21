@@ -577,10 +577,12 @@ function openSettings(tab = 'general') {
   groups.forEach(g => { const m = /<h3>([^<]+)<\/h3>/.exec(g); panels[(m && where[m[1]]) || 'general'].push(g); });
   panels.general.sort((a, b) => /Country and currency/.test(b) - /Country and currency/.test(a));
   panels.help.sort((a, b) => /<h3>Checks/.test(b) - /<h3>Checks/.test(a));
-  const names = [['general', 'Basics'], ['money', 'Money'], ['account', 'Account'], ['data', 'Data'], ['help', 'Help']];
+  // Account has its own button under Settings (sidebar and phone top bar), so it opens on its own
+  const acct = tab === 'account';
+  const names = acct ? [['account', 'Account']] : [['general', 'Basics'], ['money', 'Money'], ['data', 'Data'], ['help', 'Help']];
   openModal({
-    title: 'Settings', hideSubmit: true, cancelLabel: 'Close', wide: true,
-    body: `<div class="subtabs set-tabs"><div role="tablist" class="subtabs-inner">${names.map(([k, l]) => `<button type="button" role="tab" class="subtab" id="set-tab-${k}" data-set-tab="${k}" aria-selected="${k === tab}" aria-controls="set-panel-${k}">${l}</button>`).join('')}</div></div>
+    title: acct ? 'Account' : 'Settings', hideSubmit: true, cancelLabel: 'Close', wide: true,
+    body: `<div class="subtabs set-tabs" ${acct ? 'hidden' : ''}><div role="tablist" class="subtabs-inner">${names.map(([k, l]) => `<button type="button" role="tab" class="subtab" id="set-tab-${k}" data-set-tab="${k}" aria-selected="${k === tab}" aria-controls="set-panel-${k}">${l}</button>`).join('')}</div></div>
       ${names.map(([k]) => `<div class="set-panel" id="set-panel-${k}" role="tabpanel" aria-labelledby="set-tab-${k}" ${k === tab ? '' : 'hidden'}>${panels[k].join('')}</div>`).join('')}`,
     onMount: form => {
       bindPrefs(form);
@@ -616,8 +618,8 @@ function openSettings(tab = 'general') {
         if (b.dataset.setTab === 'help') showTests();
       });
       const lbl = form.querySelector('#import-label');
-      lbl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); form.querySelector('#import-file').click(); } });
-      form.querySelector('#import-file').addEventListener('change', e => importJSON(e.target.files[0]));
+      if (lbl) lbl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); form.querySelector('#import-file').click(); } });
+      const impFile = form.querySelector('#import-file'); if (impFile) impFile.addEventListener('change', e => importJSON(e.target.files[0]));
     }
   });
 }

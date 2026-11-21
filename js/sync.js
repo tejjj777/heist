@@ -137,7 +137,7 @@ function parkCopy(obj, why) {
     return true;
   } catch (e) { return false; }
 }
-const CLASH_MSG = ok => ok ? 'This device and another one both changed things. The newest copy is kept. The other is saved under Settings → Account.'
+const CLASH_MSG = ok => ok ? 'This device and another one both changed things. The newest copy is kept. The other is saved under Account (bottom left, or the person icon on a phone).'
   : 'This device and another one both changed things. The newest copy is kept. The other one was too big to save on this device.';
 function parkedCopy() { try { return JSON.parse(localStorage.getItem(CLASH_KEY)); } catch (e) { return null; } }
 function applyRemote(remote, row) {
@@ -207,7 +207,7 @@ async function syncNow(manual) {
 }
 function syncFailed(e, manual) {
   if (e.offline) { Sync.status = 'offline'; if (manual) toast('You’re offline. It’ll sync when you’re back online.'); return; }
-  if (e.signedOut) { Sync.status = 'signedout'; toast('Your sign-in ran out. Sign in again under Settings → Account to keep syncing.', 6000); return; }
+  if (e.signedOut) { Sync.status = 'signedout'; toast('Your sign-in ran out. Sign in again under Account (bottom left, or the person icon on a phone) to keep syncing.', 6000); return; }
   const was = Sync.status;
   Sync.status = 'error'; Sync.err = e.name === 'OperationError' ? 'The synced data couldn’t be unlocked on this device.' : e.message;
   if (manual || was !== 'error') toast(`Couldn’t sync: ${Sync.err}`, 5000);
@@ -243,7 +243,7 @@ function bindSync() {
   setInterval(() => { if (document.visibilityState === 'visible' && Sync.started && !Sync.busy) syncNow(false); }, 120000);
 }
 
-/* ---------- Settings → Account ---------- */
+/* ---------- Account ---------- */
 function syncAgo(t) {
   const m = Math.round((Date.now() - t) / 60000);
   return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : fmtDate(new Date(t));
@@ -388,7 +388,7 @@ function takeAuthFromURL() {
 }
 async function finishLinkSignIn(p) {
   if (p.error || !p.access_token || !p.refresh_token) {
-    toast(/expired|otp_expired|invalid/i.test(`${p.error} ${p.desc}`) ? 'That sign-in link expired or was already used. Ask for a new one under Settings → Account.' : `Sign-in didn’t work: ${p.desc || p.error}`, 7000);
+    toast(/expired|otp_expired|invalid/i.test(`${p.error} ${p.desc}`) ? 'That sign-in link expired or was already used. Ask for a new one under Account (bottom left, or the person icon on a phone).' : `Sign-in didn’t work: ${p.desc || p.error}`, 7000);
     return;
   }
   if (!canCrypto()) { toast('Sync works when HEIST is opened from its website (https).'); return; }
@@ -517,7 +517,7 @@ function syncChoose(row, remote) {
     title: 'Which data should HEIST use?', hideSubmit: true, cancelLabel: 'Decide later',
     body: `<p>This device already has data, and so does your account.</p>
       <div class="welcome-actions"><button type="button" class="btn btn-primary" id="acc-use-acct">Use my account’s data</button><button type="button" class="btn" id="acc-use-here">Use this device’s data</button></div>
-      <p class="small muted">The one you don’t pick is set aside on this device. You can switch to it later under Settings → Account.</p>`,
+      <p class="small muted">The one you don’t pick is set aside on this device. You can switch to it later under Account (bottom left, or the person icon on a phone).</p>`,
     onMount: form => {
       form.querySelector('#acc-use-acct').addEventListener('click', () => finish(true));
       form.querySelector('#acc-use-here').addEventListener('click', () => finish(false));

@@ -92,6 +92,7 @@ const MORE_ACTIONS = {
   'toggle-privacy': () => togglePrivacy(),
   'toggle-dark': () => toggleDark(),
   'toggle-sidebar': () => toggleSidebar(),
+  'open-account': () => openSettings('account'),
   'delete-debt': el => { const d = byId(state.debts, el.dataset.id); if (d) undoable(`Deleted “${d.name}”`, () => { state.debts = state.debts.filter(x => x !== d); state.recurring.forEach(r => { if (r.debtId === d.id) r.debtId = null; }); }); },
   'delete-goal': el => { const g = byId(state.goals, el.dataset.id); if (g) undoable(`Deleted goal “${g.name}”`, () => { state.goals = state.goals.filter(x => x !== g); }); },
   'delete-contribution': el => {

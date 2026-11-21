@@ -9,6 +9,8 @@ function buildChrome() {
   document.getElementById('tab-nav').innerHTML = ROUTES.map(r => `<a class="tab-link" href="#${r.id}" data-route="${r.id}">${ICON[r.icon]}<span>${r.short || r.label}</span></a>`).join('');
   document.getElementById('side-settings').innerHTML = `${ICON.settings}<span>Settings</span>`;
   document.getElementById('settings-mobile-btn').innerHTML = ICON.settings;
+  document.getElementById('side-account').innerHTML = `${ICON.user}<span>Account</span>`; document.getElementById('side-account').title = 'Account';
+  document.getElementById('account-mobile-btn').innerHTML = ICON.user;
   document.getElementById('palette-btn').innerHTML = ICON.search;
   document.querySelectorAll('img.yoko-logo').forEach(img => { img.src = logoUri(); });
   document.getElementById('side-palette').innerHTML = `${ICON.search}<span>Commands</span><kbd>Ctrl K</kbd>`;

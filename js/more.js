@@ -8,6 +8,7 @@
    cards, wishlist and bill splitting
    ========================================================= */
 Object.assign(ICON, {
+  user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>'),
   moon: svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
   sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
   eye: svg('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
@@ -78,7 +79,7 @@ function toggleSidebar() {
 function applyDark() {
   const on = !!state.settings.dark;
   document.documentElement.classList.toggle('dark', on);
-  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = on ? '#110E20' : '#F7F4FF';
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = on ? '#1F1B33' : '#F7F4FF';
   const b = document.getElementById('dark-btn');
   if (b) { b.innerHTML = on ? ICON.sun : ICON.moon; b.setAttribute('aria-pressed', String(on)); b.title = on ? 'Light mode' : 'Dark mode'; b.setAttribute('aria-label', on ? 'Switch to light mode' : 'Switch to dark mode'); }
   if (typeof setupChartDefaults === 'function') { try { setupChartDefaults(); } catch (e) { /* charts not loaded yet */ } }

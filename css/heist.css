@@ -533,10 +533,10 @@ html.heist :is(.card, .hx-rise, .hx-tile, .view-actions):has(.menu:not([hidden])
 html.heist.dark {
   color-scheme: dark;
   --hx-ink: #EDE9FF; --hx-ink-2: #CBC4EC; --hx-ink-3: #A49EC6;
-  --hx-paper: #1C1830; --hx-wash: #120F22; --hx-mist: #2A2347; --hx-line: #EDE9FF;
+  --hx-paper: #2A2542; --hx-wash: #1F1B33; --hx-mist: #383058; --hx-line: #EDE9FF;
   --hx-lav-1: #3B3270; --hx-lav-2: #6A57C9; --hx-lav-4: #BBAAF6;
   --hx-good: #5FD4A0; --hx-good-bg: #12352A; --hx-warn: #F2B65A; --hx-warn-bg: #3A2A10; --hx-bad: #FF7A84; --hx-bad-bg: #3D161C;
-  --surface-hover: #241E3E; --topbar-bg: rgba(18, 15, 34, .9); --grid: #2E2750; --heat-spend: #4A3D8C;
+  --surface-hover: #332C50; --topbar-bg: rgba(31, 27, 51, .9); --grid: #3A3360; --heat-spend: #4A3D8C;
   --link: #BBAAF6; --tone-success: #BBAAF6;
 }
 html.heist.dark body { background: var(--hx-wash) radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .06) 1px, transparent 0) 0 0 / 22px 22px; }
