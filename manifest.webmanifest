@@ -1,13 +1,13 @@
 {
   "name": "HEIST",
   "short_name": "HEIST",
-  "description": "Plan your paycheck, pay off debt, budget and save. Everything stays on your device.",
+  "description": "Catch the leaks. A money planner for students: see what you can spend today, split bills and save for goals.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#F7F4FF",
-  "theme_color": "#F7F4FF",
+  "background_color": "#F6F3FF",
+  "theme_color": "#F6F3FF",
   "icons": [
     {
       "src": "assets/icon-192.png",
