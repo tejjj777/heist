@@ -333,3 +333,4 @@ html.heist .brand::before { margin-left: 1px; margin-bottom: 7px; width: 8px; he
 .hx-row-end > span { display: block; }
 .hx-row-end > .hx-flag { display: inline-block; margin-bottom: 2px; }
 @media (min-width: 1024px) { html.heist .sidebar::before { align-self: flex-start; } }
+.hx-ring .on[style*="--len:0.0"] { display: none; }

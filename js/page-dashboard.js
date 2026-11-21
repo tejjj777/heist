@@ -128,9 +128,9 @@ function hxHero() {
     return `<article class="hx-hero hx-rise" style="--i:0" id="safe-hero">
       <div class="hx-aura" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="hx-eyebrow"><span class="hx-chip">Clean take</span></div>
-      <div class="hx-amount-wrap"><p class="hx-label">Nothing to split up yet</p>
+      <div class="hx-amount-wrap"><p class="hx-label">Let’s set you up</p>
       <p class="hx-reason">Add your allowance and HEIST works out how much you can safely spend each day, after bills.</p></div>
-      <div class="hx-actions"><button type="button" class="btn btn-primary" data-action="open-paycheck"><span>Set allowance</span></button></div>
+      <div class="hx-actions"><button type="button" class="btn btn-primary" data-action="open-paycheck"><span>Set allowance</span></button>${hasAnyData() ? '' : '<button type="button" class="btn" data-action="load-sample"><span>Try sample data</span></button>'}</div>
     </article>`;
   }
   const sts = studentSafeToSpend(), al = allowanceLeft(), t = todayDate(), today = F.toISO(t);
@@ -428,9 +428,7 @@ function renderDashboard() {
   let html = viewHeader('dashboard', `${hxGreeting()}<em>.</em>`, `${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][t.getDay()]}, ${t.getDate()} ${FULL_MONTHS[t.getMonth()]}`,
     '', [mi('What’s new', 'whats-new'), mi('Full tutorial', 'tour-all'), mi('Money Wrapped', 'open-wrapped')]);
 
-  if (!hasAnyData()) {
-    html += emptyState('Nothing here yet', 'Set your student allowance to build your budget and daily safe-to-spend amount. Or explore with sample data.', 'open-paycheck', 'Set allowance', 'dashboard');
-  }
+  // a brand-new user is greeted by the hero itself (it has Set allowance and Try sample data)
 
   const overview = heistToday() + sampleBanner() + backupBanner() + (typeof budgetNudgeBanner === 'function' ? budgetNudgeBanner() : '') + commandBarHTML() + subCheckCard() +
     `<div class="stats-grid home-stats">
