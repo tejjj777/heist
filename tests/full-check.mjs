@@ -10,7 +10,7 @@ import path from 'path';
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const OUT = process.env.OUT || path.join(ROOT, 'tests/out/full');
 fs.mkdirSync(OUT, { recursive: true });
-const KEY = 'yoko.student.v1';
+const KEY = 'heist.v1';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.pdf': 'application/pdf', '.wasm': 'application/wasm' };
 let serverDelay = 0;   // ms added to every local response (slow network)
 const server = http.createServer((req, res) => {

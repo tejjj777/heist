@@ -6,7 +6,7 @@
    ========================================================= */
 const q = sel => document.querySelector(sel);
 const closestCard = sel => { const el = q(sel); return el ? el.closest('.card') : null; };
-const TOUR_VERSION = 40;   // bumped: menu fix, savings math, steadier AI
+const TOUR_VERSION = 43;   // bumped: AI reads payment screenshots
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
@@ -97,7 +97,8 @@ const CHAPTERS = [
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Data', text: 'Download a backup, set up automatic backups to a file, import a backup, see the shop categories it has learned, load demo data, redo the setup questions, or reset everything.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Help', text: 'A live check of the app’s math (it should say 133 of 133), all the tutorials, how to add HEIST to your home screen, and our Privacy Policy, Terms and support email.' }
   ] },
-  { id: 'new', icon: '✨', title: 'What’s new', blurb: 'A solid top bar and a page menu that slides away as you scroll.', hidden: true, steps: [
+  { id: 'new', icon: '✨', title: 'What’s new', blurb: 'AI now reads your payment screenshots.', hidden: true, steps: [
+    { target: ['#quickadd-btn'], title: 'Screenshots, read by AI', text: 'Tap Add → Paste a bank message → Import a statement instead, and drop in a GPay or PhonePe screenshot. Or share one straight to HEIST. AI reads the amount and who you paid. Check it, then save.' },
     { target: ['#side-nav'], title: 'More room', text: 'On a laptop, the page menu slides away while you scroll down. Scroll up a little and it comes back.' },
     { target: ['#side-settings', '#settings-mobile-btn'], title: 'Help and legal', text: 'Settings → Help now has our Privacy Policy, Terms of Use and a support email. Your data still stays on your device.' },
     { route: 'dashboard/overview', target: ['#safe-hero'], title: 'Watch it move', text: 'Log a spend and it flies to its category while safe to spend rolls down digit by digit. Tap a Home tile and it grows into the page it opens.' },
@@ -131,10 +132,15 @@ function showOnboarding(opts = {}) {
 
   openModal({
     title: 'Welcome to HEIST',
-    submitLabel: 'Build my student budget',
+    submitLabel: 'Build my budget',
     cancelLabel: 'Skip',
     body: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">
-      <p class="small muted">Pick your country and currency, then three quick questions to set your budget and daily safe-to-spend.</p>
+      <p class="small muted">A few quick questions to set your budget and what you can safely spend each day.</p>
+
+      <div class="field"><span class="field-label">I’m a</span>
+        <div class="chip-row ob-mode" role="radiogroup" aria-label="Student or working">${LIFE_MODES.map(([k, l]) => `<label class="pl-choice"><input type="radio" name="ob-mode" value="${k}" ${(state.settings.lifeMode || 'student') === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></div>
+      <fieldset class="field"><legend class="field-label">Where does your money come from? Tick all that apply.</legend>
+        <div class="chip-row ob-income">${INCOME_TYPES.map(([k, l]) => `<label class="pl-choice"><input type="checkbox" name="ob-income" value="${k}" ${(state.settings.incomeTypes || ['allowance']).includes(k) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>
 
       <div class="form-grid two">
         <div class="field"><label for="ob-country">Country</label>
@@ -144,7 +150,7 @@ function showOnboarding(opts = {}) {
       </div>
 
       <div class="field">
-        <label for="ob-allowance">1. Monthly allowance or pocket money</label>
+        <label for="ob-allowance" id="ob-l1">1. Monthly allowance or pocket money</label>
         <div class="affix">
           <span class="affix-sym" aria-hidden="true" id="ob-sym">${esc(sym)}</span>
           <input id="ob-allowance" class="input" inputmode="decimal" autocomplete="off" placeholder="e.g. 10000" style="font-size:16px" value="${state.student && state.student.allowance ? numStr(state.student.allowance) : ''}">
@@ -153,7 +159,7 @@ function showOnboarding(opts = {}) {
       </div>
 
       <div class="field">
-        <label for="ob-arrival">2. When does your allowance arrive?</label>
+        <label for="ob-arrival" id="ob-l2">2. When does your allowance arrive?</label>
         <select id="ob-arrival" class="select" style="font-size:16px">
           <option value="1">1st of the month</option>
           <option value="5">5th of the month</option>
@@ -168,16 +174,12 @@ function showOnboarding(opts = {}) {
       </div>
 
       <div class="field">
-        <label for="ob-living">3. Living situation during semester</label>
-        <select id="ob-living" class="select" style="font-size:16px">
-          <option value="hostel" selected>Campus Hostel</option>
-          <option value="pg">PG / Rented Flat with Roommates</option>
-          <option value="home">Living at Home</option>
-        </select>
+        <label for="ob-living" id="ob-l3">3. Living situation during semester</label>
+        <select id="ob-living" class="select" style="font-size:16px"></select>
       </div>
 
       <div class="field" style="border-top:1px solid var(--border);padding-top:12px">
-        <label class="check"><input type="checkbox" id="ob-has-pt"> I have part-time / freelance income (optional)</label>
+        <label class="check"><input type="checkbox" id="ob-has-pt"> <span id="ob-pt-label">I also earn from a job, freelancing or a business (optional)</span></label>
         <div id="ob-pt-wrap" hidden style="margin-top:8px">
           <div class="grid-2">
             <div>
@@ -202,6 +204,37 @@ function showOnboarding(opts = {}) {
       const customWrap = form.querySelector('#ob-custom-day-wrap');
       const ptCheck = form.querySelector('#ob-has-pt');
       const ptWrap = form.querySelector('#ob-pt-wrap');
+      const LIVING = {
+        student: [['hostel', 'Campus hostel'], ['pg', 'PG or rented flat with roommates'], ['home', 'Living at home']],
+        working: [['flatmates', 'Renting with flatmates'], ['alone', 'Renting alone'], ['family', 'Living with family'], ['own', 'In my own home']]
+      };
+      const modeOf = () => (form.querySelector('[name="ob-mode"]:checked') || {}).value || 'student';
+      const typesOf = () => Array.from(form.querySelectorAll('[name="ob-income"]:checked')).map(x => x.value);
+      const syncMode = () => {
+        const w = modeOf() === 'working', types = typesOf();
+        const main = w ? (types.includes('salary') ? 'salary' : types[0] || 'salary') : (types.includes('allowance') ? 'allowance' : types[0] || 'allowance');
+        const mainLabel = { allowance: 'Monthly allowance or pocket money', salary: 'Monthly take-home salary', parttime: 'Monthly pay from your job', freelance: 'Usual monthly freelance or gig income', business: 'Usual monthly business income' }[main];
+        form.querySelector('#ob-l1').textContent = '1. ' + mainLabel;
+        form.querySelector('#ob-l2').textContent = main === 'allowance' ? '2. When does your allowance arrive?' : '2. When do you get paid?';
+        form.querySelector('#ob-l3').textContent = w ? '3. Where do you live?' : '3. Living situation during semester';
+        const liv = form.querySelector('#ob-living'), keep = liv.value;
+        liv.innerHTML = LIVING[w ? 'working' : 'student'].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+        if (LIVING[w ? 'working' : 'student'].some(x => x[0] === keep)) liv.value = keep;
+        const others = types.filter(t => t !== main);
+        if (others.length && !ptCheck.dataset.touched) { ptCheck.checked = true; ptWrap.hidden = false; }
+        if ((main === 'freelance' || main === 'business') && arrSelect.value !== 'irregular' && !arrSelect.dataset.touched) arrSelect.value = 'irregular';
+        form.closest('.modal').querySelector('button[type="submit"]').textContent = w ? 'Build my budget' : 'Build my student budget';
+      };
+      form.querySelectorAll('[name="ob-mode"]').forEach(r => r.addEventListener('change', () => {
+        const w = modeOf() === 'working';
+        form.querySelectorAll('[name="ob-income"]').forEach(cb => { if (cb.value === 'allowance') cb.checked = !w; if (cb.value === 'salary' && w && !typesOf().length) cb.checked = true; });
+        if (w && !typesOf().length) form.querySelector('[name="ob-income"][value="salary"]').checked = true;
+        syncMode();
+      }));
+      form.querySelectorAll('[name="ob-income"]').forEach(cb => cb.addEventListener('change', syncMode));
+      ptCheck.addEventListener('change', () => { ptCheck.dataset.touched = '1'; });
+      arrSelect.addEventListener('change', () => { arrSelect.dataset.touched = '1'; });
+      syncMode();
 
       arrSelect.addEventListener('change', e => {
         customWrap.hidden = e.target.value !== 'custom';
@@ -224,6 +257,8 @@ function showOnboarding(opts = {}) {
       const arrVal = form.querySelector('#ob-arrival').value;
       const customDay = form.querySelector('#ob-custom-day').value;
       const living = form.querySelector('#ob-living').value;
+      const lifeMode = (form.querySelector('[name="ob-mode"]:checked') || {}).value === 'working' ? 'working' : 'student';
+      const incomeTypes = Array.from(form.querySelectorAll('[name="ob-income"]:checked')).map(x => x.value);
       const hasPt = form.querySelector('#ob-has-pt').checked;
       const ptAmount = hasPt ? parseNum(form.querySelector('#ob-pt-amount').value) || 0 : 0;
       const ptHours = hasPt ? Number(form.querySelector('#ob-pt-hours').value) || 0 : 0;
@@ -287,12 +322,16 @@ function showOnboarding(opts = {}) {
         irregular: isIrregular
       });
 
-      studentStarterPlan(living);
+      state.settings.lifeMode = lifeMode;
+      state.settings.incomeTypes = incomeTypes.length ? incomeTypes : [lifeMode === 'working' ? 'salary' : 'allowance'];
+      state.settings.funLayer = lifeMode !== 'working';
+      if (lifeMode === 'working') workingStarterPlan(living); else studentStarterPlan(living);
+      applyLifeMode();
       checkBadges(true);
       save();
       render();
 
-      setTimeout(() => toast('Your student budget and safe-to-spend allowance are ready', 4500), 150);
+      setTimeout(() => toast(lifeMode === 'working' ? 'Your budget and safe-to-spend amount are ready' : 'Your student budget and safe-to-spend allowance are ready', 4500), 150);
       return true;
     }
   });
@@ -344,6 +383,12 @@ function showWhatsNew() {
   openModal({
     title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
+        <li><strong>Smarter screenshots:</strong> payment screenshots from GPay, PhonePe or Paytm are now read by AI, so the amount and who you paid come out right. No internet? It still reads them on your phone.</li>
+        <li><strong>Student or working:</strong> pick what fits you in Settings → About you. Working mode talks about payday, flatmates and household costs. Tick every way you earn, like pocket money and a part-time job.</li>
+        <li><strong>Crew heists:</strong> save for a trip or a big plan with friends. Everyone puts in their share and the vault fills live. Turn any plan from Plan it into a heist.</li>
+        <li><strong>Share a payment screenshot:</strong> on Android, install HEIST, then share a GPay or PhonePe screenshot to it and the spend is read and logged.</li>
+        <li><strong>Emergency fund:</strong> Goals → Savings suggests how much to keep aside, and sets it up as a goal in one tap.</li>
+        <li><strong>Plan it:</strong> tell HEIST about a trip, a movie or a party. It asks everything that changes the cost, then gives you a plan and the total you need. Find it under + Add, or just type “plan a Goa trip” in Ask AI.</li>
         <li><strong>Dark mode:</strong> tap the moon at the top.</li>
         <li><strong>Add spends by day:</strong> tap a day on the calendar or heatmap to add what you spent. Arrows move between months.</li>
         <li><strong>Meet Slime:</strong> your money pet has a new name.</li>

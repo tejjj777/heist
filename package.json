@@ -1,5 +1,5 @@
 {
-  "name": "yoko-student",
+  "name": "heist",
   "private": true,
   "description": "HEIST. No build step: open index.html or serve this folder. `npm run build` makes the smaller copy Netlify serves (dist/).",
   "type": "module",

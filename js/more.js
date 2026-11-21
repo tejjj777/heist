@@ -107,16 +107,17 @@ function togglePrivacy() {
 }
 function settingHook(key) {
   if (key === 'privacy') applyPrivacy();
+  if (key === 'lifeMode') { applyLifeMode(); if (state.settings.lifeMode === 'working' && !state.settings.incomeTypes.some(t => t !== 'allowance')) state.settings.incomeTypes = ['salary']; }
 }
 
 /* ---------- Backups: a linked file that updates itself, plus a weekly reminder ---------- */
 const BK = { handle: null, perm: 'none', timer: null, writing: false, supported: typeof window.showSaveFilePicker === 'function' };
 function idbOpen() {
-  return new Promise((res, rej) => {
-    const r = indexedDB.open('yoko-student', 1);
+  return (window.heistMoving || Promise.resolve()).then(() => new Promise((res, rej) => {
+    const r = indexedDB.open('heist-backups', 1);
     r.onupgradeneeded = () => r.result.createObjectStore('kv');
     r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-  });
+  }));
 }
 async function idbDo(mode, fn) {
   const db = await idbOpen();
@@ -164,7 +165,7 @@ async function writeBackupNow(announce) {
 async function linkBackupFile() {
   if (!BK.supported) { toast('This browser can’t link a file. Use “Download backup” instead.'); return; }
   try {
-    const h = await window.showSaveFilePicker({ suggestedName: 'yoko-backup.json', types: [{ description: 'HEIST backup', accept: { 'application/json': ['.json'] } }] });
+    const h = await window.showSaveFilePicker({ suggestedName: 'heist-backup.json', types: [{ description: 'HEIST backup', accept: { 'application/json': ['.json'] } }] });
     BK.handle = h; BK.perm = 'granted';
     try { await idbSet('backupHandle', h); } catch (e) { /* this browser can't remember the file; it still works until you close the tab */ }
     await writeBackupNow(true);
@@ -196,7 +197,7 @@ async function restoreBackupLink() {
   } catch (e) { /* ignore */ }
 }
 function downloadBackup() {
-  downloadFile(`yoko-backup-${todayISO()}.json`, JSON.stringify(state, null, 2), 'application/json');
+  downloadFile(`heist-backup-${todayISO()}.json`, JSON.stringify(state, null, 2), 'application/json');
   markBackedUp(); render(); refreshBackupUI();
   toast('Backup downloaded. Keep it somewhere safe');
 }

@@ -13,7 +13,7 @@ function downloadFile(name, content, type) {
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
-function downloadCSV(name, rows) { downloadFile(`yoko-${name}-${todayISO()}.csv`, '﻿' + toCSV(rows), 'text/csv;charset=utf-8'); }
+function downloadCSV(name, rows) { downloadFile(`heist-${name}-${todayISO()}.csv`, '﻿' + toCSV(rows), 'text/csv;charset=utf-8'); }
 const CSV = {
   debts() {
     const c = state.currency;

@@ -501,7 +501,7 @@ function liveGroupsCard() {
           <button type="button" class="btn" data-action="join-group">Join with code</button>
         </div>
       </div>
-    </div>`;
+    </div>` + heistsCard();
   }
 
   let html = `<div class="card mb"><div class="card-head"><div><h2>Your Groups</h2><p class="muted small">Live syncing budgets.</p></div>
@@ -509,6 +509,7 @@ function liveGroupsCard() {
     <ul class="plain-list">`;
   
   groups.forEach(g => {
+    if (heistInfo(g.id)) return;   // heists are listed in their own card below
     html += `<li><strong>${esc(g.name)}</strong> <span class="small muted">Code: ${esc(g.joinCode)}</span>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
         <button type="button" class="btn btn-sm" data-action="group-view" data-id="${g.id}">View details</button>
@@ -516,7 +517,7 @@ function liveGroupsCard() {
       </div></li>`;
   });
   html += `</ul></div>`;
-  return html;
+  return html + heistsCard();
 }
 
 function renderSplit() {

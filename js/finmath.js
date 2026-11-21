@@ -37,6 +37,13 @@ const FinMath = (() => {
   /** Annual % → monthly decimal rate. */
   function monthlyRate(annualPct) { return (isNum(annualPct) ? annualPct : 0) / 12 / 100; }
 
+  /** Planner totals: each line is qty × unit; the buffer is a % of the subtotal; total = subtotal + buffer. */
+  function planTotals(items, bufferPct) {
+    const subtotal = (items || []).reduce((t, x) => t + (Number(x.qty) > 0 ? Number(x.qty) : 0) * (Number(x.unit) > 0 ? Number(x.unit) : 0), 0);
+    const buffer = subtotal * (Number(bufferPct) > 0 ? Number(bufferPct) : 0) / 100;
+    return { subtotal, buffer, total: subtotal + buffer };
+  }
+
   /** EMI = P × r × (1+r)^n / ((1+r)^n − 1); r = annual/12/100. Zero-rate loans split evenly. */
   function emi(principal, annualPct, months) {
     if (!(principal > 0) || !(months > 0)) return 0;
@@ -1519,7 +1526,7 @@ const FinMath = (() => {
     parseDate, toISO, startOfDay, addDays, addMonths, daysBetween, monthsBetween, nextPayday, nextAnnualOccurrence,
     roundUpAmount, ruleOf72, daysLeftInMonth, streaks, taxYear, parsePayslip, parseLooseDate,
     parseSms, parseSmsBatch, parseCsv, parseStatementCsv, parseStatementLines, categorize, DEFAULT_RULES,
-    monthForecast, LEVELS, levelFor, splitShares, week52Total, recurringDue, setDateOrder, parseReceipt,
+    monthForecast, planTotals, LEVELS, levelFor, splitShares, week52Total, recurringDue, setDateOrder, parseReceipt,
     safeToSpend, forecastRunOut, semesterPlan, affordCheck, whatIfForecast,
     parseBillItems, splitBillExact, buildUpiUrl, generateTopUpDraft,
     calculateGhostSpending, calculateTimeOfDayBands, calculateSpendingPersonality,

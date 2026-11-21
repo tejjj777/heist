@@ -235,7 +235,7 @@ DEMO_TXNS.forEach(txn => {
   bmp.drawText('PAID FROM: HDFC BANK A/C XX1234', 35, 470, 1, 100, 120, 140);
 
   // Footer
-  bmp.drawText('YOKO! STUDENT SAMPLE DEMO SCREENSHOT', 40, 525, 1, 150, 150, 150);
+  bmp.drawText('HEIST SAMPLE DEMO SCREENSHOT', 40, 525, 1, 150, 150, 150);
 
   const pngData = bmp.toPNG();
   const filePath = path.join(outDir, `upi_${txn.id}.png`);

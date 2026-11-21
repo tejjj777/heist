@@ -16,6 +16,10 @@ function runSelfTests({ log = false } = {}) {   // log: print every check to the
   check('Loan payment: 0% interest splits evenly', close(F.emi(12000, 0, 12), 1000));
   check('Loan payment: 5,00,000 at 9.5% for 60 months ≈ 10,500.93', close(F.emi(500000, 9.5, 60), 10500.93), F.emi(500000, 9.5, 60).toFixed(4));
 
+  // Planner totals
+  const pt = F.planTotals([{ qty: 2, unit: 1500 }, { qty: 1, unit: 400 }, { qty: 3, unit: 0 }], 10);
+  check('Planner: 2×1,500 + 400 with a 10% buffer = 3,740', close(pt.subtotal, 3400) && close(pt.buffer, 340) && close(pt.total, 3740), JSON.stringify(pt));
+
   // Amortization
   const a = F.amortizationSchedule(100000, 12, 12);
   const pSum = a.rows.reduce((s, r) => s + r.principal, 0);

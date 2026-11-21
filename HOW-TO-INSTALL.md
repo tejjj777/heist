@@ -1,6 +1,6 @@
-# Put YOKO! Student on your phone
+# Put HEIST on your phone
 
-YOKO! Student runs from this folder with no internet: double-click `index.html` on a computer.
+HEIST runs from this folder with no internet: double-click `index.html` on a computer.
 To install it on a phone as an app (its own icon, full screen, works offline), the folder has to be on a website first.
 Phones can't install an app from a file on disk.
 
@@ -9,24 +9,24 @@ Phones can't install an app from a file on disk.
 ### Option A: Netlify Drop (easiest, no coding)
 1. On a computer, go to <https://app.netlify.com/drop>.
 2. Sign up or log in (free). Without an account the site still deploys, but it's locked behind a temporary password until you claim it.
-3. Drag the whole `yoko-student` folder onto the page. Delete its `node_modules` and `tests/out` folders first if you ran the tests (they are only for testing and are large).
+3. Drag the whole `heist` folder onto the page. Delete its `node_modules` and `tests/out` folders first if you ran the tests (they are only for testing and are large).
 4. After a few seconds you get a link ending in `.netlify.app`. That's your app.
-5. To update later, drag the new `yoko-student` folder onto the same project's deploy page.
+5. To update later, drag the new `heist` folder onto the same project's deploy page.
 
 The folder is about 15 MB, which is under Netlify Drop's recommended 50 MB limit.
 
 ### Option B: GitHub Pages
-1. Create a new repository on GitHub and upload everything inside the `yoko-student` folder. `index.html` must be at the top level.
+1. Create a new repository on GitHub and upload everything inside the `heist` folder. `index.html` must be at the top level.
 2. Go to **Settings → Pages**. Under **Build and deployment**, choose **Deploy from a branch**, then pick `main` and `/ (root)`.
 3. After a minute the site is live at `https://<your-username>.github.io/<repo-name>/`.
 
 ## 2. Install it
 
-- **Android (Chrome):** open your link, tap **⋮**, then tap **Install app** or **Add to Home screen**. You can also use **Settings → Use it on your phone → Install** inside YOKO! Student.
+- **Android (Chrome):** open your link, tap **⋮**, then tap **Install app** or **Add to Home screen**. You can also use **Settings → Use it on your phone → Install** inside HEIST.
 - **iPhone / iPad (Safari):** open your link, tap **Share**, then tap **Add to Home Screen**.
 - **Computer (Chrome / Edge):** use the install icon in the address bar.
 
-**Shortcuts:** once it's installed, press and hold the YOKO! icon on Android (or right-click it on a computer) for *Add an expense*, *Scan a receipt*, *Paste a bank message* and *Bill calendar*. As far as I know iPhones don't show these for web apps (unverified).
+**Shortcuts:** once it's installed, press and hold the HEIST icon on Android (or right-click it on a computer) for *Add an expense*, *Scan a receipt*, *Paste a bank message* and *Bill calendar*. As far as I know iPhones don't show these for web apps (unverified).
 
 After the first visit the app opens offline. Photo and scanned-payslip reading (OCR) is saved for offline use the first time you use it.
 
@@ -39,7 +39,7 @@ After the first visit the app opens offline. Photo and scanned-payslip reading (
 
 ## 4. Accounts (Supabase)
 
-Set up for the old YOKO! address. For HEIST at `https://tejjj777.github.io/heist/`, add that address under Authentication → URL Configuration so sign-in links come back here:
+Set up for HEIST at `https://tejjj777.github.io/heist/` (the Site URL under Authentication → URL Configuration). The Level 1, 2 and 3 sites are on the same Redirect URLs list:
 - The `vaults` table and its security rules (from `supabase/setup.sql`).
 - Sign-in emails send a link back to that address (Authentication → URL Configuration).
 
@@ -51,7 +51,7 @@ Before real users:
 
 Notes:
 - The app uses the **publishable** key, which is meant to be public. Never put the **secret** or `service_role` key in the app.
-- iPhone home-screen apps keep their own storage, separate from Safari. A sign-in link opens in Safari, so on iPhone sign in with the code once you have your own email sender, or use YOKO! in Safari.
+- iPhone home-screen apps keep their own storage, separate from Safari. A sign-in link opens in Safari, so on iPhone sign in with the code once you have your own email sender, or use HEIST in Safari.
 - A forgotten passphrase *and* a lost recovery key means that person's synced data can't be opened by anyone.
 
 ## 5. Updating prices

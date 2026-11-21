@@ -12,7 +12,7 @@ function buildChrome() {
   document.getElementById('side-account').innerHTML = `${ICON.user}<span>Account</span>`; document.getElementById('side-account').title = 'Account';
   document.getElementById('account-mobile-btn').innerHTML = ICON.user;
   document.getElementById('palette-btn').innerHTML = ICON.search;
-  document.querySelectorAll('img.yoko-logo').forEach(img => { img.src = logoUri(); });
+  document.querySelectorAll('img.heist-logo').forEach(img => { img.src = logoUri(); });
   document.getElementById('side-palette').innerHTML = `${ICON.search}<span>Commands</span><kbd>Ctrl K</kbd>`;
   document.getElementById('plus-icon').outerHTML = ICON.plus;
 

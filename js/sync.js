@@ -9,7 +9,7 @@
    ========================================================= */
 const SYNC_URL = 'https://qmcwczyqhymyoesfsrzh.supabase.co';
 const SYNC_KEY = 'sb_publishable_En_KZiJEJsgSe1DC79aMOg_GU59JTUk';   // publishable key: meant to be public; rows are guarded by row-level security
-const ACC_KEY = 'yoko.student.account', CLASH_KEY = 'yoko.student.sync-clash';
+const ACC_KEY = 'heist.account', CLASH_KEY = 'heist.sync-clash';
 const KDF_ITER = 600000;   // PBKDF2-SHA256 rounds (OWASP's recommendation)
 const Sync = { acc: null, timer: null, busy: false, again: false, started: false, applying: false, status: '', err: '', refreshing: null, wasSample: false };
 try { Sync.acc = JSON.parse(localStorage.getItem(ACC_KEY)) || null; } catch (e) { Sync.acc = null; }
@@ -446,7 +446,7 @@ function syncShowRecovery(code, first) {
       <label class="check" style="margin-top:12px"><input type="checkbox" id="acc-rk-ok"> I’ve saved my recovery key</label><p class="field-error" id="acc-err"></p>`,
     onMount: form => {
       form.querySelector('#acc-rk-copy').addEventListener('click', () => { (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(() => toast('Copied')).catch(() => toast('Couldn’t copy. Write it down instead.')); });
-      form.querySelector('#acc-rk-dl').addEventListener('click', () => downloadFile('yoko-recovery-key.txt', `HEIST recovery key\r\nAccount: ${Sync.acc.email}\r\nKey: ${code}\r\nMade: ${todayISO()}\r\n\r\nKeep this safe. With your email, it opens your synced data if you forget your passphrase.\r\n`, 'text/plain'));
+      form.querySelector('#acc-rk-dl').addEventListener('click', () => downloadFile('heist-recovery-key.txt', `HEIST recovery key\r\nAccount: ${Sync.acc.email}\r\nKey: ${code}\r\nMade: ${todayISO()}\r\n\r\nKeep this safe. With your email, it opens your synced data if you forget your passphrase.\r\n`, 'text/plain'));
     },
     onSubmit: form => {
       if (!form.querySelector('#acc-rk-ok').checked) { fieldErr(form, 'acc-err', 'Save it first, then tick the box.'); return false; }

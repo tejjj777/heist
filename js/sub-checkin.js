@@ -61,7 +61,7 @@ const SUB_ACTIONS = {
 };
 
 /* ---------- App-icon shortcuts: #do/<action> ---------- */
-const DEEP_ACTIONS = ['add-expense', 'scan-receipt', 'import-sms', 'open-palette'];
+const DEEP_ACTIONS = ['shared', 'add-expense', 'scan-receipt', 'import-sms', 'open-palette'];
 function handleDeepLink() {
   const st = /^#settings(?:\/([a-z]+))?$/.exec(location.hash);   // #settings or #settings/account opens Settings
   if (st) {

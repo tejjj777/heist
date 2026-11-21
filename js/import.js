@@ -46,12 +46,20 @@ function guessCategory(text) {
   return { id: fb.id, source: 'guess' };
 }
 function isDuplicate(t) { return state.budget.expenses.some(e => e.date === t.date && Math.abs(e.amount - t.amount) < 0.01); }
-function importModal(mode = 'sms') {
+function importModal(mode = 'sms', handed = {}) {
   if (!state.budget.categories.length) { toast('Add a budget category first.'); location.hash = '#budget'; return; }
   openModal({
     title: mode === 'sms' ? 'Paste bank messages' : 'Import a bank statement', submitLabel: 'Add expenses', wide: true,
     body: '<div id="imp-stage" class="stack"></div>',
-    onMount: form => (mode === 'sms' ? impSmsStage(form) : impFileStage(form)),
+    onMount: form => {
+      if (mode === 'sms') {
+        impSmsStage(form);
+        if (handed.text) { form.querySelector('#imp-sms').value = handed.text; form.querySelector('#imp-read').click(); }
+      } else {
+        impFileStage(form);
+        if (handed.files && handed.files.length) impHandleFiles(form, handed.files);
+      }
+    },
     onSubmit: form => impApply(form)
   });
 }
@@ -117,7 +125,16 @@ async function impHandleFiles(form, files) {
     const imageFiles = files.filter(isImageFile);
     if (imageFiles.length > 0) {
       say(`Reading ${plural(imageFiles.length, 'screenshot')}…`);
-      for (const file of imageFiles) {
+      for (const [n, file] of imageFiles.entries()) {
+        const step = imageFiles.length > 1 ? ` (${n + 1} of ${imageFiles.length})` : '';
+        say(`Reading ${plural(imageFiles.length, 'screenshot')}${step}…`);
+        // AI first: it understands GPay, PhonePe and Paytm screens. If it can't be reached, read the text on this device.
+        const ai = await aiReadScreenshot(file, secs => say(`Lots of screenshots at once. Waiting ${secs} seconds${step}…`));
+        if (ai && ai.length) {
+          allTxns.push(...ai.map(t => ({ amount: t.amount, type: t.type, merchant: t.merchant, date: t.date, raw: (t.note ? t.note + ' · ' : '') + 'Read by AI' })));
+          continue;
+        }
+        if (ai) continue;   // the AI looked and found no payment on this one
         const lines = await ocrLines([file]);
         const parsed = F.parseSmsBatch(lines.join('\n'), todayISO());
         if (parsed.length) allTxns.push(...parsed);
@@ -257,9 +274,22 @@ function loadOcr() {
   return ocrPromise;
 }
 /** Recognise text in images/canvases. `onProgress(0..1)` reports overall progress. */
+/** Small screenshots read badly: draw them about 1200px wide first (at most 3× bigger). Anything else passes through. */
+async function ocrPrep(src) {
+  try {
+    if (!(src instanceof Blob) || !/^image\//.test(src.type || 'image/') || typeof createImageBitmap !== 'function') return src;
+    const bmp = await createImageBitmap(src);
+    const scale = Math.min(3, 1200 / bmp.width);
+    if (!(scale > 1.15)) return src;
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(bmp, 0, 0, c.width, c.height);
+    return c;
+  } catch (e) { return src; }
+}
 async function ocrLines(sources, onProgress) {
   await loadOcr();
-  const bin = atob(window.YOKO_OCR_ENG);
+  const bin = atob(window.HEIST_OCR_ENG);
   const data = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
   let uses = 0, page = 0;
@@ -272,7 +302,7 @@ async function ocrLines(sources, onProgress) {
   const lines = [];
   try {
     for (; page < sources.length; page++) {
-      const r = await w.recognize(sources[page]);
+      const r = await w.recognize(await ocrPrep(sources[page]));
       lines.push(...r.data.text.split(/\r?\n/));
     }
   } finally { try { await w.terminate(); } catch (e) { /* ignore */ } }

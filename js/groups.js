@@ -55,16 +55,16 @@ const GroupSync = {
 
   queueAction(action) {
     let q = [];
-    try { q = JSON.parse(localStorage.getItem('yoko.groups.outbox')) || []; } catch(e){}
+    try { q = JSON.parse(localStorage.getItem('heist.groups.outbox')) || []; } catch(e){}
     q.push(action);
-    localStorage.setItem('yoko.groups.outbox', JSON.stringify(q));
+    localStorage.setItem('heist.groups.outbox', JSON.stringify(q));
     if (navigator.onLine) this.ready().then(ok => { if (ok) this.processQueue(); });
   },
 
   async processQueue() {
     if (!this.client || !navigator.onLine) return;
     let q = [];
-    try { q = JSON.parse(localStorage.getItem('yoko.groups.outbox')) || []; } catch(e){}
+    try { q = JSON.parse(localStorage.getItem('heist.groups.outbox')) || []; } catch(e){}
     if (!q.length) return;
     
     const remaining = [];
@@ -103,7 +103,7 @@ const GroupSync = {
         remaining.push(action);
       }
     }
-    localStorage.setItem('yoko.groups.outbox', JSON.stringify(remaining));
+    localStorage.setItem('heist.groups.outbox', JSON.stringify(remaining));
   },
 
   subscribe(groupId) {
@@ -157,6 +157,7 @@ const GroupSync = {
         expenses: expenses || []
       };
       groupBudgetSync(groupId);
+      if (typeof heistSyncLocalGoal === 'function') heistSyncLocalGoal(groupId);
       save();
       if (currentRoute() === 'split') render();
       else scheduleRender(200);
@@ -205,8 +206,8 @@ const GroupSync = {
   isLocalOnly(ex) { return !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(ex.id)); },
   dropFromOutbox(localId) {
     let q = [];
-    try { q = JSON.parse(localStorage.getItem('yoko.groups.outbox')) || []; } catch (e) { q = []; }
-    localStorage.setItem('yoko.groups.outbox', JSON.stringify(q.filter(a => !(a.expense && a.expense.id === localId))));
+    try { q = JSON.parse(localStorage.getItem('heist.groups.outbox')) || []; } catch (e) { q = []; }
+    localStorage.setItem('heist.groups.outbox', JSON.stringify(q.filter(a => !(a.expense && a.expense.id === localId))));
   },
   async deleteExpense(groupId, ex) {
     const data = state.groupData[groupId];
@@ -276,7 +277,7 @@ const GroupSync = {
     state.groupData[groupId].expenses.push({ ...expense, group_expense_splits: splits });
     // your share counts as your own spending
     const mine = Number(splitDetails[group.myMemberId]) || 0;
-    if (mine > 0.004 && !/^Settlement:/.test(description)) {
+    if (mine > 0.004 && !/^Settlement:/.test(description) && !isHeistRow({ description })) {
       const r = addExpense({ categoryId: categoryId || groupCategoryId(), amount: Math.round(mine * 100) / 100, date: todayISO(), note: `${group.name}: ${description}`.slice(0, 120), noRoundup: true });
       r.exp.groupExp = expense.id;
       if (categoryId) state.settings.groupCat = categoryId;
@@ -304,7 +305,7 @@ function groupBalances(groupId) {
   data.members.forEach(m => { balances[m.id] = { id: m.id, name: m.name, net: 0, paid: 0, share: 0 }; });
   
   data.expenses.forEach(ex => {
-    if (!balances[ex.paid_by]) return;
+    if (!balances[ex.paid_by] || isHeistRow(ex)) return;
     balances[ex.paid_by].paid += ex.amount;
     balances[ex.paid_by].net += ex.amount;
     
@@ -343,7 +344,7 @@ function groupBudgetSync(groupId) {
   const have = new Set(state.budget.expenses.map(e => e.groupExp).filter(Boolean));
   exps.forEach(ex => {
     const id = String(ex.id || '');
-    if (!id || skip.has(id) || have.has(id) || /^Settlement:/.test(ex.description || '')) return;
+    if (!id || skip.has(id) || have.has(id) || /^Settlement:/.test(ex.description || '') || isHeistRow(ex)) return;
     const mine = sum((ex.group_expense_splits || []).filter(sp => sp.member_id === g.myMemberId), sp => Number(sp.amount) || 0);
     state.meta.groupSkip.push(id);
     if (!(mine > 0.004)) return;
@@ -558,7 +559,7 @@ const GROUP_ACTIONS = {
         </div></div></details>
 
         <h3 style="margin-top:12px">Expenses</h3>
-        ${data.expenses.length ? `<ul class="plain-list mb">${data.expenses.slice().reverse().map(ex => {
+        ${data.expenses.filter(ex => !isHeistRow(ex)).length ? `${typeof heistInfo === 'function' && heistInfo(groupId) ? `<p class="mb"><button type="button" class="btn btn-sm btn-primary" data-action="heist-view" data-id="${groupId}">🎯 Open the heist vault</button></p>` : ''}<ul class="plain-list mb">${data.expenses.filter(ex => !isHeistRow(ex)).slice().reverse().map(ex => {
           const paidBy = data.members.find(m => m.id === ex.paid_by);
           const mine = ex.paid_by === g.myMemberId && !/^Settlement:/.test(ex.description || '');
           return `<li class="gx-row"><div class="gx-main">${esc(ex.description)}<br><span class="small muted">Paid by ${paidBy ? esc(paidBy.name) : 'Someone'} · ${fmtExact(Number(ex.amount))}</span></div>${mine ? `<span class="gx-act no-print"><button type="button" class="icon-btn" data-action="group-edit-expense" data-group-id="${groupId}" data-ex-id="${esc(String(ex.id))}" aria-label="Edit ${esc(ex.description)}">${ICON.edit}</button><button type="button" class="icon-btn danger" data-action="group-del-expense" data-group-id="${groupId}" data-ex-id="${esc(String(ex.id))}" aria-label="Delete ${esc(ex.description)}">${ICON.trash}</button></span>` : ''}</li>`;

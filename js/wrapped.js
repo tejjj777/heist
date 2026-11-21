@@ -317,7 +317,7 @@ function renderWrappedStory(form) {
       const c = drawWrappedSquareCard(data, activeWrappedCard);
       c.toBlob(b => {
         if (b) {
-          const filename = `yoko-wrapped-${data.monthIso}-card${activeWrappedCard + 1}.png`;
+          const filename = `heist-wrapped-${data.monthIso}-card${activeWrappedCard + 1}.png`;
           downloadFile(filename, b, 'image/png');
           toast(`Card ${activeWrappedCard + 1} exported!`);
         }

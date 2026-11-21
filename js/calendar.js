@@ -78,11 +78,11 @@ function downloadIcs() {
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//HEIST//Bill calendar//EN', 'CALSCALE:GREGORIAN'];
   ev.forEach((e, i) => {
     const d = e.date.replace(/-/g, ''), next = F.toISO(F.addDays(F.parseDate(e.date), 1)).replace(/-/g, '');
-    lines.push('BEGIN:VEVENT', `UID:yoko-${d}-${i}@yoko.local`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${next}`,
+    lines.push('BEGIN:VEVENT', `UID:heist-${d}-${i}@heist.local`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${next}`,
       `SUMMARY:${escI(`${e.title}${e.amount ? ` (${fmt(e.amount)})` : ''}`)}`, 'END:VEVENT');
   });
   lines.push('END:VCALENDAR');
-  downloadFile('yoko-calendar.ics', lines.join('\r\n'), 'text/calendar');
+  downloadFile('heist-calendar.ics', lines.join('\r\n'), 'text/calendar');
   toast(`Downloaded ${plural(ev.length, 'date')} for the next 12 months. Open the file to add them to your calendar`, 4500);
 }
 

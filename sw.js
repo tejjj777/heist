@@ -1,8 +1,8 @@
 /* HEIST service worker: makes the installed app open offline.
    The page and its own code (js/, css/) are fetched fresh when online (so updates arrive together) and fall back to the cached copy offline.
    Everything else is cache-first; the large OCR files are cached the first time they're used. */
-const CACHE = 'heist-v69';   // bump the number every session
-const PREFIX = 'yoko-student-';    // only ever delete our own caches (main HEIST may share this origin)
+const CACHE = 'heist-main-v73';   // bump the number every session
+const PREFIX = 'heist-main-';    // only ever delete our own caches (main HEIST may share this origin)
 const CORE = [
   './', './index.html', './manifest.webmanifest', './prices.json',
   './assets/chart.umd.min.js', './assets/logo.png', './assets/favicon.png', './assets/heist-logo.png', './assets/apple-touch-icon.png', './assets/icon-192.png', './assets/icon-512.png',
@@ -19,7 +19,7 @@ const CORE = [
   './js/i18n.js',
   './js/state.js',
   './js/charts.js',
-  './js/ui-shared.js',
+  './js/ui-shared.js', './js/modes.js',
   './js/page-dashboard.js',
   './js/page-debt.js',
   './js/page-budget.js',
@@ -36,7 +36,7 @@ const CORE = [
   './js/challenges.js',
   './js/commands.js',
   './js/ai.js',
-  './js/commandbar.js',
+  './js/commandbar.js', './js/planner.js',
   './js/qrcode.js',
   './js/bill-split.js',
   './js/wrapped.js',
@@ -49,7 +49,7 @@ const CORE = [
   './js/router.js',
   './js/modals.js',
   './js/sync.js',
-  './js/groups.js',
+  './js/groups.js', './js/heists.js',
   './js/export.js',
   './js/actions.js',
   './js/init.js'
@@ -57,11 +57,28 @@ const CORE = [
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
+// activate also clears heist-vNN, this app's caches from before they got their own name
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith(PREFIX) && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => (k.startsWith(PREFIX) && k !== CACHE) || /^heist-v\d+$/.test(k)).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
+const SHARED = 'heist-shared';   // screenshots and text shared into HEIST from another app (Android share sheet)
+async function takeShare(req) {
+  const fd = await req.formData();
+  const cache = await caches.open(SHARED);
+  for (const k of await cache.keys()) await cache.delete(k);
+  const files = fd.getAll('shots').filter(f => f && typeof f === 'object' && f.size > 0).slice(0, 10);
+  await Promise.all(files.map((f, i) => cache.put(`./shared/file-${i}`, new Response(f, { headers: { 'content-type': f.type || 'image/png', 'x-name': encodeURIComponent(f.name || 'screenshot-' + i + '.png') } }))));
+  const text = ['title', 'text', 'url'].map(k => fd.get(k)).filter(v => typeof v === 'string' && v.trim()).join('\n');
+  if (text) await cache.put('./shared/text', new Response(text, { headers: { 'content-type': 'text/plain' } }));
+  return Response.redirect('./index.html#do/shared', 303);
+}
+
 self.addEventListener('fetch', e => {
   const req = e.request;
+  if (req.method === 'POST' && new URL(req.url).pathname.endsWith('/share-target')) {
+    e.respondWith(takeShare(req).catch(() => Response.redirect('./index.html#do/import-sms', 303)));
+    return;
+  }
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === 'navigate') {
     if (!/\/(index\.html)?$/.test(new URL(req.url).pathname)) {   // other pages (privacy, terms, 404): never stored as the app itself

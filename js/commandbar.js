@@ -146,6 +146,13 @@ function bindCommandBar() {
     let text = F.normalizeAmounts(rawText);   // "2 lakh" → 200000, "fifty k" → 50000
     // On Spend the bar is for logging, so "120 chai" means "spent 120 on chai"
     if (bar.classList.contains('cb-spend') && /\d/.test(text) && !/[?]|\b(?:afford|how|what|can|should|set|spent|paid|bought|add|log)\b/i.test(text)) text = 'spent ' + text.trim();
+    if (typeof isPlanRequest === 'function' && isPlanRequest(text)) {
+      res.hidden = false;
+      res.innerHTML = `<p>Opened the planner for that. <button type="button" class="linklike" data-action="plan-something">Open it again</button></p>`;
+      inp.value = '';
+      openPlanner(rawText);
+      return;
+    }
     inp.disabled = true;
     btn.disabled = true;
     res.hidden = false;
@@ -375,7 +382,7 @@ function renderCommandResult(parsed, originalText, container) {
   } else if (parsed.intent === 'down') {
     const why = typeof aiLastError === 'string' ? aiLastError : '';
     container.innerHTML = `<p>${why === 'offline' ? 'You’re offline, so the AI can’t answer right now.'
-      : why === 'blocked' ? 'The AI only answers on the HEIST website (tejjj777.github.io/heist). Open the app there to use it.'
+      : why === 'blocked' ? 'The AI only answers when HEIST is opened from its website link, not from a file on this device. Open it from tejjj777.github.io to use it.'
       : 'The AI isn’t answering right now. Try again in a minute.'}</p>
       <p class="small muted">I can still log spends and answer “can I afford” and “how much” questions without it.</p>`;
   } else {

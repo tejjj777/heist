@@ -15,6 +15,7 @@ let renderTimer = null;
 
 function render() {
   clearTimeout(renderTimer); renderTimer = null;
+  if (typeof applyLifeMode === 'function' && document.body.classList.contains('mode-working') !== isWorking()) applyLifeMode();
   syncActuals();
   // Keep the user's place: focused field, caret and raw typed text survive a re-render.
   const ae = document.activeElement;

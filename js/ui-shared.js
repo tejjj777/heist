@@ -102,7 +102,7 @@ function emptyState(title, text, action, actionLabel, icon = 'goal') {
 /** Small "Change graph color" picker for slice charts: HEIST theme shades or Rainbow (same setting as Settings, Chart colors). */
 function chartColorPick() {
   const rb = state.settings.chartColors === 'rainbow';
-  return `<label class="chart-color no-print"><span class="muted small">Change graph color</span><select class="select select-sm" data-chart-colors aria-label="Change graph color"><option value="yoko" ${rb ? '' : 'selected'}>HEIST theme</option><option value="rainbow" ${rb ? 'selected' : ''}>Rainbow</option></select></label>`;
+  return `<label class="chart-color no-print"><span class="muted small">Change graph color</span><select class="select select-sm" data-chart-colors aria-label="Change graph color"><option value="heist" ${rb ? '' : 'selected'}>HEIST theme</option><option value="rainbow" ${rb ? 'selected' : ''}>Rainbow</option></select></label>`;
 }
 function chartCard(title, sub, id, hasData, emptyMsg, size = '', pick = false) {
   return `<div class="card">

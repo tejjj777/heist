@@ -1,4 +1,4 @@
--- YOKO! sync: run this once in Supabase → SQL Editor → New query → Run.
+-- HEIST sync: run this once in Supabase → SQL Editor → New query → Run.
 -- Each person gets one row. The app locks the data on the device before sending it,
 -- so these columns only ever hold encrypted text. Row-level security means a signed-in
 -- person can only read or change their own row.

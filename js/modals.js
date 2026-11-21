@@ -570,12 +570,12 @@ function openSettings(tab = 'general') {
       <div class="row">${SUPPORT_EMAIL ? `<a class="btn btn-sm" href="mailto:${esc(SUPPORT_EMAIL)}?subject=${encodeURIComponent('HEIST help')}">Email support</a>` : ''}<a class="btn btn-sm" href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a><a class="btn btn-sm" href="terms.html" target="_blank" rel="noopener">Terms of Use</a></div></div>
       <div class="settings-group"><h3>Self-tests</h3><details class="set-details"><summary class="small">For checking the app’s math</summary><p class="small muted">Checks loan payments, payoff order, goals, safe-to-spend and amount words like “2 lakh”.</p>
       <div class="row"><button type="button" class="btn btn-sm" data-action="run-tests">Run self-tests</button></div><div id="test-out"></div></details></div>`;
-  const groups = (prefsHTML() + moreSettingsHTML() + accountGroupHTML() + dataGroups + helpGroups).split(/(?=<div class="settings-group">)/).filter(g => g.trim());
-  const where = { 'Country and currency': 'general', 'Theme and sound': 'general', 'Privacy and pet': 'general', 'Hours of work': 'money', 'Runway': 'money', 'Round-up jar': 'money',
+  const groups = (modeSettingsHTML() + prefsHTML() + moreSettingsHTML() + accountGroupHTML() + dataGroups + helpGroups).split(/(?=<div class="settings-group">)/).filter(g => g.trim());
+  const where = { 'About you': 'general', 'Country and currency': 'general', 'Theme and sound': 'general', 'Privacy and pet': 'general', 'Hours of work': 'money', 'Runway': 'money', 'Round-up jar': 'money',
     'Sync across devices': 'account', 'Backups': 'data', 'Your data': 'data', 'Learned categories': 'data', 'Reset': 'data', 'Use it on your phone': 'help', 'Tutorials': 'help', 'Contact and legal': 'help', 'Self-tests': 'help', 'Checks': 'help' };
   const panels = { general: [], money: [], account: [], data: [], help: [] };
   groups.forEach(g => { const m = /<h3>([^<]+)<\/h3>/.exec(g); panels[(m && where[m[1]]) || 'general'].push(g); });
-  panels.general.sort((a, b) => /Country and currency/.test(b) - /Country and currency/.test(a));
+  panels.general.sort((a, b) => (/About you/.test(b) - /About you/.test(a)) || (/Country and currency/.test(b) - /Country and currency/.test(a)));
   panels.help.sort((a, b) => /<h3>Checks/.test(b) - /<h3>Checks/.test(a));
   // Account has its own button under Settings (sidebar and phone top bar), so it opens on its own
   const acct = tab === 'account';
@@ -585,7 +585,7 @@ function openSettings(tab = 'general') {
     body: `<div class="subtabs set-tabs" ${acct ? 'hidden' : ''}><div role="tablist" class="subtabs-inner">${names.map(([k, l]) => `<button type="button" role="tab" class="subtab" id="set-tab-${k}" data-set-tab="${k}" aria-selected="${k === tab}" aria-controls="set-panel-${k}">${l}</button>`).join('')}</div></div>
       ${names.map(([k]) => `<div class="set-panel" id="set-panel-${k}" role="tabpanel" aria-labelledby="set-tab-${k}" ${k === tab ? '' : 'hidden'}>${panels[k].join('')}</div>`).join('')}`,
     onMount: form => {
-      bindPrefs(form);
+      bindPrefs(form); bindModeSettings(form);
       form.closest('.modal').classList.add('settings-modal');
       const inner = form.querySelector('.set-tabs .subtabs-inner'), ind = document.createElement('span');
       ind.className = 'subtab-ind'; ind.setAttribute('aria-hidden', 'true'); inner.prepend(ind); inner.classList.add('has-ind');

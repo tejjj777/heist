@@ -61,7 +61,7 @@
   --sidebar-w: 232px;
   --tabbar-h: 64px;
 
-  /* Theme "YOKO!" (default): the logo's green on black */
+  /* Theme "HEIST" (default): the logo's green on black */
   --primary: #7ED957;
   --primary-dark: #5FBF3A;
   --tint: #16240F;
@@ -844,7 +844,7 @@ tr.is-paused td { opacity: .6; }
   .sched-scroll { max-height: none; overflow: visible; border: 0; }
   .input, .select { border: 0; padding: 0; min-height: 0; background: none; }
   .select { background-image: none; }
-  .yoko-logo { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .heist-logo { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .view[hidden] { display: none !important; }
   a { color: inherit; text-decoration: none; }
 }

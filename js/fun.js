@@ -664,7 +664,7 @@ function prefsHTML() {
   return `
   <div class="settings-group"><h3>Theme and sound</h3><div class="form-grid two">
     ${THEME_KEYS.length > 1 ? `<fieldset class="theme-pick span-2"><legend class="field-label">Theme</legend>${THEME_KEYS.map(k => `<label class="theme-opt"><input type="radio" name="set-theme" id="set-theme-${k}" value="${k}" data-setting="theme" data-kind="select" ${resolvedTheme() === k ? 'checked' : ''}><span class="swatch" aria-hidden="true"><i style="background:${THEMES[k].swatch[0]}"></i><i style="background:${THEMES[k].swatch[1]}"></i></span>${esc(THEMES[k].label)}</label>`).join('')}</fieldset>` : ''}
-    <div class="field"><span class="field-label">Chart colors</span>${segRadio({ name: 'set-chartc', label: 'Chart colors', value: s.chartColors === 'rainbow' ? 'rainbow' : 'yoko', attrs: 'data-setting="chartColors" data-kind="select"', options: [['yoko', 'HEIST theme', 'HEIST theme, shades of your theme'], ['rainbow', 'Rainbow', 'Rainbow, every slice a different color']] })}</div>
+    <div class="field"><span class="field-label">Chart colors</span>${segRadio({ name: 'set-chartc', label: 'Chart colors', value: s.chartColors === 'rainbow' ? 'rainbow' : 'heist', attrs: 'data-setting="chartColors" data-kind="select"', options: [['heist', 'HEIST theme', 'HEIST theme, shades of your theme'], ['rainbow', 'Rainbow', 'Rainbow, every slice a different color']] })}</div>
     <div class="field"><span class="field-label">Sound effects</span><label class="check"><input type="checkbox" id="set-sound" data-setting="sound" data-kind="bool" ${s.sound ? 'checked' : ''}> Play sounds</label></div>
   </div></div>
   <div class="settings-group"><h3>Hours of work</h3><p class="small muted">Prices also show as how long you’d have to work for them.</p><div class="form-grid two">
@@ -716,7 +716,7 @@ function applyTheme() {
   if (meta) meta.content = THEMES[th].meta;
   const btn = document.getElementById('theme-btn');
   if (btn) { btn.innerHTML = ICON.palette; btn.title = `Theme: ${THEMES[th].label} (click to change)`; btn.setAttribute('aria-label', `Change theme. Current: ${THEMES[th].label}`); }
-  document.querySelectorAll('img.yoko-logo').forEach(img => { img.src = logoUri(); });
+  document.querySelectorAll('img.heist-logo').forEach(img => { img.src = logoUri(); });
   setupChartDefaults();
 }
 /** Cycle Lavender → Black & Green → Black & Blue → Black & Red. */

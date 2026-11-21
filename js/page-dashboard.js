@@ -51,7 +51,7 @@ function safeToSpendHero(week, maxDay) {
       <button type="button" class="btn btn-primary btn-sm" data-action="add-expense">${ICON.plus}<span>Log expense</span></button>
       <button type="button" class="btn btn-sm" data-action="set-bank">${state.settings.bank ? `Bank: ${fmtExact(bankBalanceNow())}` : 'Add bank balance'}</button>
       <button type="button" class="btn btn-sm" data-action="open-paycheck"><span>Edit allowance</span></button>
-      ${sts.status === 'red' ? `<button type="button" class="btn btn-sm btn-warn" data-action="ask-topup"><span>Ask for a top-up</span></button>` : ''}
+      ${sts.status === 'red' && !isWorking() ? `<button type="button" class="btn btn-sm btn-warn" data-action="ask-topup"><span>Ask for a top-up</span></button>` : ''}
     </div>
   </div>`;
 }
@@ -177,7 +177,7 @@ function hxHero() {
     <div class="hx-actions no-print">
       <button type="button" class="btn btn-primary" data-action="add-expense">${ICON.plus}<span>Log a spend</span></button>
       <button type="button" class="btn" data-action="scan-receipt">${ICON.camera}<span>Scan receipt</span></button>
-      ${sts.status === 'red' ? `<button type="button" class="btn" data-action="ask-topup"><span>Ask for a top-up</span></button>` : `<button type="button" class="btn" data-action="set-bank"><span>${state.settings.bank ? 'Update bank' : 'Add bank balance'}</span></button>`}
+      ${sts.status === 'red' && !isWorking() ? `<button type="button" class="btn" data-action="ask-topup"><span>Ask for a top-up</span></button>` : `<button type="button" class="btn" data-action="set-bank"><span>${state.settings.bank ? 'Update bank' : 'Add bank balance'}</span></button>`}
     </div>
   </article>`;
 }
@@ -444,10 +444,10 @@ function renderDashboard() {
     </div>` +
     savingsCard('dash-savings-chart') +
     runOutForecastCard('dash-forecast-chart') +
-    semesterCard() +
-    `<div class="grid-2">${petCard()}${questsCard()}</div>`;
+    (isWorking() ? '' : semesterCard()) +
+    (funOn() ? `<div class="grid-2">${petCard()}${questsCard()}</div>` : '');
 
-  const forecastTab = runOutForecastCard('tab-forecast-chart') + `<div class="grid-2">${weatherCard()}${questsCard()}</div>`;
+  const forecastTab = runOutForecastCard('tab-forecast-chart') + (funOn() ? `<div class="grid-2">${weatherCard()}${questsCard()}</div>` : '');
   const semesterTab = semesterCard() + `<div class="grid-2">${chartCard('Savings goal progress', '% of each target saved', 'dash-goals-tab', state.goals.length > 0, 'Add a savings goal to track progress.')}</div>`;
 
   const chartsTab = `<div class="grid-2">

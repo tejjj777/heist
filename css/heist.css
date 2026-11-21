@@ -1,7 +1,7 @@
 /* =========================================================
    HEIST design system: lavender and white.
    Loaded after app.css. Everything here is scoped to html.heist so it
-   always wins over the old YOKO! styles without !important.
+   always wins over the old HEIST styles without !important.
 
    Type: Instrument Serif for titles and the greeting, Inter for everything else.
    Money uses Inter with DM Sans as the fallback, because DM Sans has the rupee sign.
@@ -429,7 +429,7 @@ html.heist .bh-amount, html.heist .dh-when, html.heist .beam-totals .big-num, ht
 }
 html.heist .dh-when { font-family: var(--bx-display); font-style: italic; font-weight: 800; text-transform: uppercase; }
 
-/* accent cards: lavender fill, white text, ink outline (were green in YOKO!) */
+/* accent cards: lavender fill, white text, ink outline (were green in HEIST) */
 html.heist .card.tile-green, html.heist .hang-card.is-lead { background: var(--hx-lav-3); color: #FFFFFF; border-color: var(--hx-ink); }
 html.heist .tile-green :is(p, span, small, strong, .muted, .tile-label, .tile-unit, .big-num, h2, h3, a:not(.btn)),
 html.heist .hang-card.is-lead :is(p, span:not(.hc-bar span), small, strong, .muted, h2, h3, .hc-eta, .hc-pct) { color: #FFFFFF; }
@@ -715,3 +715,47 @@ html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, calc(92cqi /
 @media (max-width: 767px) {
   html.heist #quickadd-menu { position: fixed; top: calc(var(--topbar-h) + 8px); left: 12px; right: 12px; min-width: 0; max-width: none; }
 }
+
+/* AI replies: keep line breaks so plans and lists read well */
+.cb-reply { white-space: pre-line; line-height: 1.5; }
+
+/* Planner (Plan a trip or outing) */
+.pl-examples { margin: 4px 0 14px; }
+.pl-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.pl-busy { display: flex; align-items: center; gap: 10px; padding: 28px 4px; font-weight: 600; }
+.pl-error { background: var(--danger-bg); color: var(--danger-text); border-radius: var(--radius-sm); padding: 10px 12px; }
+.pl-title { margin: 0 0 6px; }
+.pl-questions { list-style: decimal; padding-left: 22px; display: grid; gap: 14px; margin: 14px 0 0; }
+.pl-q-label { display: block; font-weight: 600; margin-bottom: 6px; }
+.pl-choices { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.pl-choice { display: inline-flex; align-items: center; cursor: pointer; }
+.pl-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.pl-choice span { border: 1.5px solid var(--border-strong); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 600; }
+.pl-choice input:checked + span { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.pl-choice input:focus-visible + span { box-shadow: var(--focus-ring); }
+.pl-other { max-width: 280px; }
+.pl-hero { text-align: center; margin-bottom: 12px; }
+.pl-total { font-size: clamp(32px, 8vw, 48px); font-weight: 800; margin: 4px 0; }
+.pl-table .pl-group th, .pl-table .pl-group td { background: var(--surface-2); font-weight: 700; }
+.pl-table .pl-sum td { border-top: 2px solid var(--border-strong); }
+.pl-note { display: block; margin-top: 2px; }
+.pl-h { margin: 16px 0 6px; }
+.pl-list { padding-left: 20px; display: grid; gap: 4px; }
+
+/* Emergency fund card */
+.ef-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+.ef-card .hc-bar { display: block; }
+
+/* Crew heists */
+.heist-vault { text-align: center; }
+.heist-amt { font-size: clamp(26px, 6vw, 38px); font-weight: 800; margin: 4px 0 8px; }
+.heist-amt .muted { font-size: .5em; font-weight: 600; }
+.heist-bar, .heist-li .hc-bar { display: block; margin: 6px 0; }
+.heist-nudge { background: var(--warn-bg); color: var(--warning-text); border-radius: var(--radius-sm); padding: 10px 12px; font-weight: 600; margin-top: 10px; }
+.heist-member { display: grid; grid-template-columns: 1fr 90px; gap: 12px; align-items: center; }
+.heist-member.is-behind strong::after { content: ' · behind'; color: var(--warning-text); font-weight: 600; font-size: 13px; }
+.heist-mini { display: block; }
+.heist-actions { margin: 14px 0 8px; gap: 8px; flex-wrap: wrap; }
+.heist-open { display: grid; gap: 4px; width: 100%; text-align: left; background: none; border: 0; padding: 4px 0; color: inherit; font: inherit; cursor: pointer; }
+.heist-li-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.heist-member .hc-bar.heist-mini { width: 90px; height: 10px; }

@@ -85,7 +85,7 @@ function goalsHero(infos, totalSaved, totalTarget) {
     const dots = total <= 14 ? `<span class="ch-dots" aria-hidden="true">${Array.from({ length: total }, (_, k) => `<i class="${k < done ? (st.state === 'lost' && k === done - 1 ? 'miss' : 'on') : ''}"></i>`).join('')}</span>` : `<span class="hc-bar" aria-hidden="true"><span style="width:${Math.round(st.progress * 100)}%"></span></span>`;
     const line = st.state === 'won' ? 'Done. You won this one.' : st.state === 'lost' ? `Missed: ${st.why}. Try again from Challenges.` : c.type === 'week52' ? `Week ${st.week}: put in ${fmt(st.nextAmount)}` : `Day ${st.daysIn} of ${c.days}`;
     chTile = `<a class="card bento-tile ch-tile" href="#goals/challenges"><span class="tile-row"><span class="tile-label">${esc(name)}</span><span class="tile-flag">Challenge</span></span>${dots}<span class="small muted">${line}</span></a>`;
-  } else chTile = `<a class="card bento-tile ch-tile" href="#goals/challenges"><span class="tile-row"><span class="tile-label">Try a challenge</span><span class="tile-flag">Challenge</span></span><span class="small muted">No-spend days, a daily cap or the 52-week saver. Earn XP for Yoko.</span></a>`;
+  } else chTile = `<a class="card bento-tile ch-tile" href="#goals/challenges"><span class="tile-row"><span class="tile-label">Try a challenge</span><span class="tile-flag">Challenge</span></span><span class="small muted">No-spend days, a daily cap or the 52-week saver. Earn XP for Slime.</span></a>`;
   const rateTile = `<div class="card bento-tile rate-tile"><span class="muted">Savings rate this month</span><span class="big-num tile-accent">${sv.rate === null ? '-' : Math.round(sv.rate) + '%'}</span><span class="small muted">${sv.thisM === 0 && sv.lastM === 0 ? 'Nothing saved yet this month' : `${fmt(sv.thisM)} saved · ${sv.change >= 0 ? 'up' : 'down'} ${fmt(Math.abs(sv.change))} from last month`}</span></div>`;
   return `<div class="budget-split goals-top">
     <section class="card rings-card" aria-label="Saved so far">${rings}
@@ -102,7 +102,7 @@ function renderGoals() {
   const head = viewHeader('goals', 'Goals & Savings', 'What you save, what you are saving for, and gifts coming up.',
     `<button type="button" class="btn btn-primary" data-action="add-goal">${ICON.plus}<span>Add goal</span></button>`,
     state.goals.length ? [mi('Split the Savings bucket across goals', 'use-split-goals')] : []);
-  if (!state.goals.length) return { html: head + tabbed('goals', { savings: savingsCard('goals-savings-chart'), goals: emptyState('No savings goals yet', 'Add a goal with a target and a deadline to see how much to save each month.', 'add-goal', 'Add goal', 'goal'), gifts: gp.html, wishlist: wishlistCard(), challenges: challengesCard() }), charts() { gp.charts(); drawSavingsChart('goals-savings-chart'); } };
+  if (!state.goals.length) return { html: head + tabbed('goals', { savings: emergencyFundCard() + savingsCard('goals-savings-chart'), goals: heistsCard() + emptyState('No savings goals yet', 'Add a goal with a target and a deadline to see how much to save each month.', 'add-goal', 'Add goal', 'goal'), gifts: gp.html, wishlist: wishlistCard(), challenges: challengesCard() }), charts() { gp.charts(); drawSavingsChart('goals-savings-chart'); } };
 
   const t = todayDate();
   const infos = state.goals.map(g => ({ g, i: goalInfo(g) }));
@@ -176,7 +176,7 @@ function renderGoals() {
       <div class="table-wrap"><table><thead><tr><th scope="col">Goal</th><th class="num" scope="col">Target</th><th class="num" scope="col">Saved</th><th class="num" scope="col">Progress</th><th scope="col">Deadline</th><th class="num" scope="col">Rate</th><th class="num" scope="col">Needed / month</th></tr></thead><tbody>
       ${infos.map(({ g, i }) => `<tr><td>${esc(g.name)}</td><td class="num">${fmt(g.target)}</td><td class="num">${fmt(g.saved)}</td><td class="num">${fmtPct(i.pct)}</td><td>${i.dl ? fmtDate(i.dl) : '-'}</td><td class="num">${fmtRate(g.rate)}</td><td class="num">${i.reached ? 'Reached' : fmt(i.required)}</td></tr>`).join('')}
       </tbody></table></div></div>`;
-  const html = head + tabbed('goals', { savings: savingsCard('goals-savings-chart'), goals: goalsPanel, gifts: gp.html, wishlist: wishlistCard(), challenges: challengesCard() });
+  const html = head + tabbed('goals', { savings: emergencyFundCard() + savingsCard('goals-savings-chart'), goals: heistsCard() + goalsPanel, gifts: gp.html, wishlist: wishlistCard(), challenges: challengesCard() });
 
   return {
     html,

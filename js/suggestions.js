@@ -56,10 +56,10 @@ function bindCombo(root, id, options, onPick) {
 
 /* ---------- Debts ---------- */
 const DEBT_TYPES = [['card', '💳', 'Credit card'], ['car', '🚗', 'Car loan'], ['student', '🎓', 'Student loan'], ['personal', '🏦', 'Personal loan'], ['mortgage', '🏠', 'Mortgage'],
-  ['bnpl', '🛍️', 'Buy now pay later'], ['medical', '🩺', 'Medical bill'], ['family', '🤝', 'Family or friend'], ['other', '📄', 'Something else']];
+  ['bnpl', '🛍️', 'Buy now pay later'], ['device', '📱', 'Phone or laptop EMI'], ['medical', '🩺', 'Medical bill'], ['family', '🤝', 'Family or friend'], ['other', '📄', 'Something else']];
 const DEBT_ASK = {
   card: ['Which bank or card company?', 'Search or type, e.g. your bank'], car: ['Who is the loan with?', 'Search or type the lender'], student: ['Who is the loan with?', 'Search or type the lender'],
-  personal: ['Who is the loan with?', 'Search or type the lender'], mortgage: ['Which lender?', 'Search or type the lender'], bnpl: ['Which service?', 'Search or type, e.g. Klarna'],
+  personal: ['Who is the loan with?', 'Search or type the lender'], mortgage: ['Which lender?', 'Search or type the lender'], device: ['What did you buy, and from where?', 'e.g. iPhone on Bajaj EMI'], bnpl: ['Which service?', 'Search or type, e.g. Klarna'],
   medical: ['Who is the bill from?', 'e.g. City Hospital'], family: ['Who do you owe?', 'e.g. Mom'], other: ['What should we call it?', 'e.g. Laptop instalments']
 };
 function debtName(kind, who) {

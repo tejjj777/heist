@@ -1,4 +1,4 @@
--- YOKO! Student · Live groups: let people edit and delete expenses they paid for.
+-- HEIST · Live groups: let people edit and delete expenses they paid for.
 -- Run once in Supabase → SQL Editor. Safe to run again.
 
 -- Expenses: only the member who paid can change or delete them.

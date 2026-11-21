@@ -59,6 +59,8 @@
         <p class="menu-label" role="presentation">Plans</p>
         <button type="button" role="menuitem" data-action="add-recurring">Recurring payment</button>
         <button type="button" role="menuitem" data-action="add-yearly">Yearly / Semester fee</button>
+        <button type="button" role="menuitem" data-action="plan-something">Plan a trip or outing</button>
+        <button type="button" role="menuitem" data-action="heist-new">Crew heist (save with friends)</button>
         <button type="button" role="menuitem" data-action="add-goal">Goal</button>
         <button type="button" role="menuitem" data-action="add-gift">Gift</button>
         <p class="menu-label" role="presentation">Other</p>
@@ -86,7 +88,7 @@
 
 <div class="main-wrap">
   <main id="main" tabindex="-1">
-    <div class="print-brand"><img class="yoko-logo" alt="HEIST"><span id="print-date"></span></div>
+    <div class="print-brand"><img class="heist-logo" alt="HEIST"><span id="print-date"></span></div>
     <section id="view-dashboard" class="view" aria-labelledby="h-dashboard" hidden></section>
     <section id="view-spend" class="view" aria-labelledby="h-spend" hidden></section>
     <section id="view-budget" class="view" aria-labelledby="h-budget" hidden></section>
@@ -110,6 +112,7 @@
 <script src="js/state.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/ui-shared.js"></script>
+<script src="js/modes.js"></script>
 <script src="js/page-dashboard.js"></script>
 <script src="js/page-debt.js"></script>
 <script src="js/page-budget.js"></script>
@@ -127,6 +130,7 @@
 <script src="js/commands.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/commandbar.js"></script>
+<script src="js/planner.js"></script>
 <script src="js/qrcode.js"></script>
 <script src="js/bill-split.js"></script>
 <script src="js/wrapped.js"></script>
@@ -140,6 +144,7 @@
 <script src="js/modals.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/groups.js"></script>
+<script src="js/heists.js"></script>
 <script src="js/export.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/init.js"></script>

@@ -38,6 +38,26 @@ const ACTIONS = {
   'add-expense': () => expenseForm(),
   'add-debt': () => debtPicker(),
   'add-goal': () => goalPicker(),
+  'ef-goal': () => emergencyFundGoal(),
+  'shared': async () => {
+    // screenshots or a bank message shared into HEIST from GPay, PhonePe, Messages and so on (see share_target in the manifest)
+    try {
+      const cache = await caches.open('heist-shared');
+      const keys = await cache.keys();
+      const files = [];
+      let text = '';
+      for (const k of keys) {
+        const res = await cache.match(k);
+        if (/\/shared\/text$/.test(k.url)) text = await res.text();
+        else { const blob = await res.blob(); files.push(new File([blob], decodeURIComponent(res.headers.get('x-name') || 'screenshot.png'), { type: blob.type || 'image/png' })); }
+        await cache.delete(k);
+      }
+      if (files.length) importModal('statement', { files });
+      else if (text) importModal('sms', { text });
+      else toast('Nothing came through. Try sharing the screenshot again.');
+    } catch (e) { console.warn('Share read failed', e); importModal('statement'); }
+  },
+  'plan-something': () => openPlanner(),
   'add-gift': () => giftForm(null),
   'edit-debt': el => { const d = state.debts.find(x => x.id === el.dataset.id); if (d) debtForm(d); },
   'delete-debt': el => { const d = state.debts.find(x => x.id === el.dataset.id); if (d && confirm(`Delete “${d.name}”?`)) { state.debts = state.debts.filter(x => x !== d); commit(); toast('Debt deleted'); } },
@@ -191,7 +211,7 @@ const ACTIONS = {
   'open-wrapped': () => openWrapped(),
   'download-wrapped': () => {
     if (!wrappedCanvas) return;
-    wrappedCanvas.toBlob(b => { if (b) downloadFile(`yoko-wrapped-${todayISO().slice(0, 7)}.png`, b, 'image/png'); }, 'image/png');
+    wrappedCanvas.toBlob(b => { if (b) downloadFile(`heist-wrapped-${todayISO().slice(0, 7)}.png`, b, 'image/png'); }, 'image/png');
   },
   'hit-debt': el => { const d = state.debts.find(x => x.id === el.dataset.id); if (d) hitForm(d); },
   'add-subscription': () => subsChecklist(),
@@ -218,7 +238,7 @@ const ACTIONS = {
   },
   'reset-whatif': () => { const r = document.getElementById('whatif-range'); if (r) { r.value = Math.min(state.debtSettings.extra, Number(r.max)); updateWhatIf(); } },
   csv: el => { const key = el.dataset.csv; if (CSV[key]) downloadCSV(key, CSV[key]()); },
-  'export-json': () => { downloadFile(`yoko-backup-${todayISO()}.json`, JSON.stringify(state, null, 2), 'application/json'); toast('Backup downloaded'); },
+  'export-json': () => { downloadFile(`heist-backup-${todayISO()}.json`, JSON.stringify(state, null, 2), 'application/json'); toast('Backup downloaded'); },
   'redo-setup': () => showOnboarding({ redo: true }),
   'remove-sample': () => {
     undoable('Sample data removed', () => {
@@ -245,7 +265,7 @@ const ACTIONS = {
 };
 
 // GROUP_ACTIONS is a top-level const in js/groups.js, so it is not a window property: refer to it by name
-Object.assign(ACTIONS, MORE_ACTIONS, SUB_ACTIONS, SYNC_ACTIONS, typeof GROUP_ACTIONS !== 'undefined' ? GROUP_ACTIONS : {});
+Object.assign(ACTIONS, MORE_ACTIONS, SUB_ACTIONS, SYNC_ACTIONS, typeof GROUP_ACTIONS !== 'undefined' ? GROUP_ACTIONS : {}, typeof HEIST_ACTIONS !== 'undefined' ? HEIST_ACTIONS : {});
 Object.assign(CSV, MORE_CSV);
 
 /* ---------- Quick Add menu ---------- */

@@ -74,7 +74,7 @@ function bindMore() {
     if (e.target.id === 'set-currency' && CURRENCIES[e.target.value]) { state.currency = e.target.value; commit(); }
     if (e.target.id === 'set-country' && COUNTRIES[e.target.value]) setCountry(e.target.value);
     if (e.target.dataset && e.target.dataset.slide === 'cat') { const c = state.budget.categories.find(k => k.id === e.target.dataset.id); if (c) { c.planned = Math.max(0, Number(e.target.value) || 0); commit(); } }
-    if (e.target.matches && e.target.matches('[data-chart-colors]')) { state.settings.chartColors = e.target.value === 'rainbow' ? 'rainbow' : 'yoko'; save(); render(); }
+    if (e.target.matches && e.target.matches('[data-chart-colors]')) { state.settings.chartColors = e.target.value === 'rainbow' ? 'rainbow' : 'heist'; save(); render(); }
     if (e.target.id === 'set-lang' || e.target.name === 'set-lang') { state.settings.lang = ['hi', 'te'].includes(e.target.value) ? e.target.value : 'en'; save(); setTimeout(() => location.reload(), 150); }
   });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && lastTick && lastTick !== todayISO()) { if (dailyTick()) render(); } });
@@ -246,6 +246,7 @@ function moreCommands() {
     { label: 'Split a bill…', keys: 'split bill dinner friends iou', run: () => billSplitterModal() },
     { label: 'Should I buy it?…', keys: 'buy should wishlist impulse', run: () => shouldIBuy() },
     { label: 'New challenge…', keys: 'challenge no-spend 52 week cap', run: challengeForm },
+    { label: 'Plan a trip or outing…', keys: 'plan trip travel movie party birthday budget outing', run: () => openPlanner() }, { label: 'Start a crew heist…', keys: 'heist crew save together friends group goal vault', run: () => heistForm() },
     { label: state.settings.dark ? 'Light mode' : 'Dark mode', keys: 'dark mode night theme light', run: toggleDark },
     { label: state.settings.privacy ? 'Privacy mode off (show amounts)' : 'Privacy mode on (blur amounts)', keys: 'privacy blur hide amounts', run: togglePrivacy },
     { label: 'Download backup', keys: 'backup download save json', run: downloadBackup },

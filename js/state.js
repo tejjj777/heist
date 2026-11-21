@@ -121,7 +121,8 @@ function normalizeState(raw) {
     id: str(g.id, uid()), name: str(g.name, 'Goal', 60), target: nn(g.target), saved: nn(g.saved),
     deadline: date(g.deadline), rate: clamp(nn(g.rate), 0, 100),
     planMonthly: g.planMonthly === null || g.planMonthly === undefined ? null : nn(g.planMonthly),
-    contributions: arr(g.contributions).map(c => ({ id: str(c.id, uid()), date: date(c.date) || todayISO(), amount: nn(c.amount), note: str(c.note, '', 120), roundup: !!c.roundup }))
+    contributions: arr(g.contributions).map(c => ({ id: str(c.id, uid()), date: date(c.date) || todayISO(), amount: nn(c.amount), note: str(c.note, '', 120), roundup: !!c.roundup })),
+    heistGroupId: str(g.heistGroupId, '')
   }));
   s.goalSettings = { selectedGoalId: str(raw.goalSettings && raw.goalSettings.selectedGoalId, null) };
   s.subscriptions = arr(raw.subscriptions).map(x => {
@@ -135,7 +136,7 @@ function normalizeState(raw) {
   const rs = raw.settings || {}, ru = rs.roundUp || {}, un = rs.unit || {};
   const unitName = str(un.name, 'chai', 20);
   s.settings = {
-    theme: THEME_KEYS.includes(rs.theme) && (rs.themeV === 2 || rs.theme !== 'yoko') ? rs.theme : 'lavender',
+    theme: THEME_KEYS.includes(rs.theme) ? rs.theme : 'lavender',
     themeV: 2,
     sound: rs.sound !== false,
     workHours: clamp(nn(rs.workHours) || 176, 1, 744),
@@ -199,8 +200,13 @@ function normalizeMore(s, raw) {
   s.settings.privacy = !!rs.privacy;
   s.settings.dark = typeof rs.dark === 'boolean' ? rs.dark : !!(typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches);
   s.settings.roast = 'off';
-  s.settings.petName = (v => /^yoko!?$/i.test(v) ? 'Slime' : v)(str(rs.petName, 'Slime', 20));   // the pet is called Slime in HEIST
-  s.settings.myUpiId = str(rs.myUpiId, '', 60);   // the student's own UPI ID, for 'they owe you' QR codes
+  s.settings.petName = str(rs.petName, 'Slime', 20);
+  s.settings.lifeMode = rs.lifeMode === 'working' ? 'working' : 'student';
+  s.settings.incomeTypes = arr(rs.incomeTypes).filter(x => ['allowance', 'parttime', 'salary', 'freelance', 'business'].includes(x));
+  if (!s.settings.incomeTypes.length) s.settings.incomeTypes = s.settings.lifeMode === 'working' ? ['salary'] : ['allowance'];
+  s.settings.funLayer = typeof rs.funLayer === 'boolean' ? rs.funLayer : s.settings.lifeMode !== 'working';
+  s.settings.myUpiId = str(rs.myUpiId, '', 60);
+  s.settings.myName = str(rs.myName, '', 30);   // the student's own UPI ID, for 'they owe you' QR codes
   s.settings.country = COUNTRIES[rs.country] ? rs.country : countryFromCurrency(s.currency);
   const rm = raw.meta || {};
   s.meta.budgetMonth = ym(rm.budgetMonth) || todayISO().slice(0, 7);
@@ -243,7 +249,7 @@ function normalizeMore(s, raw) {
   if (rm.groupSeen && typeof rm.groupSeen === 'object') for (const k of Object.keys(rm.groupSeen).slice(0, 200)) if (rm.groupSeen[k] === true) s.meta.groupSeen[k] = true;
   s.settings.groupCat = rs.groupCat ? String(rs.groupCat).slice(0, 40) : '';
   s.settings.lang = ['hi', 'te'].includes(rs.lang) ? rs.lang : 'en';
-  s.settings.chartColors = rs.chartColors === 'rainbow' ? 'rainbow' : 'yoko';
+  s.settings.chartColors = rs.chartColors === 'rainbow' ? 'rainbow' : 'heist';
   const bk = rs.bank;
   s.settings.bank = bk && typeof bk === 'object' && date(bk.asOf) ? { amount: nn(bk.amount), use: bk.use === true, asOf: bk.asOf, spentBase: nn(bk.spentBase), incomeBase: nn(bk.incomeBase) } : null;
   s.yearlyBills = arr(raw.yearlyBills).map(x => ({ id: str(x.id, uid()), name: str(x.name, 'Yearly bill', 60), amount: nn(x.amount), due: date(x.due) || todayISO() }));

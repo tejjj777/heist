@@ -1,5 +1,5 @@
-// HEIST · AI helper (Supabase Edge Function "ai"). Shared with yokomoney, which calls the same function.
-// The app sends { task: "command", input: { text, context, today } }. This asks an AI model to
+// HEIST · AI helper (Supabase Edge Function "ai").
+// The app sends { task: "command", input: { text, context, today } }, or { task: "plan", input: { messages, currency, today } } for the planner. This asks an AI model to
 // understand the message and answers with JSON the app can act on, plus a short reply to show.
 // Secrets (Edge Functions → Secrets):
 //   GEMINI_API_KEY (needed for Gemini), GEMINI_MODEL (optional, tried first)
@@ -10,7 +10,7 @@
 //   ALLOWED_ORIGINS (optional secret): comma-separated sites allowed to call this. Defaults below.
 //   AI_PER_10_MIN / AI_PER_DAY (optional secrets): requests allowed per person (by IP). Defaults 20 and 150.
 const ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ||
-  "https://tejjj777.github.io,https://yokomoney.netlify.app,capacitor://localhost,https://localhost,http://localhost")
+  "https://tejjj777.github.io,capacitor://localhost,https://localhost,http://localhost")
   .split(",").map((o) => o.trim()).filter(Boolean);
 const okOrigin = (o: string | null) => !!o && ORIGINS.some((a) => o === a || (a.endsWith("localhost") && o.startsWith(a)));
 let CORS: Record<string, string> = {
@@ -46,12 +46,42 @@ Pick the intent:
 - ask: "how much did I spend on ...". categoryName and period.
 - budget: set a limit for a category. amount and categoryName.
 - whatif: "what if I stop/cut ...". categoryName and reductionAmount = money saved per day.
-- chat: anything else (advice, why questions, greetings, explaining their numbers).
+- chat: anything else: planning something (a trip, a party, a month, a savings plan), tips, how-to and why questions, greetings, explaining their numbers. A message that asks to PLAN something is chat, not afford, even when it has a budget in it.
 Leave out fields that don't apply.
-"reply" is ALWAYS required: 1 to 3 short, warm, plain sentences.
+"reply" is ALWAYS required. Usually 1 to 3 short, warm, plain sentences. For a plan or a list of tips, use up to 10 short lines, each starting with "- ", separated by \n. A plan with a budget splits the money into rough amounts that add up to that budget, and says if the budget looks tight. Use CONTEXT to say whether they can afford it.
 Write "reply" in the SAME language as the MESSAGE. A message written in English gets an English reply, even if category names in CONTEXT are in another language. Only reply in Hinglish when the message itself is Hinglish, and then use English letters, not Devanagari.
 Use only numbers from CONTEXT; never invent balances or spending. No em dashes. At most one emoji.
 Don't give investment or loan advice beyond simple saving tips.`;
+
+// task "plan": the planner asks every question that changes the plan or the cost, then returns a costed plan.
+// It plans from what the student wants to do, never from their balance (the app sends no balance for this task).
+const PLAN_SYSTEM = (today: string, currency: string) => `You are the planner inside HEIST, a money app for students. Today is ${today}.
+The student tells you something they want to do: a trip, a movie, a party, a date, a concert, a fest, a birthday, a gift, a purchase, anything.
+Your job: ask every question that changes the plan or what it costs, then build the plan and the budget it needs.
+Plan from what they want to do. Never ask about or use their balance, savings or money in hand.
+All money is in ${currency}. Write every amount in ${currency}.
+Reply with ONLY one JSON object, in one of two shapes.
+
+1) Questions:
+{"stage":"ask","title":string,"reply":string,"questions":[{"id":string,"q":string,"type":"text"|"number"|"choice"|"date","options":[string],"placeholder":string}]}
+- Ask everything you need in ONE go, most important first, 6 to 14 questions. Cover who, where, when, how long, how many people and who pays, how they get there and around, where they stay, food and drinks, tickets and activities, shopping and gifts, anything already booked or paid, and a budget they have in mind (optional).
+  Movie example: which movie and theatre or format, how many people, who pays, seat type, snacks, getting there and back, food before or after.
+  Trip example: from where to where, dates and nights, how many people and how costs are shared, travel mode and class, stay type, rooms, meals, activities, local transport, shopping, travel insurance or extras.
+- Use "choice" with 2 to 5 short options where it fits, "number" for counts and money, "date" for dates. Keep each question short and plain.
+- Never ask something the conversation already answers.
+- A second round is allowed only when an answer opens new questions that change the cost a lot (at most 5 more). After two rounds of questions, always make the plan.
+
+2) The plan:
+{"stage":"plan","title":string,"reply":string,"items":[{"name":string,"group":string,"qty":number,"unit":number,"note":string}],"bufferPct":number,"assumptions":[string],"tips":[string]}
+- List every cost as its own line: qty times unit price, with realistic prices for that place, date and style. group is one of Travel, Stay, Food, Tickets, Activities, Shopping, Other.
+- If costs are shared, plan the student's own share and say so in assumptions.
+- If an answer was "not sure" or blank, pick a sensible default and say it in assumptions.
+- bufferPct: 5 to 15, for things that cost more than expected.
+- tips: up to 5 short ways to spend less on this plan.
+- reply: 1 to 3 short sentences. If they gave a budget, say whether the plan fits it and what to cut if not.
+- Prices are estimates; never claim they are exact. Do not add up the total; the app does the math.
+
+No em dashes. At most one emoji in reply.`;
 
 const DEADLINE_MS = 14000;   // total time for all attempts; the app waits a little longer than this
 
@@ -106,7 +136,7 @@ async function askGemini(key: string, model: string, system: string, user: strin
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.4, maxOutputTokens: 600 },
+      generationConfig: { responseMimeType: "application/json", temperature: 0.4, maxOutputTokens: 2500 },
     }),
   });
   if (!r.ok) return { ok: false as const, status: r.status, detail: (await r.text()).slice(0, 500) };
@@ -125,7 +155,7 @@ async function askGroq(key: string, model: string, system: string, user: string,
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
       response_format: { type: "json_object" },
       temperature: 0.4,
-      max_tokens: 1500,   // GPT OSS thinks first; leave room for the answer
+      max_tokens: 4000,   // GPT OSS thinks first; leave room for the answer (a costed plan is long)
       ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
     }),
   });
@@ -149,19 +179,33 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad JSON" }, 400); }
-  if (body?.task !== "command") return json({ error: "unknown task" }, 400);
+  const task = body?.task;
+  if (task !== "command" && task !== "plan") return json({ error: "unknown task" }, 400);
   const input = body.input;
-  const text = String(typeof input === "string" ? input : input?.text ?? "").slice(0, 2000).trim();
-  if (!text) return json({ error: "empty message" }, 400);
-  const context = typeof input === "object" && input?.context ? JSON.stringify(input.context).slice(0, 6000) : "{}";
   const today = String(input?.today || new Date().toDateString()).slice(0, 40);
-  const cur = typeof input === "object" && input?.context?.currency ? String(input.context.currency).slice(0, 8) : "INR";
   const CUR_NAMES: Record<string, string> = { INR: "Indian rupees (₹)", USD: "US dollars ($)", EUR: "euros (€)", GBP: "British pounds (£)", CAD: "Canadian dollars", AUD: "Australian dollars", SGD: "Singapore dollars", AED: "UAE dirhams", JPY: "Japanese yen (¥)" };
-  const system = SYSTEM(today, CUR_NAMES[cur] || cur);
-  const user = `CONTEXT: ${context}\n\nMESSAGE: ${text}`;
+  let system: string, user: string;
+  if (task === "plan") {
+    // input: { messages: [{ role: "user" | "assistant", text }], currency, today }
+    const msgs = Array.isArray(input?.messages) ? input.messages.slice(-12) : [];
+    const convo = msgs.map((m: any) => `${m?.role === "assistant" ? "HEIST" : "STUDENT"}: ${String(m?.text ?? "").slice(0, 2500)}`).join("\n\n").slice(-9000).trim();
+    if (!convo) return json({ error: "empty message" }, 400);
+    const cur = String(input?.currency || "INR").slice(0, 8);
+    const rounds = msgs.filter((m: any) => m?.role === "assistant").length;
+    system = PLAN_SYSTEM(today, CUR_NAMES[cur] || cur);
+    user = `CONVERSATION:\n${convo}\n\nQUESTION ROUNDS SO FAR: ${rounds}${rounds >= 2 ? " (make the plan now)" : ""}`;
+  } else {
+    const text = String(typeof input === "string" ? input : input?.text ?? "").slice(0, 2000).trim();
+    if (!text) return json({ error: "empty message" }, 400);
+    const context = typeof input === "object" && input?.context ? JSON.stringify(input.context).slice(0, 6000) : "{}";
+    const cur = typeof input === "object" && input?.context?.currency ? String(input.context.currency).slice(0, 8) : "INR";
+    system = SYSTEM(today, CUR_NAMES[cur] || cur);
+    user = `CONTEXT: ${context}\n\nMESSAGE: ${text}`;
+  }
 
   const started = Date.now();
-  const left = () => DEADLINE_MS - (Date.now() - started);
+  const deadline = task === "plan" ? 26000 : DEADLINE_MS;
+  const left = () => deadline - (Date.now() - started);
   const tried: Attempt[] = [];
 
   // Build the queue: Groq first when its key is set (fast, bigger free quota), then the chosen
@@ -183,7 +227,7 @@ Deno.serve(async (req) => {
   if (live.length) queue.splice(0, queue.length, ...live);
   for (let i = 0; i < queue.length; i++) {
     const { provider, model } = queue[i];
-    const ms = Math.min(i === 0 ? 8000 : 5000, left());
+    const ms = Math.min(task === "plan" ? (i === 0 ? 16000 : 9000) : (i === 0 ? 8000 : 5000), left());
     if (ms < 1500) break;
     try {
       const res = provider === "gemini"
@@ -196,9 +240,13 @@ Deno.serve(async (req) => {
         continue;
       }
       let parsed: any;
-      try { parsed = JSON.parse(res.out); } catch { parsed = { intent: "chat", reply: res.out.slice(0, 400) }; }
+      try { parsed = JSON.parse(res.out); } catch { parsed = task === "plan" ? null : { intent: "chat", reply: res.out.slice(0, 400) }; }
+      if (task === "plan" && (!parsed || (parsed.stage !== "ask" && parsed.stage !== "plan"))) {
+        tried.push({ provider, model, status: "bad plan JSON" });   // try the next model rather than show junk
+        continue;
+      }
       if (!parsed || typeof parsed !== "object") parsed = { intent: "chat", reply: String(res.out).slice(0, 400) };
-      if (typeof parsed.reply === "string") parsed.reply = parsed.reply.replace(/\s*—\s*/g, ", ").slice(0, 500);
+      if (typeof parsed.reply === "string") parsed.reply = parsed.reply.replace(/\s*—\s*/g, ", ").slice(0, 1200);
       parsed.provider = `${provider}:${model}`;
       if (tried.length) parsed.skipped = tried.map((t) => `${t.model} ${t.status}`);
       lastGood = model;

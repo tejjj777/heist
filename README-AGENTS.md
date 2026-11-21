@@ -1,4 +1,4 @@
-# README for agents: YOKO! Student
+# README for agents: HEIST
 
 Read this first, every session. Plain HTML/CSS/JS. No framework, no build step. Works offline through `sw.js`.
 
@@ -7,7 +7,7 @@ Read this first, every session. Plain HTML/CSS/JS. No framework, no build step. 
 - **Load order matters.** `index.html` lists the scripts in order. Code that runs while files are loading (top-level statements, not function bodies) can only use things from the same or earlier files. Put startup work in `init()` (`js/init.js`), which runs after everything has loaded. Check with `node tools/check-load-order.mjs`.
 - Every app file starts with `'use strict';`. Keep it.
 - Adding a JS/CSS file: add a `<script>` tag in `index.html` **and** the path to `CORE` in `sw.js`.
-- Every session: bump `CACHE` in `sw.js` (`'yoko-student-vN'`) and `TOUR_VERSION` in `js/tour.js`, and add the new features to `CHAPTERS` plus `showWhatsNew()` (both in `js/tour.js`).
+- Every session: bump `CACHE` in `sw.js` (`'heist-main-vN'`) and `TOUR_VERSION` in `js/tour.js`, and add the new features to `CHAPTERS` plus `showWhatsNew()` (both in `js/tour.js`).
 - Pure money math goes in `js/finmath.js` (no DOM, no state) with a test in `js/selftests.js`.
 
 ## File map (load order)
@@ -65,7 +65,7 @@ Find anything: `grep -n "function name\|const name" js/*.js`.
 - Pages: `#route/tab` hash. `render()` calls `VIEWS[route]()`, which returns `{ html, charts }`; the html goes into `#view-route`, then `charts()` draws. Tabs come from `TABS` in `js/ui-shared.js`.
 
 ## Storage
-localStorage `yoko.student.v1` holds the whole `state` as JSON (shape from `defaultState()` in `js/state.js`; anything loaded passes through `normalizeState()` + `normalizeMore()`, so add new fields in both `defaultState` and a normalizer):
+localStorage `heist.v1` holds the whole `state` as JSON (shape from `defaultState()` in `js/state.js`; anything loaded passes through `normalizeState()` + `normalizeMore()`, so add new fields in both `defaultState` and a normalizer):
 ```
 { version, currency, income{mode,net,gross,deductions[],freq,nextPayDate,others[],irregular},
   split{buckets[]}, debts[], debtSettings, emi,
@@ -76,9 +76,9 @@ localStorage `yoko.student.v1` holds the whole `state` as JSON (shape from `defa
   payslips[], recurring[], history[{month,income,cats[]}], rules[], wishlist[], challenges[], xp{total},
   yearlyBills[], incomeLog[], badges{}, settings{theme,sound,privacy,roast,petName,country,...}, meta{tourDone,tourVersion,...} }
 ```
-Other keys: `yoko.student.prices`, `yoko.student.account`, `yoko.student.sync-clash`; IndexedDB `yoko-student` (backup file handle). Never read main YOKO!'s `paywise.v1`.
+Other keys: `heist.prices`, `heist.account`, `heist.sync-clash`; IndexedDB `heist-backups` (backup file handle), `heist-photos` (receipt photos). Never read the old app's `paywise.v1`.
 
-Seed test data: `localStorage.setItem('yoko.student.v1', <tests/seed.json>)` and reload. Set `meta.tourDone = true` to skip the welcome dialog.
+Seed test data: `localStorage.setItem('heist.v1', <tests/seed.json>)` and reload. Set `meta.tourDone = true` to skip the welcome dialog.
 
 ## Testing
 One-time setup: `npm install` then `npx playwright install chromium`.
@@ -117,8 +117,9 @@ One-time setup: `npm install` then `npx playwright install chromium`.
 - **Netlify serves a build.** `npm run build` (`tools/build.mjs`) joins the body `<script>` files in `index.html` order into one minified `dist/js/app.min.js`, minifies CSS, rewrites `dist/index.html` and `dist/sw.js`, and copies the rest. `netlify.toml` runs it and publishes `dist/`; headers are in `_headers` so a drag-and-drop upload of `dist/` gets them too. `dist/` is not committed. Never rename top-level names to rely on minifying: top-level names are kept as-is.
 - **Self-tests load on demand.** `selftests.js` is not a script tag. Startup runs them (with console output) only on localhost or with `?selftest`; Settings → Help loads them when opened. In tests call `await ensureSelfTests()` before `runSelfTests()`.
 - **Chart.js loads on demand** (`ensureChart()` in `js/charts.js`, also prefetched ~2.5 s after start when idle). `makeChart` draws when it arrives; don't touch `window.Chart` directly.
-- **Legal and contact:** `privacy.html`, `terms.html` (styles in `assets/legal.css`), under the name YOKOMONEY. `SUPPORT_EMAIL` in `js/utils.js` (also hard-coded in both pages). Settings → Help → "Contact and legal". Sign-in requires ticking the Terms/Privacy box. Update both pages when what leaves the device changes.
+- **Legal and contact:** `privacy.html`, `terms.html` (styles in `assets/legal.css`), under the name HEIST. `SUPPORT_EMAIL` in `js/utils.js` (also hard-coded in both pages). Settings → Help → "Contact and legal". Sign-in requires ticking the Terms/Privacy box. Update both pages when what leaves the device changes.
 - **Visit counts:** GoatCounter, `GOATCOUNTER_CODE` in `js/utils.js` (empty = off). `countVisit(route)` in `js/router.js` sends only the page name, never the full hash (it can hold sign-in tokens). Off on localhost.
 - **Robot check:** `CAPTCHA_SITE_KEY` in `js/sync.js` (Cloudflare Turnstile, empty = off). Needs CAPTCHA turned on in Supabase → Authentication → Attack Protection with the matching secret.
 - **Service worker:** only the app page (`/` or `/index.html`) is cached as `./index.html`. Other pages (privacy, terms, 404) are cached under their own URL, and failed responses are never cached.
 - `404.html` is self-contained (works at any path on both hosts). `assets/og-image.png` is the 1200x630 share image.
+- **Screenshot reading** (`js/ai.js` `aiReadScreenshot`, `js/import.js`): images go to the Supabase Edge Function `vision` (source in `supabase/functions/vision/index.ts`, deployed Nov 2026, JWT check off). It uses Groq `qwen/qwen3.8-27b` (`VISION_MODEL` secret to change). Free tier is about 7,000 input tokens a minute, roughly 2 screenshots a minute; the app waits once on a rate limit, then falls back to on-device Tesseract OCR. The `ai` function's `plan` task (planner) was deployed at the same time.

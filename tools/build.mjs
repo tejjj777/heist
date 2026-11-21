@@ -1,4 +1,4 @@
-/* YOKO! Student · production build for Netlify (`npm run build` → dist/).
+/* HEIST · production build for Netlify (`npm run build` → dist/).
    The app itself has no build step: index.html + js/ run as-is (that's what GitHub Pages serves and what you edit).
    This only makes a smaller copy for the live site:
    - the body <script> files are joined in index.html order into one minified js/app.min.js

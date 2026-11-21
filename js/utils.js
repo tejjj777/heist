@@ -2,7 +2,7 @@
    Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
 'use strict';
 const F = FinMath;
-const STORAGE_KEY = 'yoko.student.v1';   // HEIST's own key. Never read or migrate main HEIST's 'paywise.v1'.
+const STORAGE_KEY = 'heist.v1';   // HEIST's own key. Never read or migrate main HEIST's 'paywise.v1'.
 const APP_NAME = 'HEIST';
 const SUPPORT_EMAIL = '';   // support address: shown in Settings → Help when set. Also add it to privacy.html and terms.html (search “support email”).
 const GOATCOUNTER_CODE = '';   // visit counter (goatcounter.com, no cookies). Empty string turns it off.

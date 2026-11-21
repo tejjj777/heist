@@ -449,7 +449,7 @@ function validPrices(p) {
       && r.rates && typeof r.rates === 'object' && r.lenders && typeof r.lenders === 'object' && r.bills && typeof r.bills === 'object');
 }
 (function usePriceCache() {
-  try { const c = JSON.parse(localStorage.getItem('yoko.student.prices') || 'null'); if (validPrices(c) && c.checked > SUGGEST_CHECKED) { SUGGEST = c.regions; SUGGEST_CHECKED = c.checked; } } catch (e) { /* keep the built-in list */ }
+  try { const c = JSON.parse(localStorage.getItem('heist.prices') || 'null'); if (validPrices(c) && c.checked > SUGGEST_CHECKED) { SUGGEST = c.regions; SUGGEST_CHECKED = c.checked; } } catch (e) { /* keep the built-in list */ }
 })();
 /** When the app is online and hosted, pick up a newer prices.json without an app update. */
 function loadPriceUpdates() {
@@ -457,7 +457,7 @@ function loadPriceUpdates() {
   fetch('prices.json', { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).then(p => {
     if (!validPrices(p) || p.checked <= SUGGEST_CHECKED) return;
     SUGGEST = p.regions; SUGGEST_CHECKED = p.checked;
-    try { localStorage.setItem('yoko.student.prices', JSON.stringify(p)); } catch (e) { /* storage full: still used this session */ }
+    try { localStorage.setItem('heist.prices', JSON.stringify(p)); } catch (e) { /* storage full: still used this session */ }
   }).catch(() => { /* offline: keep what we have */ });
 }
 const safeUrl = u => (/^https:\/\//.test(String(u || '')) ? u : '');

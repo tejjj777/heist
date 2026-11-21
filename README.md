@@ -22,6 +22,11 @@
 - **Split:** split bills with friends and settle up over UPI.
 - **Goals:** save toward things you want and track progress.
 - **Money Wrapped:** a fun recap of where your money went.
+- **Student or working:** pick what fits. Working mode talks payday, flatmates and household costs. Add every way you earn, like pocket money plus a part-time job.
+- **Plan it:** tell HEIST about a trip, a movie or a party. It asks everything that changes the cost, then gives you the plan and the total you need.
+- **Crew heists:** save for a shared plan with friends. Everyone puts in their share and the vault fills live.
+- **Share to log:** on Android, share a GPay or PhonePe screenshot to HEIST and the spend is read on your phone and logged.
+- **Emergency fund:** a suggested amount to keep aside, set up as a goal in one tap.
 - **Works offline:** after the first visit it runs without internet.
 - **Optional sync:** sign in to use it on more than one device. Synced data is end-to-end encrypted.
 

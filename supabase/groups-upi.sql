@@ -1,4 +1,4 @@
--- YOKO! Student · Live groups: share each member's UPI ID with the group.
+-- HEIST · Live groups: share each member's UPI ID with the group.
 -- Run once in Supabase → SQL Editor. Safe to run again.
 
 alter table public.group_members add column if not exists upi_id text;

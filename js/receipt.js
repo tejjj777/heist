@@ -7,14 +7,14 @@ const PhotoDB = {
   db: null,
   open() {
     if (this.db) return Promise.resolve(this.db);
-    return new Promise((res, rej) => {
+    return (window.heistMoving || Promise.resolve()).then(() => new Promise((res, rej) => {
       try {
-        const r = indexedDB.open('yoko-photos', 1);
+        const r = indexedDB.open('heist-photos', 1);
         r.onupgradeneeded = () => r.result.createObjectStore('photos');
         r.onsuccess = () => { this.db = r.result; res(this.db); };
         r.onerror = () => rej(r.error);
       } catch (e) { rej(e); }
-    });
+    }));
   },
   async put(id, blob) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('photos', 'readwrite'); tx.objectStore('photos').put(blob, id); tx.oncomplete = () => res(true); tx.onerror = () => rej(tx.error); }); },
   async get(id) { const db = await this.open(); return new Promise((res, rej) => { const q = db.transaction('photos').objectStore('photos').get(id); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); },

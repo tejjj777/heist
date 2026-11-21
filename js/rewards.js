@@ -3,7 +3,7 @@
 'use strict';
 /* ---------- XP & levels ---------- */
 function awardXP(n, why, quiet) {
-  if (!(n > 0)) return;
+  if (!(n > 0) || !funOn()) return;
   if (why === 'expense') {
     const d = state.meta.xpDay || (state.meta.xpDay = { date: '', n: 0 });   // sample data and old saves had no xpDay, which crashed every expense save
     if (d.date !== todayISO()) { d.date = todayISO(); d.n = 0; }

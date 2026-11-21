@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const OUT = path.join(ROOT, 'tests/out');
-const KEY = 'yoko.student.v1';
+const KEY = 'heist.v1';
 const SEED = fs.readFileSync(path.join(ROOT, 'tests/seed.json'), 'utf8');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.pdf': 'application/pdf', '.wasm': 'application/wasm' };
 const server = http.createServer((req, res) => {
