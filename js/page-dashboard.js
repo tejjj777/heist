@@ -107,6 +107,184 @@ function homeBento() {
   </div>`;
 }
 
+/* =========================================================
+   HEIST TODAY: clean take, getaway clock, suspects, targets
+   ========================================================= */
+function hxGreeting() {
+  const h = new Date().getHours();
+  return h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
+/** Money split into whole part and cents, so the cents can sit small. */
+function hxMoney(v) {
+  const s = fmtExact(v), m = s.match(/^(.*?)([.,]\d{2})(\D*)$/);
+  return m && !NO_DECIMALS.has(state.currency) ? `${esc(m[1])}<span class="hx-cents">${esc(m[2])}</span>${esc(m[3])}` : esc(s);
+}
+function hxMonthlySub(s) { const a = +s.amount || 0; return s.cycle === 'yearly' ? a / 12 : s.cycle === 'weekly' ? a * 52 / 12 : a; }
+
+/** Hero: what you can safely spend today, and how far the money has to stretch. */
+function hxHero() {
+  const inc = monthlyIncome();
+  if (!(inc > 0)) {
+    return `<article class="hx-hero hx-rise" style="--i:0" id="safe-hero">
+      <div class="hx-aura" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="hx-eyebrow"><span class="hx-chip">Clean take</span></div>
+      <div class="hx-amount-wrap"><p class="hx-label">Nothing to split up yet</p>
+      <p class="hx-reason">Add your allowance and HEIST works out how much you can safely spend each day, after bills.</p></div>
+      <div class="hx-actions"><button type="button" class="btn btn-primary" data-action="open-paycheck"><span>Set allowance</span></button></div>
+    </article>`;
+  }
+  const sts = studentSafeToSpend(), al = allowanceLeft(), t = todayDate(), today = F.toISO(t);
+  const tone = sts.status === 'red' ? 'is-red' : sts.status === 'amber' ? 'is-amber' : 'is-green';
+  const statusLabel = sts.status === 'green' ? 'On track' : sts.status === 'amber' ? 'Tight pace' : 'Overspent';
+  const next = nextPayInfo();
+  const reason = sts.overToday > 0 ? `You went ${fmtExact(sts.overToday)} over today’s limit. Tomorrow’s limit adjusts.`
+    : sts.available <= 0 ? 'Nothing left after bills, so this shows 0.'
+    : (sts.reason || '').replace(/^On track /, 'You’re on track ');
+  // getaway clock: how far through this money period we are, with upcoming bills as ticks
+  const start = F.parseDate(al.start) || t, end = F.parseDate(al.end) || F.addDays(t, al.daysLeft);
+  const total = Math.max(1, F.daysBetween(start, end)), gone = Math.min(total, Math.max(0, F.daysBetween(start, t)));
+  const pct = Math.round(gone / total * 100);
+  const ticks = [];
+  (state.recurring || []).filter(r => r.active).forEach(r => {
+    F.recurringDue(r, today, F.toISO(end)).forEach(d => {
+      const dd = typeof d === 'string' ? F.parseDate(d) : d;
+      const at = Math.min(100, Math.max(0, F.daysBetween(start, dd) / total * 100));
+      ticks.push(`<i class="hx-tick" style="left:${at.toFixed(1)}%" data-tip="${esc(r.name)} ${esc(fmt(r.amount))}"></i>`);
+    });
+  });
+  const days = al.daysLeft;
+  return `<article class="hx-hero ${tone} hx-rise" style="--i:0" id="safe-hero">
+    <div class="hx-aura" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="hx-eyebrow">
+      <span class="hx-chip"><i class="hx-dot" aria-hidden="true"></i>${statusLabel}</span>
+      <span class="hx-quiet">${next ? `Allowance ${daysLabel(next.days).toLowerCase()}` : `${plural(days, 'day')} left`}</span>
+    </div>
+    <div class="hx-amount-wrap">
+      <p class="hx-label">Clean take today</p>
+      <h2 class="hx-amount" data-hx-count="${Math.max(0, sts.leftToday)}">${hxMoney(sts.leftToday)}</h2>
+      <p class="hx-reason">${esc(reason)}</p>
+    </div>
+    <div class="hx-clock" aria-label="Getaway clock: ${plural(days, 'day')} until your money resets">
+      <div class="hx-clock-top"><span>Getaway clock</span><strong>${plural(days, 'day')} to go</strong></div>
+      <div class="hx-track"><b style="--w:${pct}%"></b>${ticks.slice(0, 12).join('')}</div>
+      <div class="hx-clock-legend"><span>${esc(fmtDate(start).replace(/ \d{4}$/, ''))}</span><span>${esc(fmtDate(end).replace(/ \d{4}$/, ''))}</span></div>
+    </div>
+    <div class="hx-facts">
+      <div class="hx-fact"><span>Daily limit</span><strong>${esc(fmt(sts.dailyLimit))}</strong></div>
+      <div class="hx-fact"><span>Spent today</span><strong>${esc(fmt(sts.spentToday))}</strong></div>
+      <div class="hx-fact"><span>${sts.fromBank ? 'In your bank' : 'Left this period'}</span><strong>${esc(fmt(sts.balanceNow))}</strong></div>
+    </div>
+    <div class="hx-actions no-print">
+      <button type="button" class="btn btn-primary" data-action="add-expense">${ICON.plus}<span>Log a spend</span></button>
+      <button type="button" class="btn" data-action="scan-receipt">${ICON.camera}<span>Scan receipt</span></button>
+      ${sts.status === 'red' ? `<button type="button" class="btn" data-action="ask-topup"><span>Ask for a top-up</span></button>` : `<button type="button" class="btn" data-action="set-bank"><span>${state.settings.bank ? 'Update bank' : 'Add bank balance'}</span></button>`}
+    </div>
+  </article>`;
+}
+
+function heistToday() {
+  const t = todayDate(), b = budgetTotals(), sk = streakInfo();
+  const week = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = F.addDays(t, -i), iso = F.toISO(d);
+    week.push({ amt: sum(state.budget.expenses.filter(x => x.date === iso), x => x.amount), today: i === 0, noWants: !sk.spend.has(iso), label: i === 0 ? 'Today' : DOW_SHORT[d.getDay()] });
+  }
+  const weekSum = sum(week, d => d.amt), maxDay = Math.max(1, ...week.map(d => d.amt));
+  const usedPct = b.planned > 0 ? Math.round(b.actual / b.planned * 100) : 0;
+  const ringLen = 2 * Math.PI * 26;
+  const month = FULL_MONTHS[t.getMonth()];
+  const inc = monthlyIncome();
+
+  // Suspects: categories close to or past their limit, then the priciest subscriptions
+  const cats = state.budget.categories.filter(c => c.planned > 0 && c.type !== 'savings')
+    .map(c => ({ c, r: c.actual / c.planned })).filter(x => x.r >= 0.6).sort((x, y) => y.r - x.r).slice(0, 3);
+  const subs = (state.subscriptions || []).slice().sort((x, y) => hxMonthlySub(y) - hxMonthlySub(x)).slice(0, Math.max(0, 4 - cats.length));
+  const suspects = cats.map(({ c, r }) => {
+    const cls = r > 1 ? 'bad' : r >= 0.85 ? 'warn' : '';
+    const flag = r > 1 ? 'Over' : r >= 1 ? 'At limit' : r >= 0.85 ? 'Close' : 'Watch';
+    return `<a class="hx-row" href="#budget/plan" data-cat-id="${c.id}">
+      <span class="hx-av ${cls}" aria-hidden="true">${esc((c.name || '?').trim().charAt(0).toUpperCase())}</span>
+      <span class="hx-row-main"><strong>${esc(c.name)}</strong><span>${esc(fmt(c.actual))} of ${esc(fmt(c.planned))}</span><span class="hx-bar"><i class="${cls}" style="--w:${Math.min(100, Math.round(r * 100))}%"></i></span></span>
+      <span class="hx-row-end"><span class="hx-flag ${cls}">${flag}</span><span>${Math.round(r * 100)}%</span></span>
+    </a>`;
+  }).concat(subs.map(s => `<a class="hx-row" href="#spend/recurring">
+      <span class="hx-av" aria-hidden="true">${esc((s.name || '?').trim().charAt(0).toUpperCase())}</span>
+      <span class="hx-row-main"><strong>${esc(s.name)}</strong><span>Subscription${s.cycle && s.cycle !== 'monthly' ? `, ${esc(s.cycle)}` : ''}</span></span>
+      <span class="hx-row-end"><strong>${esc(fmt(hxMonthlySub(s)))}</strong><span>a month</span></span>
+    </a>`));
+
+  const goals = state.goals.slice().sort((x, y) => goalInfo(y).pct - goalInfo(x).pct).slice(0, 4);
+  const targets = goals.map(g => {
+    const gi = goalInfo(g), pct = Math.min(100, Math.round(gi.pct));
+    return `<a class="hx-row" href="#goals/goals" data-vt="goal-${g.id}">
+      <span class="hx-av" aria-hidden="true">${pct >= 100 ? '✓' : esc((g.name || '?').trim().charAt(0).toUpperCase())}</span>
+      <span class="hx-row-main"><strong>${esc(g.name)}</strong><span>${esc(fmt(g.saved))} of ${esc(fmt(g.target))}</span><span class="hx-bar"><i style="--w:${pct}%"></i></span></span>
+      <span class="hx-row-end"><strong>${pct}%</strong></span>
+    </a>`;
+  });
+
+  return `<div class="hx-today">
+    ${hxHero()}
+    <div class="hx-tiles">
+      <a class="hx-tile is-ink hx-rise" style="--i:1" href="#spend/log">
+        <span class="hx-tile-k">Spent this week</span>
+        <span class="hx-tile-v">${esc(fmt(weekSum))}</span>
+        <span class="hx-week" aria-label="Spending on each of the last 7 days">${week.map((d, i) => `<i class="${d.today ? 'on' : ''}" style="--h:${Math.max(6, Math.round(d.amt / maxDay * 100))}%;--d:${i}" title="${esc(d.label)}: ${esc(fmt(d.amt))}"></i>`).join('')}</span>
+      </a>
+      <a class="hx-tile hx-rise" style="--i:2" href="#budget/plan">
+        <span class="hx-tile-k">${esc(month)} budget</span>
+        <span class="hx-tile-row"><span class="hx-tile-v">${usedPct}%</span>
+        <svg class="hx-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="26"></circle><circle class="on" cx="32" cy="32" r="26" style="--len:${(Math.min(1, usedPct / 100) * ringLen).toFixed(1)}"></circle></svg></span>
+        <span class="hx-tile-s">Used: ${esc(fmt(b.actual))} of ${esc(fmt(b.planned))}</span>
+      </a>
+      <div class="hx-tile is-lav hx-rise" style="--i:3">
+        <span class="hx-tile-k">No-spend streak</span>
+        <span class="hx-tile-v">${sk.current}<small>${sk.current === 1 ? 'day' : 'days'}</small></span>
+        <span class="hx-streak" aria-label="Last 7 days, filled means no spending on wants">${week.map(d => `<i class="${d.noWants ? 'on' : ''}"></i>`).join('')}</span>
+      </div>
+      <button type="button" class="hx-tile hx-rise" style="--i:4" data-action="open-paycheck">
+        <span class="hx-tile-k">Monthly allowance</span>
+        <span class="hx-tile-v">${esc(fmt(inc))}</span>
+        <span class="hx-tile-s">${state.income.irregular ? 'Irregular' : 'Tap to edit'}</span>
+      </button>
+    </div>
+  </div>
+  <div class="hx-pair">
+    <section class="hx-panel hx-rise" style="--i:5" aria-labelledby="hx-suspects">
+      <div class="hx-panel-head"><h2 id="hx-suspects">The <em>suspects</em></h2><a href="#spend/categories">See all</a></div>
+      ${suspects.length ? `<div class="hx-rows">${suspects.join('')}</div>` : `<p class="hx-empty">No leaks right now. Every category is under 60% of its limit.</p>`}
+    </section>
+    <section class="hx-panel hx-rise" style="--i:6" aria-labelledby="hx-targets">
+      <div class="hx-panel-head"><h2 id="hx-targets">Your <em>targets</em></h2><a href="#goals/goals">See all</a></div>
+      ${targets.length ? `<div class="hx-rows">${targets.join('')}</div>` : `<p class="hx-empty">No targets yet. <button type="button" class="linklike" data-action="add-goal">Add one</button></p>`}
+    </section>
+  </div>`;
+}
+
+/** Count the hero amount up from zero (cents stay put until it lands). */
+function hxCountUp() {
+  const el = document.querySelector('.hx-amount[data-hx-count]');
+  if (!el || !motionOK() || el.dataset.hxDone) return;
+  el.dataset.hxDone = '1';
+  const target = parseFloat(el.dataset.hxCount), html = el.innerHTML;
+  if (!(target >= 10)) return;
+  const cents = el.querySelector('.hx-cents'), centsHTML = cents ? cents.outerHTML : '';
+  const sym = fmt(0).replace(/[\d.,\s]/g, '');
+  const locale = (CURRENCIES[state.currency] || {}).locale || 'en-IN';
+  const nf = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+  const pre = fmt(0).trim().startsWith(sym);
+  const dur = 1100, t0 = performance.now() + 150;
+  const step = now => {
+    if (!el.isConnected) return;
+    const k = Math.max(0, Math.min(1, (now - t0) / dur)), e = 1 - Math.pow(1 - k, 4);
+    if (k >= 1) { el.innerHTML = html; return; }
+    const n = nf.format(Math.floor(target * e));
+    el.innerHTML = (pre ? esc(sym) + n : n + ' ' + esc(sym)) + centsHTML;
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 /** Forecast card with interactive sliders for flexible spending. */
 function runOutForecastCard(chartId = 'dash-forecast-chart') {
   const fc = studentRunOutForecast();
@@ -247,14 +425,14 @@ function renderDashboard() {
   const saved = sum(state.goals, g => g.saved), target = sum(state.goals, g => g.target);
   const sp = spendingSource();
 
-  let html = viewHeader('dashboard', 'Home', `${FULL_MONTHS[t.getMonth()]} ${t.getFullYear()}`,
-    `<button type="button" class="btn btn-primary" data-action="scan-receipt">${ICON.camera}<span>Scan receipt</span></button><button type="button" class="btn" data-action="whats-new"><span>What’s new</span></button><button type="button" class="btn" data-action="tour-all"><span>Full tutorial</span></button>`, [mi('Money Wrapped', 'open-wrapped')]);
+  let html = viewHeader('dashboard', `${hxGreeting()}<em>.</em>`, `${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][t.getDay()]}, ${t.getDate()} ${FULL_MONTHS[t.getMonth()]}`,
+    '', [mi('What’s new', 'whats-new'), mi('Full tutorial', 'tour-all'), mi('Money Wrapped', 'open-wrapped')]);
 
   if (!hasAnyData()) {
     html += emptyState('Nothing here yet', 'Set your student allowance to build your budget and daily safe-to-spend amount. Or explore with sample data.', 'open-paycheck', 'Set allowance', 'dashboard');
   }
 
-  const overview = sampleBanner() + backupBanner() + (typeof budgetNudgeBanner === 'function' ? budgetNudgeBanner() : '') + homeBento() + subCheckCard() + commandBarHTML() +
+  const overview = heistToday() + sampleBanner() + backupBanner() + (typeof budgetNudgeBanner === 'function' ? budgetNudgeBanner() : '') + commandBarHTML() + subCheckCard() +
     `<div class="stats-grid home-stats">
       ${stat('Monthly allowance', fmt(inc), `${state.income.irregular ? `${irregularLine()} · <button type="button" class="linklike" data-action="log-income">Log income</button>` : `${next ? `Next allowance ${daysLabel(next.days).toLowerCase()} · ` : ''}<button type="button" class="linklike" data-action="open-paycheck">Edit</button>`}`, 'featured')}
       ${al.byPayday
@@ -292,6 +470,7 @@ function renderDashboard() {
         bindForecastSliders('dash-forecast-chart');
         bindCommandBar();
         drawSavingsChart('dash-savings-chart');
+        hxCountUp();
       } else if (tab === 'forecast') {
         const fc = studentRunOutForecast();
         runOutLineChart('tab-forecast-chart', fc);

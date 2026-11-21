@@ -9,7 +9,7 @@ const hasChart = () => typeof window.Chart !== 'undefined';
 /** Rainbow chart colors: eight clearly different hues, checked to stay apart for colour-blind readers on the dark background. */
 const RAINBOW = ['#3987E5', '#D95926', '#199E70', '#C98500', '#D55181', '#008300', '#9085E9', '#E66767'];
 function colorAt(i) {
-  const th = THEMES[state.settings.theme] || THEMES.yoko;
+  const th = THEMES[state.settings.theme] || THEMES.lavender;
   const base = state.settings.chartColors === 'rainbow' ? RAINBOW : th.chart;
   const all = base.concat(['#CFCFCF', '#8F8F8F', '#6B6B6B', '#B5B5B5', '#5A5A5A', '#E0E0E0']);
   const c = all[i % all.length];

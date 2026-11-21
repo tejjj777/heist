@@ -117,7 +117,7 @@ function confetti() {
   const W = innerWidth, H = innerHeight, dpr = devicePixelRatio || 1;
   c.width = W * dpr; c.height = H * dpr;
   const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
-  const cols = (THEMES[state.settings.theme] || THEMES.yoko).chart.concat(['#FFFFFF', '#F5A524', '#34C38F']);
+  const cols = (THEMES[state.settings.theme] || THEMES.lavender).chart.concat(['#FFFFFF', '#F5A524', '#34C38F']);
   const bits = Array.from({ length: 160 }, () => ({
     x: W / 2 + (Math.random() - 0.5) * W * 0.3, y: H * 0.35, vx: (Math.random() - 0.5) * 16, vy: -Math.random() * 15 - 4,
     r: 5 + Math.random() * 6, c: cols[(Math.random() * cols.length) | 0], a: Math.random() * 6, va: (Math.random() - 0.5) * 0.35
@@ -438,7 +438,7 @@ function drawWrapped(d) {
   const font = (w, px) => `${w} ${px}px "DM Sans", system-ui, sans-serif`;
   const rrect = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
   const fit = (text, maxW) => { let s = String(text); if (x.measureText(s).width <= maxW) return s; while (s.length > 1 && x.measureText(s + '…').width > maxW) s = s.slice(0, -1); return s + '…'; };
-  const accent = (THEMES[state.settings.theme] || THEMES.yoko).chart[0];
+  const accent = (THEMES[state.settings.theme] || THEMES.lavender).chart[0];
   const g = x.createLinearGradient(0, 0, W, H);
   g.addColorStop(0, '#0A0A0A'); g.addColorStop(1, '#1A1A1A');
   x.fillStyle = g; x.fillRect(0, 0, W, H);
@@ -673,7 +673,7 @@ function prefsHTML() {
   const goalOpts = state.goals.length ? state.goals.map(g => `<option value="${g.id}" ${s.roundUp.goalId === g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('') : '<option value="">Add a goal first</option>';
   return `
   <div class="settings-group"><h3>Theme and sound</h3><div class="form-grid two">
-    <fieldset class="theme-pick span-2"><legend class="field-label">Theme</legend>${THEME_KEYS.map(k => `<label class="theme-opt"><input type="radio" name="set-theme" id="set-theme-${k}" value="${k}" data-setting="theme" data-kind="select" ${resolvedTheme() === k ? 'checked' : ''}><span class="swatch" aria-hidden="true"><i style="background:${THEMES[k].swatch[0]}"></i><i style="background:${THEMES[k].swatch[1]}"></i></span>${esc(THEMES[k].label)}</label>`).join('')}</fieldset>
+    ${THEME_KEYS.length > 1 ? `<fieldset class="theme-pick span-2"><legend class="field-label">Theme</legend>${THEME_KEYS.map(k => `<label class="theme-opt"><input type="radio" name="set-theme" id="set-theme-${k}" value="${k}" data-setting="theme" data-kind="select" ${resolvedTheme() === k ? 'checked' : ''}><span class="swatch" aria-hidden="true"><i style="background:${THEMES[k].swatch[0]}"></i><i style="background:${THEMES[k].swatch[1]}"></i></span>${esc(THEMES[k].label)}</label>`).join('')}</fieldset>` : ''}
     <div class="field"><span class="field-label">Chart colors</span>${segRadio({ name: 'set-chartc', label: 'Chart colors', value: s.chartColors === 'rainbow' ? 'rainbow' : 'yoko', attrs: 'data-setting="chartColors" data-kind="select"', options: [['yoko', 'HEIST theme', 'HEIST theme, shades of your theme'], ['rainbow', 'Rainbow', 'Rainbow, every slice a different color']] })}</div>
     <div class="field"><span class="field-label">Sound effects</span><label class="check"><input type="checkbox" id="set-sound" data-setting="sound" data-kind="bool" ${s.sound ? 'checked' : ''}> Play sounds</label></div>
   </div></div>

@@ -14,10 +14,7 @@ const LOGO_URI_LAV = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAACnCAYA
 /** The logo that suits the current theme (lavender is a light theme, the rest are dark). */
 function logoUri() { return document.documentElement.dataset.theme === 'lavender' ? LOGO_URI_LAV : LOGO_URI; }
 const THEMES = {
-  lavender: { label: 'Lavender', swatch: ['#FFFFFF', '#8F7AE8'], meta: '#F7F4FF', chart: ['#8F7AE8', '#5B41C8', '#C9BDF5', '#B7A8F2', '#8A84A8', '#E3DCFA'] },
-  yoko: { label: 'Black & Green', swatch: ['#0A0A0A', '#7ED957'], meta: '#0A0A0A', chart: ['#7ED957', '#B8F09E', '#E8E8E8', '#4E9E34', '#9A9A9A', '#2F6B22'] },
-  blue: { label: 'Black & Blue', swatch: ['#0A0A0A', '#3B9EFF'], meta: '#0A0A0A', chart: ['#3B9EFF', '#9CCCFF', '#E8E8E8', '#1E6FCC', '#9A9A9A', '#0E4A8F'] },
-  red: { label: 'Black & Red', swatch: ['#0A0A0A', '#FF4D4D'], meta: '#0A0A0A', chart: ['#FF4D4D', '#FFA3A3', '#E8E8E8', '#C92A2A', '#9A9A9A', '#7A1414'] }
+  lavender: { label: 'Lavender', swatch: ['#FFFFFF', '#8F7AE8'], meta: '#F6F3FF', chart: ['#8D75E6', '#4B33A8', '#C9BDF5', '#B9A8F4', '#77729A', '#E3DCFA'] }
 };
 const THEME_KEYS = Object.keys(THEMES);
 
@@ -33,7 +30,7 @@ const CAT_TYPES = [['needs', 'Need'], ['wants', 'Want'], ['savings', 'Saving']];
 const BUCKET_ROLES = ['bills', 'debt', 'goals', 'gifts', 'spending', 'custom'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const ROUTES = [
-  { id: 'dashboard', label: 'Dashboard', short: 'Home', icon: 'dashboard' },
+  { id: 'dashboard', label: 'Today', short: 'Today', icon: 'dashboard' },
   { id: 'spend', label: 'Spend', short: 'Spend', icon: 'wallet2' },
   { id: 'budget', label: 'Budget', short: 'Budget', icon: 'budget' },
   { id: 'split', label: 'Split', short: 'Split', icon: 'debt', long: 'Split & Roommates' },

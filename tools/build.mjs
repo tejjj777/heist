@@ -36,6 +36,8 @@ for (const f of ['js/theme-boot.js', 'js/selftests.js']) {
 const css = await transform(fs.readFileSync('css/app.css', 'utf8'), { loader: 'css', minify: true, charset: 'utf8' });
 fs.writeFileSync(path.join(OUT, 'css/app.css'), css.code);
 console.log(`css/app.css    ${kb(fs.statSync('css/app.css').size)} → ${kb(css.code.length)}`);
+const hcss = await transform(fs.readFileSync('css/heist.css', 'utf8'), { loader: 'css', minify: true, charset: 'utf8' });
+fs.writeFileSync(path.join(OUT, 'css/heist.css'), hcss.code);
 
 // 2. index.html: swap the script list for the bundle
 const first = html.indexOf('<script src="js/', html.indexOf('<body'));

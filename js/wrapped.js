@@ -346,7 +346,7 @@ function drawWrappedSquareCard(d, cardIndex) {
     return s + '…';
   };
 
-  const accent = (THEMES[state.settings.theme] || THEMES.yoko).chart[0];
+  const accent = (THEMES[state.settings.theme] || THEMES.lavender).chart[0];
 
   // Background gradient
   const g = ctx.createLinearGradient(0, 0, S, S);
