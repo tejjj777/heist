@@ -228,12 +228,12 @@ function heistToday() {
     <div class="hx-tiles">
       <a class="hx-tile is-ink hx-rise" style="--i:1" href="#spend/log">
         <span class="hx-tile-k">Spent this week</span>
-        <span class="hx-tile-v">${esc(fmt(weekSum))}</span>
+        <span class="hx-tile-v" style="--len:${fmt(weekSum).length}">${esc(fmt(weekSum))}</span>
         <span class="hx-week" aria-label="Spending on each of the last 7 days">${week.map((d, i) => `<i class="${d.today ? 'on' : ''}" style="--h:${Math.max(6, Math.round(d.amt / maxDay * 100))}%;--d:${i}" title="${esc(d.label)}: ${esc(fmt(d.amt))}"></i>`).join('')}</span>
       </a>
       <a class="hx-tile hx-rise" style="--i:2" href="#budget/plan">
         <span class="hx-tile-k">${esc(month)} budget</span>
-        <span class="hx-tile-row"><span class="hx-tile-v">${usedPct}%</span>
+        <span class="hx-tile-row"><span class="hx-tile-v" style="--len:${String(usedPct).length + 1}">${usedPct}%</span>
         <svg class="hx-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="26"></circle><circle class="on" cx="32" cy="32" r="26" style="--len:${(Math.min(1, usedPct / 100) * ringLen).toFixed(1)}"></circle></svg></span>
         <span class="hx-tile-s">Used: ${esc(fmt(b.actual))} of ${esc(fmt(b.plannedSpend))}</span>
       </a>
@@ -244,7 +244,7 @@ function heistToday() {
       </div>
       <button type="button" class="hx-tile hx-rise" style="--i:4" data-action="open-paycheck">
         <span class="hx-tile-k">Monthly allowance</span>
-        <span class="hx-tile-v">${esc(fmt(inc))}</span>
+        <span class="hx-tile-v" style="--len:${fmt(inc).length}">${esc(fmt(inc))}</span>
         <span class="hx-tile-s">${state.income.irregular ? 'Irregular' : 'Tap to edit'}</span>
       </button>
     </div>

@@ -121,7 +121,8 @@ function renderDebt() {
   </details>`;
 
   const principalPaid = Math.max(0, chosen.totalPaid - chosen.totalInterest);
-  const html = head + debtHero(chosen, chosenKey) + tabbed('debt', {
+  // the tabs sit right under the page title, above the debt-free hero
+  const debtPanels = {
     debts: debtsCard,
     plan: planCard + (minTotal > 0 ? whatIfCard(minTotal) : '') + minLine + cappedWarn +
       `<div class="grid-2">${compareCard('avalanche')}${compareCard('snowball')}</div>` +
@@ -129,7 +130,9 @@ function renderDebt() {
         ${chartCard('Principal vs interest', `Total paid: ${fmt(chosen.totalPaid)}`, 'debt-pie', chosen.totalPaid > 0, 'Nothing paid yet.', 'lg')}</div>` +
       `<div class="card mb"><div class="card-head"><div><h2>Payment schedule</h2><p class="muted small">Month by month, for the plan you picked.</p></div></div>${schedCard}</div>`,
     emi: emiCard()
-  });
+  };
+  const debtTab = currentTab('debt');
+  const html = head + subtabs('debt', debtTab) + debtHero(chosen, chosenKey) + `<div class="tab-panel" role="tabpanel" aria-labelledby="tab-debt-${debtTab}">${debtPanels[debtTab] || ''}</div>`;
 
   return {
     html,

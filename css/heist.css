@@ -677,3 +677,36 @@ html.heist .sp-chips-wrap.can-left:not(.can-right) .sp-chips { -webkit-mask-imag
   html.heist #view-budget .budget-aside > .pva-card { flex-grow: 2; justify-content: flex-start; }
   html.heist #view-budget .budget-aside > .pva-card .pva { flex: 1; height: auto; min-height: 180px; }
 }
+
+/* Paycheck split: rows lay out by the card's own width, so names never get squeezed */
+html.heist .split-card { container-type: inline-size; }
+html.heist .split-card .split-row { grid-template-columns: minmax(0, 1fr) 96px 130px 64px 40px; grid-template-areas: "name mode value amt del" "err err err err err"; }
+html.heist .split-card .split-row .s-amt { margin: 0; text-align: right; font-weight: 700; color: var(--hx-ink); font-size: 14px; }
+html.heist .split-card .split-row .input, html.heist .split-card .split-row .select { width: 100%; min-width: 0; }
+@container (max-width: 620px) {
+  html.heist .split-card .split-row { grid-template-columns: 96px minmax(0, 1fr) 64px 40px; grid-template-areas: "name name name del" "mode value amt amt" "err err err err"; padding-bottom: 12px; border-bottom: 1.5px dashed var(--hx-line); }
+  html.heist .split-card .split-row:last-child { border-bottom: 0; padding-bottom: 0; }
+}
+html.heist.dark .split-card .split-row { border-bottom-color: var(--hx-mist); }
+
+/* Goals: no empty gaps. The top row lines up, goal cards share the full width */
+html.heist .goals-top { align-items: stretch; }
+html.heist .goals-top > .rings-card { align-self: stretch; }
+html.heist .goals-top > .budget-aside > .card { flex: 1 1 auto; }
+html.heist .hang-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+
+/* Debt: "Payoff order" heading sits on the left, with its total under it and the ⋯ on the right */
+html.heist .dl-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title act" "sub act"; justify-content: stretch; align-items: center; text-align: left; gap: 2px 16px; margin-bottom: 12px; }
+html.heist .dl-head h2 { grid-area: title; }
+html.heist .dl-head p { grid-area: sub; flex: none; }
+html.heist .dl-head .actions { grid-area: act; }
+
+/* Today tiles: numbers shrink to fit their tile, so big amounts never spill out */
+html.heist .hx-tiles .hx-tile { container-type: inline-size; overflow: hidden; }
+html.heist .hx-tiles .hx-tile-v { font-size: min(40px, 15cqi); white-space: nowrap; }
+html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, 13cqi); }
+html.heist .hx-tiles .hx-tile-row .hx-ring { width: min(76px, 30cqi); height: min(76px, 30cqi); min-width: 0; }
+@media (min-width: 1024px) { html.heist .hx-tiles .hx-tile-v { font-size: min(40px, 15cqi); } html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, 13cqi); } }
+/* each Today number sizes by how many characters it has: short ones stay big, long ones shrink to fit */
+html.heist .hx-tiles .hx-tile-v { font-size: min(40px, calc(150cqi / max(var(--len, 4), 4))) !important; }
+html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, calc(92cqi / max(var(--len, 4), 3))) !important; }

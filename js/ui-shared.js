@@ -159,11 +159,11 @@ function splitCard() {
         <div class="affix ${r.mode === 'percent' ? 'suffix' : ''}"><span class="affix-sym" aria-hidden="true">${r.mode === 'percent' ? '%' : esc(CURRENCIES[state.currency].symbol)}</span>
         <input id="${vid}" class="input input-sm" type="text" inputmode="decimal" autocomplete="off" value="${numStr(r.value)}" data-bind="bucket" data-id="${r.id}" data-field="value" data-kind="bucketValue" aria-describedby="${vid}-err"></div></div>
       <div class="s-amt num" aria-live="off">${r.mode === 'percent' ? fmt(r.amount) : (s.base > 0 ? fmtPct(r.amount / s.base * 100) : '')}<span class="sr-only"> per paycheck</span></div>
-      <div class="s-del">${r.role === 'custom' ? `<button type="button" class="icon-btn danger" data-action="delete-bucket" data-id="${r.id}" aria-label="Delete ${esc(r.name)} bucket">${ICON.trash}</button>` : ''}</div>
+      <div class="s-del"><button type="button" class="icon-btn danger" data-action="delete-bucket" data-id="${r.id}" aria-label="Delete ${esc(r.name)} bucket" title="Delete">${ICON.trash}</button></div>
       <span class="field-error" id="bk-name-${r.id}-err"></span><span class="field-error" id="${vid}-err"></span>
     </div>`;
   }).join('');
-  return `<div class="card">
+  return `<div class="card split-card">
     <div class="card-head"><div><h2>Where each paycheck goes</h2>
       <p class="muted small">${s.base > 0 ? (state.income.irregular ? `${fmt(s.base)} to split this month (${irregularLine().toLowerCase()}) · ${pctAssigned} assigned` : `Take-home ${fmt(s.base)} per paycheck · ${FREQ_LABEL[state.income.freq].toLowerCase()} · ${pctAssigned} assigned`) : 'Enter your paycheck to split it into buckets.'}</p></div>
       <div class="actions">${csvBtn('split', 'paycheck split')}</div></div>
