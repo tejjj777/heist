@@ -556,4 +556,33 @@ html.heist .ghost-inp::-webkit-inner-spin-button, html.heist .ghost-inp::-webkit
 
 /* Settings on phones: the tab bar was squeezed to 12px and clipped, so no tab could be tapped */
 html.heist .settings-modal .set-tabs { flex-shrink: 0; overflow: visible; height: auto; min-height: 56px; }
-@media (max-width: 480px) { html.heist .settings-modal .set-tabs .subtabs-inner { flex-wrap: wrap; overflow: visible; justify-content: center; row-gap: 4px; } html.heist .settings-modal .set-tabs .subtab-ind { display: none; } html.heist .settings-modal .set-tabs .subtab[aria-selected="true"] { background: var(--hx-lav-3); color: #FFFFFF; } }
+@media (max-width: 600px) {
+  html.heist .settings-modal .set-tabs .subtabs-inner { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: 8px; padding: 2px 2px 6px; border: 0; border-radius: 0; background: transparent; box-shadow: none; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  html.heist .settings-modal .set-tabs .subtab-ind { display: none; }
+  html.heist .settings-modal .set-tabs .subtab { flex: 0 0 auto; scroll-snap-align: start; border: 2px solid var(--hx-ink); border-radius: 999px; background: var(--hx-paper); padding: 8px 16px; }
+  html.heist .settings-modal .set-tabs .subtab[aria-selected="true"] { background: var(--hx-lav-3); color: #FFFFFF; box-shadow: 2px 2px 0 var(--hx-ink); }
+}
+
+/* ---------- Collapsible side menu (laptops). Collapsed: menu slides away, the HEIST logo pops into the top left ---------- */
+html.heist .side-toggle { display: none; }
+@media (min-width: 768px) {
+  html.heist .side-toggle { display: inline-flex; order: -2; margin-right: auto; }
+  html.heist .topbar .topbar-actions { order: 1; }
+  html.heist .sidebar, html.heist .main-wrap, html.heist .topbar { transition: transform .35s var(--hx-ease), margin-left .35s var(--hx-ease), left .35s var(--hx-ease); }
+  html.heist.side-collapsed { --sidebar-w: 0px; }
+  html.heist.side-collapsed .sidebar { transform: translateX(-110%) !important; visibility: hidden; transition: transform .35s var(--hx-ease), visibility 0s .35s; }
+  html.heist.side-collapsed .topbar { left: 0; }
+  html.heist.side-collapsed .topbar .side-toggle { margin-right: 12px; }
+  html.heist.side-collapsed .topbar .brand { display: flex; order: -1; margin-right: auto; animation: hx-logo-pop .5s var(--hx-spring) both; }
+  html.heist.side-collapsed .topbar .brand-logo { height: 44px; }
+  html.heist.side-collapsed main { max-width: 1320px; }
+}
+@keyframes hx-logo-pop { from { opacity: 0; transform: translateX(-24px) scale(.6) rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) { html.heist.side-collapsed .topbar .brand { animation: none; } }
+
+/* Dark mode: outlined headings and big amounts keep a dark outline and shadow (the light text color made them glow white) */
+html.heist.dark { --hx-outline: #07060F; }
+html.heist.dark :is(.view-head h1, .hx-amount, .hx-amount .hx-cents, .tile-green .big-num, .hang-card.is-lead .big-num, .bh-amount, .dh-when, .beam-totals .big-num, .bento-tile > .big-num, .mw-hero-amount, .safe-hero-amount) {
+  -webkit-text-stroke-color: var(--hx-outline); text-shadow: 4px 4px 0 var(--hx-lav-3), 6px 6px 0 var(--hx-outline);
+}
+html.heist.dark .view-head h1 em { text-shadow: none; }

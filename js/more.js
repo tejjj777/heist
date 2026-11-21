@@ -62,6 +62,18 @@ function doUndo() {
   toast('Undone');
 }
 
+/* ---------- Collapsible side menu (laptops) ---------- */
+function applySidebar() {
+  const on = document.documentElement.classList.contains('side-collapsed'), b = document.getElementById('side-toggle');
+  if (b) { const t = on ? 'Show the side menu' : 'Hide the side menu'; b.setAttribute('aria-expanded', String(!on)); b.setAttribute('aria-label', t); b.title = t; }
+}
+function toggleSidebar() {
+  const on = document.documentElement.classList.toggle('side-collapsed');
+  try { localStorage.setItem('heist.sideCollapsed', on ? '1' : '0'); } catch (e) { /* storage blocked */ }
+  applySidebar();
+  if (typeof scheduleRender === 'function') scheduleRender(250);   // charts resize to the new width
+}
+
 /* ---------- Dark mode ---------- */
 function applyDark() {
   const on = !!state.settings.dark;

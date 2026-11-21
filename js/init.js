@@ -131,6 +131,7 @@ function init() {
   buildChrome();
   applyTheme();          // also sets chart colours for the theme
   applyDark();
+  applySidebar();
   applyPrivacy();
   applyCountry();        // day-first or month-first dates
   loadPriceUpdates();
