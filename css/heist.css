@@ -761,27 +761,70 @@ html.heist .hx-tiles .hx-tile-row .hx-tile-v { font-size: min(40px, calc(92cqi /
 .heist-member .hc-bar.heist-mini { width: 90px; height: 10px; }
 
 
-/* ---------- Simple view (Settings → About you): bigger text, calm screens, fewer buttons ----------
-   For parents and grandparents. The tab list shrinks in applyLifeMode() (js/modes.js); motion and confetti
-   check the html.simple class. Zoom scales the px-based sizes in one go; the bars get their own sizes. */
+/* ---------- Simple view (Settings → About you) ----------
+   Three plain screens from js/simple.js: Home, Spending, Savings. Flat and quiet: no offset shadows,
+   no dotted page, no animations, big text and big buttons. Only the top bar's Settings and Account stay. */
 html.heist.simple { --hx-ink-3: var(--hx-ink-2); --muted: var(--hx-ink-2); }
-html.simple main, html.simple #modal-root .modal { zoom: 1.18; }
+html.heist.simple body { background: var(--hx-wash); font-size: 18px; }
+html.simple :is(#quickadd-btn, #palette-btn, #side-palette, #dark-btn, #privacy-btn, .side-toggle, .qa-adv) { display: none !important; }
+html.simple .menu-wrap:has(> #quickadd-btn) { display: none; }
+html.simple .nav-link { font-size: 18px; min-height: 52px; }
+html.simple .tab-link { font-size: 14px; font-weight: 600; }
+html.simple .tab-link .icon { width: 26px; height: 26px; }
+html.simple :is(.tabbar, .nav-link, .tab-link, .btn, .card, .modal, .input, select, textarea) { box-shadow: none !important; }
+html.simple #modal-root .modal { zoom: 1.15; }
 html.simple .tour-card { zoom: 1.15; }
 html.simple #toast, html.simple #undo-bar { font-size: 17px; }
-html.simple .tab-link { font-size: 13.5px; font-weight: 600; }
-html.simple .tab-link .icon { width: 24px; height: 24px; }
-html.simple .nav-link { font-size: 16.5px; min-height: 48px; }
-html.simple .menu button { font-size: 17px; min-height: 48px; }
-html.simple .menu-label { font-size: 14px; }
-html.simple :is(.qa-adv, #palette-btn, #side-palette) { display: none !important; }
-html.simple :is(.small, .help, .muted, .stat-sub, .stat-label, th) { font-size: max(1em, 14px); }
-html.simple :is(p, li, .help) > a:not(.btn):not(.nav-link) { text-decoration: underline; }
 html.simple *, html.simple *::before, html.simple *::after {
   animation-duration: .001ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
   transition-duration: .001ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
 }
-html.simple .ob-simple { font-weight: 600; }
-.ob-simple { margin: 4px 0 12px; }
-/* Bigger text needs more room: the search gets its own line on phones */
-html.simple .sp-controls, html.simple .sp-controls .exp-filter { grid-template-columns: minmax(0, 1fr); }
-@media (max-width: 520px) { html.simple .sp-toolbar { flex-wrap: wrap; } html.simple .sp-search { flex: 1 1 100%; } }
+.ob-simple { margin: 4px 0 12px; font-weight: 600; }
+
+.sv { --sv-line: color-mix(in srgb, var(--hx-ink) 13%, transparent); max-width: 560px; margin: 0 auto; padding: 8px 0 32px; display: grid; gap: 16px; color: var(--hx-ink); }
+.sv-head h1 { margin: 0; font: 700 30px/1.15 var(--hx-sans); font-style: normal; letter-spacing: -.01em; text-shadow: none; -webkit-text-stroke: 0; color: var(--hx-ink); }
+.sv-head h1:focus { outline: none; }
+.sv-sub { margin: 4px 0 0; font-size: 18px; color: var(--hx-ink-2); }
+.sv-hero { padding: 24px 20px; border-radius: 20px; background: var(--hx-lav-1); text-align: center; }
+.sv-hero.is-over { background: color-mix(in srgb, var(--danger) 14%, var(--hx-paper)); }
+.sv-k { margin: 0; font-size: 18px; font-weight: 600; color: var(--hx-ink-2); }
+.sv-amount { margin: 6px 0; font: 800 52px/1.05 var(--hx-sans); letter-spacing: -.02em; color: var(--hx-ink); overflow-wrap: anywhere; }
+.sv-hero.is-over .sv-amount { color: var(--danger); }
+.sv-text { margin: 0; font-size: 18px; line-height: 1.45; color: var(--hx-ink-2); }
+.sv-big-btn { width: 100%; min-height: 60px; font-size: 20px; font-weight: 700; border-radius: 16px; justify-content: center; gap: 8px; }
+.sv-big-btn .icon { width: 24px; height: 24px; }
+.sv-hero .sv-big-btn { margin-top: 16px; }
+.sv-wide { width: 100%; min-height: 52px; font-size: 18px; border-radius: 14px; justify-content: center; margin-top: 12px; }
+.sv-card { padding: 18px 18px 14px; border-radius: 20px; background: var(--hx-paper); border: 1px solid var(--sv-line); }
+.sv-card h2 { margin: 0 0 6px; font: 700 20px/1.25 var(--hx-sans); font-style: normal; text-shadow: none; color: var(--hx-ink); }
+.sv-list { list-style: none; margin: 0; padding: 0; }
+.sv-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--sv-line); }
+.sv-list > .sv-row:first-child { border-top: 0; }
+.sv-row:has(> .sv-row-btn) { padding: 0; }
+.sv-row-btn { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 0; cursor: pointer; }
+.sv-row-btn:focus-visible { outline: 3px solid var(--hx-lav-3); outline-offset: 2px; border-radius: 8px; }
+.sv-row-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sv-row-name { font-size: 18px; font-weight: 600; color: var(--hx-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-row-sub { font-size: 16px; color: var(--hx-ink-2); }
+.sv-row-amt { font-size: 19px; font-weight: 700; color: var(--hx-ink); white-space: nowrap; }
+.sv-more { display: block; padding: 14px 0 4px; font-size: 18px; font-weight: 600; color: var(--hx-lav-4); text-decoration: underline; }
+.sv-hint { margin: 10px 0 0; font-size: 16px; color: var(--hx-ink-2); }
+.sv-goal-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.sv-bar { height: 14px; margin: 10px 0; border-radius: 999px; background: var(--hx-lav-1); overflow: hidden; }
+.sv-bar i { display: block; height: 100%; border-radius: inherit; background: var(--hx-lav-4); }
+html.simple .tabbar { grid-template-columns: repeat(3, 1fr); }
+html.simple .tab-link[hidden], html.simple #side-nav li[hidden] { display: none !important; }
+html.heist.simple .tabbar { border: 1px solid color-mix(in srgb, var(--hx-ink) 13%, transparent); }
+html.heist.simple .tab-link[aria-current="page"] { box-shadow: none; background: var(--hx-lav-1); color: var(--hx-ink); }
+/* plain type and soft edges inside the simple screens, overriding the Bold look */
+html.heist .sv .sv-row-amt, html.heist .sv .sv-amount { font-family: var(--hx-sans); font-style: normal; -webkit-text-stroke: 0; text-shadow: none; }
+html.heist .sv .sv-card { border: 1px solid var(--sv-line); box-shadow: none; }
+html.heist .sv .btn { border: 0; box-shadow: none; transform: none; }
+html.heist .sv .btn:not(.btn-primary) { background: var(--hx-lav-1); color: var(--hx-ink); }
+html.heist .sv .btn-primary { background: var(--hx-lav-4); color: #FFFFFF; }
+html.heist.dark .sv .btn:not(.btn-primary) { background: var(--hx-lav-1); }
+html.heist.dark .sv .btn-primary { color: #15122A; }
+html.heist.simple .nav-link { border-color: transparent !important; }
+html.heist.simple .nav-link[aria-current="page"] { background: var(--hx-lav-1); }
+html.heist.simple .sidebar { border-right: 1px solid color-mix(in srgb, var(--hx-ink) 13%, transparent); }
+html.heist.simple .side-foot { border-top-color: color-mix(in srgb, var(--hx-ink) 13%, transparent); }

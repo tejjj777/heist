@@ -10,7 +10,7 @@ function redirectOldHash() {
   if (/^#gifts(\/|$)/.test(location.hash)) history.replaceState(null, '', '#goals/gifts');
   if (/^#wallet(\/|$)/.test(location.hash)) history.replaceState(null, '', /ious/.test(location.hash) ? '#split/ious' : '#spend/cash');
 }
-const currentRoute = () => { const h = location.hash.replace('#', '').split('/')[0]; return VIEWS[h] && ROUTES.some(r => r.id === h) ? h : 'dashboard'; };
+const currentRoute = () => { const h = location.hash.replace('#', '').split('/')[0]; return VIEWS[h] && ROUTES.some(r => r.id === h) && (!isSimple() || SIMPLE_ROUTES.includes(h)) ? h : 'dashboard'; };
 let renderTimer = null;
 
 function render() {
@@ -34,7 +34,7 @@ function render() {
     el.hidden = id !== route;
     if (id !== route && el.innerHTML) el.innerHTML = '';   // avoid duplicate element ids across views
   }
-  const out = VIEWS[route]();
+  const out = (isSimple() && SIMPLE_VIEWS[route] || VIEWS[route])();
   document.getElementById('view-' + route).innerHTML = out.html;
   try { out.charts && out.charts(); } catch (err) { console.error('Chart error', err); }
 

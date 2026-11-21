@@ -49,8 +49,8 @@ function dailyTick() {
   const rolled = rolloverMonth();
   evaluateRewards();
   save();
-  if (rolled.length) toast(rolled.length === 1 ? `New month. ${monthLabelISO(rolled[0])} is saved under Month by month` : `New month. ${monthLabelISO(rolled[0])} to ${monthLabelISO(rolled[rolled.length - 1])} are saved under Month by month`, 4500);
-  if (p.n) toast(`Logged ${plural(p.n, 'recurring payment')}: ${p.names.slice(0, 3).join(', ')}${p.names.length > 3 ? '…' : ''} (${fmt(p.total)})`, 4500);
+  if (rolled.length && !isSimple()) toast(rolled.length === 1 ? `New month. ${monthLabelISO(rolled[0])} is saved under Month by month` : `New month. ${monthLabelISO(rolled[0])} to ${monthLabelISO(rolled[rolled.length - 1])} are saved under Month by month`, 4500);
+  if (p.n && !isSimple()) toast(`Logged ${plural(p.n, 'recurring payment')}: ${p.names.slice(0, 3).join(', ')}${p.names.length > 3 ? '…' : ''} (${fmt(p.total)})`, 4500);
   return !!(rolled.length || p.n);
 }
 function bindMore() {
@@ -91,6 +91,7 @@ const MORE_ACTIONS = {
   'dismiss-undo': () => hideUndo(),
   'toggle-privacy': () => togglePrivacy(),
   'toggle-dark': () => toggleDark(),
+  'sv-show-older': () => { ui.svMore = true; render(); },
   'toggle-simple': el => { toggleSimple(); if (el && el.closest && el.closest('#modal-root')) el.textContent = isSimple() ? 'Turn off Simple view' : 'Use Simple view (bigger text)'; },
   'toggle-sidebar': () => toggleSidebar(),
   'open-account': () => openSettings('account'),
