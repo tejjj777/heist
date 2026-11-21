@@ -569,9 +569,16 @@ html.heist .side-toggle { display: none; }
   html.heist .side-toggle { display: inline-flex; order: -2; margin-right: auto; }
   html.heist .topbar .topbar-actions { order: 1; }
   html.heist .sidebar, html.heist .main-wrap, html.heist .topbar { transition: transform .35s var(--hx-ease), margin-left .35s var(--hx-ease), left .35s var(--hx-ease); }
-  html.heist.side-collapsed { --sidebar-w: 0px; }
-  html.heist.side-collapsed .sidebar { transform: translateX(-110%) !important; visibility: hidden; transition: transform .35s var(--hx-ease), visibility 0s .35s; }
-  html.heist.side-collapsed .topbar { left: 0; }
+  /* collapsed = icon rail: the section icons stay, the labels and the sidebar logo go */
+  html.heist.side-collapsed { --sidebar-w: 84px; }
+  html.heist.side-collapsed .sidebar { padding: 24px 12px; align-items: center; }
+  html.heist.side-collapsed .sidebar::before { display: none; }
+  html.heist.side-collapsed .sidebar > nav { width: 100%; padding-top: 52px; }
+  html.heist.side-collapsed .sidebar .nav-link, html.heist.side-collapsed .side-foot .nav-link { justify-content: center; padding: 12px; }
+  html.heist.side-collapsed .sidebar .nav-link span, html.heist.side-collapsed .side-foot .nav-link span, html.heist.side-collapsed .side-foot kbd { display: none; }
+  html.heist.side-collapsed .sidebar .nav-link .icon { display: block; }
+  html.heist.side-collapsed .side-foot { width: 100%; }
+  html.heist.side-collapsed .topbar { left: var(--sidebar-w); }
   html.heist.side-collapsed .topbar .side-toggle { margin-right: 12px; }
   html.heist.side-collapsed .topbar .brand { display: flex; order: -1; margin-right: auto; animation: hx-logo-pop .5s var(--hx-spring) both; }
   html.heist.side-collapsed .topbar .brand-logo { height: 44px; }
