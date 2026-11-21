@@ -113,7 +113,7 @@ One-time setup: `npm install` then `npx playwright install chromium`.
 
 
 ## Session 11: launch checklist (SEO, legal, speed)
-- **Main address is https://yokomoney.netlify.app** (canonical, og:url, robots.txt, sitemap.xml, llms.txt all point there). GitHub Pages still serves the source as-is.
+- **Main address is https://tejjj777.github.io/heist** (canonical, og:url, robots.txt, sitemap.xml, llms.txt all point there). GitHub Pages still serves the source as-is.
 - **Netlify serves a build.** `npm run build` (`tools/build.mjs`) joins the body `<script>` files in `index.html` order into one minified `dist/js/app.min.js`, minifies CSS, rewrites `dist/index.html` and `dist/sw.js`, and copies the rest. `netlify.toml` runs it and publishes `dist/`; headers are in `_headers` so a drag-and-drop upload of `dist/` gets them too. `dist/` is not committed. Never rename top-level names to rely on minifying: top-level names are kept as-is.
 - **Self-tests load on demand.** `selftests.js` is not a script tag. Startup runs them (with console output) only on localhost or with `?selftest`; Settings → Help loads them when opened. In tests call `await ensureSelfTests()` before `runSelfTests()`.
 - **Chart.js loads on demand** (`ensureChart()` in `js/charts.js`, also prefetched ~2.5 s after start when idle). `makeChart` draws when it arrives; don't touch `window.Chart` directly.

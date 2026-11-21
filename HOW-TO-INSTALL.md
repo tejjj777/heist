@@ -34,12 +34,12 @@ After the first visit the app opens offline. Photo and scanned-payslip reading (
 
 - Without an account, data stays in that browser only. Nothing is uploaded.
 - With an account (**Settings → Account**), data syncs between devices. It's locked with the person's passphrase on the device before upload, so the server only holds scrambled text.
-- Signed-out users should still back up. YOKO! reminds them weekly. Signed-in users don't get the reminder, because the account holds a copy.
-- Your link is public. Anyone with it sees an empty YOKO!, never your numbers.
+- Signed-out users should still back up. HEIST reminds them weekly. Signed-in users don't get the reminder, because the account holds a copy.
+- Your link is public. Anyone with it sees an empty HEIST, never your numbers.
 
 ## 4. Accounts (Supabase)
 
-Already set up for `https://yokomoney.netlify.app`:
+Set up for the old YOKO! address. For HEIST at `https://tejjj777.github.io/heist/`, add that address under Authentication → URL Configuration so sign-in links come back here:
 - The `vaults` table and its security rules (from `supabase/setup.sql`).
 - Sign-in emails send a link back to that address (Authentication → URL Configuration).
 

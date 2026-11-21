@@ -13,6 +13,6 @@
 - An AI command bar for logging spends and asking "can I afford this?"
 
 ## Links
-- [App](https://yokomoney.netlify.app/)
-- [Privacy Policy](https://yokomoney.netlify.app/privacy.html)
-- [Terms of Use](https://yokomoney.netlify.app/terms.html)
+- [App](https://tejjj777.github.io/heist/)
+- [Privacy Policy](https://tejjj777.github.io/heist/privacy.html)
+- [Terms of Use](https://tejjj777.github.io/heist/terms.html)

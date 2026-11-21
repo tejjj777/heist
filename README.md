@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://tejjj777.github.io/yokomoney/"><b>Open the app</b></a>
+  <a href="https://tejjj777.github.io/heist/"><b>Open the app</b></a>
 </p>
 
 ---
@@ -27,7 +27,7 @@
 
 ## Put it on your phone
 
-1. Open **https://tejjj777.github.io/yokomoney/** on your phone.
+1. Open **https://tejjj777.github.io/heist/** on your phone.
 2. **iPhone (Safari):** tap Share, then **Add to Home Screen**.
 3. **Android (Chrome):** tap ⋮, then **Install app**.
 
