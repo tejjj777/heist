@@ -1,0 +1,464 @@
+/* HEIST · Budget page, irregular income, yearly bills, where did my money go, price list.
+   Classic script: shares one global scope with the other js/ files (see README-AGENTS.md). */
+'use strict';
+/* =========================================================
+   VIEW: BUDGET
+   ========================================================= */
+function renderBudget() {
+  const b = budgetTotals();
+  const last = lastMonthEntry();
+  const auto = computedMonthlyIncome();
+  const cats = state.budget.categories;
+  const head = viewHeader('budget', 'Budget Planner', 'Plan this month, track what you spend, and see what’s left.',
+    `<button type="button" class="btn" data-action="budget-autopilot"><span>Set my budgets for me</span></button><button type="button" class="btn btn-primary" data-action="add-expense">${ICON.plus}<span>Add expense</span></button>`);
+  const intro = !hasAnyData() ? emptyState('Your budget is empty', 'Enter your paycheck to fill in income automatically, then set planned amounts for each category.', 'open-paycheck', 'Enter paycheck', 'budget') : '';
+
+  const incomeCard = `<div class="card stat">
+    <p class="stat-label">Monthly income</p><p class="stat-value">${fmt(b.income)}</p>
+    <p class="stat-sub">${state.budget.incomeOverride !== null ? `Override · paycheck setup says ${fmt(auto)}` : `${irregularLine()} · <button type="button" class="linklike" data-action="log-income">Log income</button>`}</p>
+    <div class="field no-print" style="margin-top:12px">${moneyInput({ id: 'income-override', bind: 'budget', field: 'incomeOverride', value: state.budget.incomeOverride, label: 'Manual override (leave blank to use paycheck)', kind: 'moneyOpt', placeholder: 'Use paycheck', srLabel: false })}</div>
+  </div>`;
+
+  const split = splitSummary();
+  const bucketRow = (bk, list) => {
+    const planned = sum(list, c => c.planned);
+    let note = '';
+    if (bk) {
+      const cap = bk.monthly;
+      note = cap > 0 ? (planned > cap * 1.02 + 0.5 ? `<span class="tone-warn-text">${fmt(planned)} planned, ${fmt(planned - cap)} more than this bucket gets</span>`
+        : `${fmt(planned)} planned of ${fmt(cap)} a month${cap - planned > 0.5 ? ` · ${fmt(cap - planned)} free` : ''}`) : `${fmt(planned)} planned · bucket is empty`;
+    } else note = `${fmt(planned)} planned`;
+    return `<tr class="bucket-row"><th colspan="${last ? 8 : 7}" scope="colgroup"><div class="bucket-inner"><span class="bucket-name">${bk ? esc(bk.name) : 'Not in a bucket'}</span> <span class="small muted">${note}</span>
+      ${bk ? `<button type="button" class="linklike small no-print" data-action="add-category" data-bucket="${bk.id}">+ Add category</button>` : ''}</div></th></tr>`;
+  };
+  const bucketOpts = c => `<option value="" ${c.bucketId ? '' : 'selected'}>None</option>` + split.rows.map(b => `<option value="${b.id}" ${c.bucketId === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('');
+  const catRow = c => {
+    const carry = c.carryIn || 0, left = c.planned + carry - c.actual;
+    return `<tr>
+      <td><label class="sr-only" for="cat-name-${c.id}">Category name</label><input id="cat-name-${c.id}" class="input input-sm" value="${esc(c.name)}" maxlength="40" data-bind="cat" data-id="${c.id}" data-field="name" data-kind="text" aria-describedby="cat-name-${c.id}-err"><span class="field-error" id="cat-name-${c.id}-err"></span></td>
+      <td><label class="sr-only" for="cat-type-${c.id}">Type for ${esc(c.name)}</label><select id="cat-type-${c.id}" class="select input-sm" style="min-width:96px" data-bind="cat" data-id="${c.id}" data-field="type" data-kind="select">${CAT_TYPES.map(([v, l]) => `<option value="${v}" ${c.type === v ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
+      <td>${moneyInput({ id: `cat-planned-${c.id}`, bind: 'cat', dataId: c.id, field: 'planned', value: c.planned, label: `Planned for ${c.name}` })}</td>
+      <td class="num" style="text-align:left"><button type="button" class="linklike cat-actual" data-action="cat-expenses" data-id="${c.id}" aria-label="${esc(fmt(c.actual))} spent on ${esc(c.name)}. Show these expenses">${fmt(c.actual)}</button></td>
+      <td class="num ${left < 0 ? 'tone-danger-text' : ''}">${left < 0 ? `Over ${fmt(-left)}` : fmt(left)}${carry > 0.004 ? `<br><span class="small tone-success-text">+${fmt(carry)} carried</span>` : ''}</td>${lastMonthCell(c, last)}
+      <td><label class="sr-only" for="cat-bucket-${c.id}">Paycheck bucket for ${esc(c.name)}</label><select id="cat-bucket-${c.id}" class="select input-sm" style="min-width:110px" data-bind="cat" data-id="${c.id}" data-field="bucketId" data-kind="select">${bucketOpts(c)}</select></td>
+      <td class="actions no-print"><button type="button" class="icon-btn carry-btn ${c.carry ? 'on' : ''}" data-action="toggle-carry" data-id="${c.id}" aria-pressed="${c.carry ? 'true' : 'false'}" title="${c.carry ? 'Unspent money carries to next month' : 'Carry unspent money to next month'}" aria-label="Carry unspent ${esc(c.name)} money to next month">↻</button><button type="button" class="icon-btn danger" data-action="delete-category" data-id="${c.id}" aria-label="Delete ${esc(c.name)}">${ICON.trash}</button></td>
+    </tr>`;
+  };
+  // Bento × Zine plan: hero with the allocation bar, slider rows, planned vs actual, carry over
+  const month = FULL_MONTHS[todayDate().getMonth()];
+  const shade = i => `color-mix(in srgb, var(--primary) ${[100, 62, 38, 80, 50, 90, 70, 28][i % 8]}%, ${i % 8 === 3 || i % 8 === 5 ? '#fff' : '#000'})`;
+  const planCats = cats.filter(c => c.planned > 0);
+  const barTotal = Math.max(b.income, b.planned, 1);
+  const leftNow = b.remaining;
+  const budgetHero = `<div class="card budget-hero" id="budget-hero">
+    <div class="bh-left">
+      <span class="hero-chip">${leftNow < 0 ? `Overspent in ${month}` : `Left to spend in ${month}`}</span>
+      <p class="big-num bh-amount">${fmt(Math.abs(leftNow))}</p>
+      <p class="small muted">Income ${fmt(b.income)} − spent ${fmt(b.actual)}${b.saved > 0 ? ` − saved ${fmt(b.saved)}` : ''}</p>
+    </div>
+    <div class="bh-right">
+      <div class="bh-top small"><span class="muted">Income ${fmt(b.income)}</span><span class="${b.unplanned >= 0 ? 'bh-free' : 'bh-over'}">${b.unplanned >= 0 ? `${fmt(b.unplanned)} not planned yet` : `${fmt(-b.unplanned)} more than your income`}</span></div>
+      <div class="alloc-bar" role="img" aria-label="How your income is planned across categories">${planCats.map((c, i) => `<span class="seg" title="${esc(c.name)} ${esc(fmt(c.planned))}" style="width:${(c.planned / barTotal * 100).toFixed(2)}%;background:${shade(i)}"></span>`).join('')}</div>
+      <div class="alloc-legend small">${planCats.map((c, i) => `<span><i style="background:${shade(i)}"></i>${esc(c.name)}</span>`).join('')}</div>
+    </div>
+  </div>`;
+  const niceStep = mx => { const r = mx / 120, p = Math.pow(10, Math.floor(Math.log10(Math.max(1, r)))); return [1, 2, 5, 10].map(k => k * p).find(k => k >= r) || p; };
+  const slideRow = c => {
+    const carry = c.carryIn || 0, lim = c.planned + carry, ratio = lim > 0 ? c.actual / lim : (c.actual > 0 ? 2 : 0);
+    const over = c.actual > lim + 0.004, close = !over && lim > 0 && ratio >= 0.75;
+    const top = Math.max(b.income, c.planned, c.actual, 1000), step = niceStep(top), mx = Math.ceil(top / step) * step;   // fixed scale (your income), so the thumb doesn't jump back to the middle after each drag
+    const note = over ? `Over by ${fmt(c.actual - lim)}` : lim > 0 && ratio >= 1 ? (c.type === 'savings' ? 'Saved in full' : 'Limit reached') : close ? 'Close to limit' : c.actual === 0 ? 'Nothing yet' : `${fmt(lim - c.actual)} left`;
+    return `<div class="card slide-row${over || close ? ' is-hot' : ''}" data-cat-id="${c.id}" data-vt-target="cat-${c.id}">
+      <div class="sr-head"><button type="button" class="linklike sr-name" data-action="cat-expenses" data-id="${c.id}">${esc(c.name)}</button><span class="small sr-note">${note}${carry > 0.004 ? ` · +${fmt(carry)} carried` : ''}</span></div>
+      <input id="cat-range-${c.id}" class="cat-range" type="range" min="0" max="${mx}" step="${step}" value="${c.planned}" data-slide="cat" data-id="${c.id}" aria-label="${esc(c.name)} limit" aria-valuetext="${esc(fmt(c.planned))}">
+      <p class="big-num sr-limit" data-limit-for="${c.id}">${fmt(c.planned)}</p>
+      <div class="sr-foot"><div class="progress${over ? ' over' : ''}" aria-hidden="true"><span style="width:${clamp(ratio * 100, 0, 100)}%"></span></div><span class="small muted">${fmt(c.actual)} spent</span></div>
+    </div>`;
+  };
+  const sliders = `<section class="slide-list" id="cat-card" aria-label="Category limits">${cats.length ? cats.map(slideRow).join('') : '<p class="muted">No categories. Add one to start planning.</p>'}
+    <div class="no-print slide-actions"><button type="button" class="btn btn-sm" data-action="add-category">${ICON.plus}<span>Add category</span></button></div></section>`;
+  // Fixed order (by what's been spent) and a fixed scale (income), so dragging a slider only moves that one bar
+  const pvaCats = cats.filter(c => c.planned > 0 || c.actual > 0).sort((x, y) => y.actual - x.actual || x.name.localeCompare(y.name)).slice(0, 6);
+  const pvaMax = Math.max(1, b.income * 0.35, ...pvaCats.map(c => Math.max(c.planned, c.actual)));   // a steady scale: only moves if one category passes 35% of income
+  const pvaCard = pvaCats.length ? `<div class="card pva-card"><h2 class="tile-h">Planned vs actual</h2>
+    <p class="pva-key small muted"><span><i class="k-plan"></i>Planned</span><span><i class="k-act"></i>Spent</span></p>
+    <div class="pva" role="img" aria-label="Planned and spent for your biggest categories">${pvaCats.map((c, i) => `<span class="pva-col" style="--d:${i}"><i class="p" style="height:${Math.max(2, c.planned / pvaMax * 100)}%"></i><i class="a" style="height:${Math.max(1, c.actual / pvaMax * 100)}%"></i></span>`).join('')}</div>
+    <div class="pva-names small muted">${pvaCats.map(c => `<span>${esc(c.name)}</span>`).join('')}</div></div>` : '';
+  const carryPick = cats.filter(c => c.type !== 'savings').map(c => ({ c, left: c.planned + (c.carryIn || 0) - c.actual })).filter(x => x.left > 0.5).sort((x, y) => y.left - x.left)[0];
+  const carryCard = carryPick ? `<div class="card bento-tile tile-green carry-tile">
+    <span class="tile-label">Carry over</span>
+    <span class="carry-amt">${fmt(carryPick.left)} from ${esc(carryPick.c.name)}</span>
+    <span class="small">${carryPick.c.carry ? 'It rolls into next month when this one closes.' : 'Roll what you don’t spend into next month.'}</span>
+    <button type="button" class="btn btn-sm btn-ink" data-action="toggle-carry" data-id="${carryPick.c.id}" aria-pressed="${carryPick.c.carry ? 'true' : 'false'}">${carryPick.c.carry ? 'Stop carrying' : 'Carry it over'}</button>
+  </div>` : '';
+  const al = dailyAllowance();
+  const sideStats = `<div class="card stat"><p class="stat-label">Daily allowance</p><p class="stat-value">${fmt(al.over ? 0 : al.perDay)}</p><p class="stat-sub">${al.over ? 'You’ve overspent this month' : al.byPayday ? `a day until your next allowance (${plural(al.daysLeft, 'day')})` : `a day for the ${plural(al.daysLeft, 'day')} left this month`}</p></div>${incomeCard}`;
+  const planTop = budgetHero + `<div class="budget-split">${sliders}<aside class="budget-aside">${pvaCard}${carryCard}${sideStats}</aside></div>`;
+
+  const groups = split.rows.map(bk => ({ bk, list: cats.filter(c => c.bucketId === bk.id) }));
+  const loose = cats.filter(c => !split.rows.some(bk => bk.id === c.bucketId));
+  const catRows = groups.filter(g => g.list.length || g.bk.monthly > 0).map(g => bucketRow(g.bk, g.list) + g.list.map(catRow).join('')).join('')
+    + (loose.length ? bucketRow(null, loose) + loose.map(catRow).join('') : '');
+  const catCard = `<div class="card mb" id="cat-edit">
+    <div class="card-head"><div><h2>Edit categories</h2><p class="muted small">Rename, change type or bucket, carry over (↻) or delete. Grouped by the paycheck bucket they come out of.</p></div>
+      <div class="actions no-print"><button type="button" class="btn btn-sm" data-action="add-category">${ICON.plus}<span>Add category</span></button>
+      ${moreMenu([mi('Close month early (if your month ends on payday)', 'new-month'), csvItem('budget', 'budget')])}</div></div>
+    ${cats.length ? `<details class="collapsible" data-open-key="cat-table" ${openAttr('cat-table')}><summary>All ${cats.length} categories</summary><div class="details-body"><div class="table-wrap"><table class="cat-table"><thead><tr><th scope="col">Category</th><th scope="col">Type</th><th scope="col">Planned</th><th scope="col">Spent</th><th class="num" scope="col">Left</th>${last ? '<th class="num" scope="col">Last month</th>' : ''}<th scope="col">Bucket</th><th class="no-print"><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>${catRows}</tbody><tfoot><tr><td>Total</td><td></td><td class="num" style="text-align:left">${fmt(b.planned)}</td><td class="num" style="text-align:left">${fmt(b.actual)}</td><td class="num ${b.planned - b.actual < 0 ? 'tone-danger-text' : ''}">${fmt(b.planned - b.actual)}</td>${last ? `<td class="num">${fmt(sum(last.cats, k => k.actual))}</td>` : ''}<td></td><td></td></tr></tfoot></table></div></div></details>`
+      : '<p class="muted">No categories. Add one to start planning.</p>'}
+  </div>`;
+
+  // 50/30/20
+  const useActual = b.actual + b.saved > 0;
+  const ruleRow = (type, label, rec) => {
+    // savings uses the same definition as Home and Goals: goal deposits plus savings categories
+    const val = type === 'savings' && useActual && typeof savingsByMonth === 'function' ? savingsByMonth(todayISO().slice(0, 7)) : useActual ? b.byType[type].actual : b.byType[type].planned;
+    const pct = b.income > 0 ? val / b.income * 100 : 0;
+    const diff = pct - rec;
+    let tone = 'tone-success-text', note = 'On track';
+    if (b.income > 0) {
+      if (type === 'savings') { if (diff < -2) { tone = 'tone-warn-text'; note = `${Math.round(-diff)} pts below`; } }
+      else if (diff > 2) { tone = type === 'needs' && diff > 15 ? 'tone-danger-text' : 'tone-warn-text'; note = `${Math.round(diff)} pts above`; }
+    } else { tone = 'muted'; note = 'Add income'; }
+    return `<div class="rule-row">
+      <div class="rule-top"><strong>${label} <span class="muted" style="font-weight:500">· recommended ${rec}% = ${fmt(b.income * rec / 100)}</span></strong><span class="${tone}" style="font-weight:600">${fmt(val)} · ${fmtPct(pct)} · ${note}</span></div>
+      <div class="rule-bar" aria-hidden="true"><span style="width:${clamp(pct, 0, 100)}%"></span><i style="left:${rec}%"></i></div>
+      <p class="small muted">Planned ${fmt(b.byType[type].planned)} · Actual ${fmt(b.byType[type].actual)}</p>
+    </div>`;
+  };
+  const ruleCard = `<div class="card">
+    <div class="card-head"><div><h2>50 / 30 / 20 check</h2><p class="muted small">Needs 50% · Wants 30% · Savings 20% of income. Bars show your ${useActual ? 'actual' : 'planned'} split; the dark tick is the guideline.</p></div></div>
+    ${ruleRow('needs', 'Needs', 50)}${ruleRow('wants', 'Wants', 30)}${ruleRow('savings', 'Savings', 20)}
+  </div>`;
+
+  const sp = spendingSource();
+  const hasBar = cats.some(c => c.planned > 0 || c.actual > 0);
+
+  const catName = id => { const c = cats.find(x => x.id === id); return c ? c.name : 'Deleted category'; };
+  const ym = todayISO().slice(0, 7);
+  const ef = ui.expFilter || emptyExpFilter(), filtering = expFilterActive(ef);
+  const allExps = filtering ? filterExpenses(ef) : state.budget.expenses.filter(x => x.date.slice(0, 7) === ym).sort((a, b2) => b2.date.localeCompare(a.date) || b2.id.localeCompare(a.id));
+  const exps = allExps.slice(0, 300);
+  const olderCount = filtering ? 0 : state.budget.expenses.length - allExps.length;
+  const ru = state.settings.roundUp, ruGoal = false ? state.goals.find(g => g.id === ru.goalId) : null;
+  const jarMonth = sum(state.goals.flatMap(g => g.contributions.filter(c => c.roundup && c.date.slice(0, 7) === ym)), c => c.amount);
+  const jarLine = ruGoal ? `🫙 Round-up jar: ${fmt(jarMonth)} saved this month → ${esc(ruGoal.name)}` : '';
+  const expCard = `<div class="card mb" id="exp-log">
+    <div class="card-head"><div><h2>Expense log</h2><p class="muted small">${filtering ? `${plural(allExps.length, 'match', 'matches')} · ${fmt(sum(allExps, x => x.amount))} in total${allExps.length > exps.length ? `. Showing the newest ${exps.length}` : ''}` : `This month${olderCount ? `. Search to find the ${olderCount} older ones` : ''}`}.</p><p class="small" style="margin-top:4px">${jarLine}</p></div>
+      <div class="actions no-print">${moreMenu([mi('Add an expense', 'add-expense'), mi('Split an expense', 'split-expense'), mi('Scan a receipt', 'scan-receipt'), mi('Paste a bank message', 'import-sms'), mi('Import a bank statement', 'import-statement'), csvItem('expenses', 'expenses')])}</div></div>
+    ${expFilterBar(ef, cats)}
+    ${exps.length ? `<div class="table-wrap"><table class="exp-table"><thead><tr><th scope="col">Date</th><th scope="col" class="exp-cat-col">Category</th><th scope="col">Note</th><th class="num" scope="col">Amount</th><th class="no-print"><span class="sr-only">Actions</span></th></tr></thead><tbody>
+      ${exps.map(x => `<tr><td class="exp-date">${x.date.slice(0, 4) === ym.slice(0, 4) ? fmtDate(F.parseDate(x.date)).replace(/,? \d{4}$/, '') : fmtDate(F.parseDate(x.date))}</td><td class="exp-cat-col">${esc(catName(x.categoryId))}</td><td><span class="exp-cat-m small muted">${esc(catName(x.categoryId))}<br></span>${esc(x.note) || '<span class="muted">-</span>'}${x.splitId ? ' <span class="badge badge-neutral">split</span>' : ''}${x.photo ? ` <button type="button" class="linklike small" data-action="show-photo" data-id="${x.id}">Receipt photo</button>` : ''}${x.roundup ? `<br><span class="small muted">🫙 +${fmt(x.roundup.amount)} rounded up</span>` : ''}</td><td class="num">${fmt(x.amount)}<span class="exp-feel"><br>${feelsLike(x.amount)}</span></td>
+      <td class="actions no-print"><button type="button" class="icon-btn" data-action="edit-expense" data-id="${x.id}" aria-label="Edit expense of ${esc(fmt(x.amount))}">${ICON.edit}</button><button type="button" class="icon-btn danger" data-action="delete-expense" data-id="${x.id}" aria-label="Delete expense of ${esc(fmt(x.amount))}">${ICON.trash}</button></td></tr>`).join('')}
+      </tbody></table></div>` : (filtering ? '<p class="muted">Nothing matches. Try fewer filters.</p>' : '<p class="muted">No expenses this month yet. Use + Quick Add → Add Expense, or press Ctrl+K and type “250 food”.</p>')}
+  </div>`;
+
+  const html = head + intro + tabbed('budget', {
+    plan: planTop + incomeLogCard() + catCard + `<div class="grid-2">${ruleCard}${splitCard()}</div>`,
+    where: whereCard() + `<div class="grid-2">${chartCard('Spending by category', sp.useActual ? 'Actual this month' : (sp.list.length ? 'Planned (no actual spending yet)' : ''), 'budget-doughnut', sp.list.length > 0, 'Add planned or actual amounts to see this chart.', '', true)}${chartCard('Planned vs actual', 'By category', 'budget-bar', hasBar, 'Add amounts to compare planned and actual.')}</div>`,
+    yearly: yearlyCard(),
+    history: whereCard() + historyCard() +
+      `<div class="grid-2">${chartCard('Spending by category', sp.useActual ? 'Actual this month' : (sp.list.length ? 'Planned (no actual spending yet)' : ''), 'budget-doughnut-hist', sp.list.length > 0, 'Add planned or actual amounts to see this chart.', '', true)}${chartCard('Planned vs actual', 'By category', 'budget-bar-hist', hasBar, 'Add amounts to compare planned and actual.')}</div>` +
+      `<div class="mb">${heatmapCard()}</div>`
+  });
+  return {
+    html,
+    charts() {
+      if (sp.list.length) {
+        spendChart('budget-doughnut');
+        spendChart('budget-doughnut-hist');
+      }
+      historyChart();
+      if (hasBar) {
+        makeChart('budget-bar', {
+          type: 'bar',
+          data: { labels: cats.map(c => c.name), datasets: [
+            { label: 'Planned', data: cats.map(c => c.planned), backgroundColor: colorAt(1), borderRadius: 6, maxBarThickness: 28 },
+            { label: 'Actual', data: cats.map(c => c.actual), backgroundColor: colorAt(0), borderRadius: 6, maxBarThickness: 28 }
+          ] },
+          options: { interaction: { mode: 'index', intersect: false }, plugins: { tooltip: { callbacks: { label: moneyTooltip } } }, scales: { y: moneyAxis(), x: Object.assign({}, xAxis, { ticks: { autoSkip: false, maxRotation: 45 } }) } }
+        });
+      }
+      if (document.getElementById('split-chart')) splitChart();
+    }
+  };
+}
+
+/** “Tomorrow”, “Sat 17 Oct” for a date in the next few weeks. */
+function dayLabelFuture(d, t) {
+  const diff = Math.round((d - t) / 864e5);
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  return `${DOW_SHORT[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+
+/* =========================================================
+   VIEW: SPEND
+   ========================================================= */
+function renderSpend() {
+  const t = todayDate();
+  const b = budgetTotals();
+  const cats = state.budget.categories;
+  const sp = spendingSource();
+  const ym = todayISO().slice(0, 7);
+  const ef = ui.expFilter || emptyExpFilter(), filtering = expFilterActive(ef);
+  const allExps = filtering ? filterExpenses(ef) : state.budget.expenses.filter(x => x.date.slice(0, 7) === ym).sort((a, b2) => b2.date.localeCompare(a.date) || b2.id.localeCompare(a.id));
+  const exps = allExps.slice(0, 300);
+  const olderCount = filtering ? 0 : state.budget.expenses.length - allExps.length;
+  const ru = state.settings.roundUp, ruGoal = false ? state.goals.find(g => g.id === ru.goalId) : null;
+  const jarMonth = sum(state.goals.flatMap(g => g.contributions.filter(c => c.roundup && c.date.slice(0, 7) === ym)), c => c.amount);
+  const jarLine = ruGoal ? `🫙 Round-up jar: ${fmt(jarMonth)} saved this month → ${esc(ruGoal.name)}` : '';
+  const catName = id => { const c = cats.find(x => x.id === id); return c ? c.name : 'Deleted category'; };
+
+  const head = viewHeader('spend', 'Spend', `${FULL_MONTHS[t.getMonth()]} ${t.getFullYear()}`, '');   // the add bar and the top + Add button already add spends
+
+  const catBreakdown = `<div class="grid-2">
+    ${chartCard('Spending by category', sp.useActual ? 'Actual this month' : (sp.list.length ? 'Planned' : ''), 'spend-doughnut', sp.list.length > 0, 'Log expenses to see this chart.', '', true)}
+    <div class="card">
+      <div class="card-head"><div><h2>Categories</h2><p class="muted small">Breakdown of this month’s spend.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th scope="col">Category</th><th class="num" scope="col">Spent</th><th class="num" scope="col">Budget</th></tr></thead>
+      <tbody>${cats.map(c => `<tr><td><strong>${esc(c.name)}</strong></td><td class="num font-bold">${fmt(c.actual)}</td><td class="num muted">${fmt(c.planned)}</td></tr>`).join('')}</tbody></table></div>
+    </div>
+  </div>`;
+
+  // Bento × Zine log: add bar, category chips, spends grouped by day, month tile, insight, coming up
+  const tISO = todayISO(), yISO = F.toISO(F.addDays(t, -1));
+  const catOf = id => cats.find(x => x.id === id);
+  const dayLabel = iso => {
+    if (iso === tISO) return 'Today';
+    if (iso === yISO) return 'Yesterday';
+    const d = F.parseDate(iso), diff = Math.round((t - d) / 864e5);
+    if (diff > 0 && diff < 7) return FULL_DAYS[d.getDay()];
+    return iso.slice(0, 4) === ym.slice(0, 4) ? fmtDate(d).replace(/,? \d{4}$/, '') : fmtDate(d);
+  };
+  const monthExps = state.budget.expenses.filter(x => x.date.slice(0, 7) === ym);
+  const counts = {};
+  monthExps.forEach(x => { counts[x.categoryId] = (counts[x.categoryId] || 0) + 1; });
+  const chipCats = cats.filter(c => counts[c.id]).sort((x, y) => counts[y.id] - counts[x.id]).slice(0, 6);
+  if (ef.cat && !chipCats.some(c => c.id === ef.cat) && catOf(ef.cat)) chipCats.push(catOf(ef.cat));
+  const chips = `<div class="chip-row sp-chips no-print" role="group" aria-label="Show one category">${[{ id: '', name: 'All' }].concat(chipCats).map(c => `<button type="button" class="chip${ef.cat === c.id ? ' on' : ''}" data-action="exp-chip" data-cat="${c.id}" aria-pressed="${ef.cat === c.id}">${esc(c.name)}</button>`).join('')}</div>`;
+  const groupsByDay = [];
+  exps.forEach(x => { const last = groupsByDay[groupsByDay.length - 1]; if (last && last.iso === x.date) last.list.push(x); else groupsByDay.push({ iso: x.date, list: [x] }); });
+  let rowN = 0;
+  const spendRow = x => {
+    const c = catOf(x.categoryId), name = c ? c.name : 'Deleted category';
+    const meta = [esc(name), x.splitId ? 'split' : '', x.roundup ? `+${fmt(x.roundup.amount)} rounded up` : ''].filter(Boolean).join(' · ');
+    return `<div class="spend-row" data-exp-id="${x.id}" style="--d:${Math.min(rowN++, 12)}">
+      <span class="sp-ico${c && c.type === 'wants' ? ' hot' : ''}" aria-hidden="true">${esc((name.match(/[A-Za-z0-9]/) || ['•'])[0].toUpperCase())}</span>
+      <div class="sp-main"><p class="sp-name">${esc(x.note) || esc(name)}</p><p class="small muted">${meta}${x.photo ? ` · <button type="button" class="linklike small" data-action="show-photo" data-id="${x.id}">Receipt photo</button>` : ''}</p></div>
+      <span class="sp-right"><span class="sp-amt">${fmt(x.amount)}</span>
+      <span class="sp-act no-print"><button type="button" class="icon-btn" data-action="edit-expense" data-id="${x.id}" aria-label="Edit expense of ${esc(fmt(x.amount))}">${ICON.edit}</button><button type="button" class="icon-btn danger" data-action="delete-expense" data-id="${x.id}" aria-label="Delete expense of ${esc(fmt(x.amount))}">${ICON.trash}</button></span></span>
+    </div>`;
+  };
+  const dayList = exps.length ? groupsByDay.map(g => `<div class="day-group"><p class="day-head"><strong>${dayLabel(g.iso)}</strong><span>${fmt(sum(g.list, x => x.amount))}</span></p>${g.list.map(spendRow).join('')}</div>`).join('')
+    : `<p class="muted">${filtering ? 'Nothing matches. Try fewer filters.' : 'No spends logged yet this month. Type one above, like “120 chai”.'}</p>`;
+  const logMain = `<section class="slide-list" id="exp-log" aria-label="Expense log">
+    ${commandBarHTML({ spend: true })}
+    <div class="sp-controls">
+      ${expFilterBar(ef, cats, moreMenu([mi('Split an expense', 'split-expense'), mi('Scan a receipt', 'scan-receipt'), mi('Paste a bank message', 'import-sms'), csvItem('expenses', 'expenses')]))}
+      <div class="sp-chips-wrap"><button type="button" class="sp-arrow prev" data-chip-scroll="-1" aria-label="Scroll categories left" tabindex="-1">‹</button>${chips}<button type="button" class="sp-arrow next" data-chip-scroll="1" aria-label="Scroll categories right" tabindex="-1">›</button></div>
+    </div>
+    <p class="sp-summary small"><span>${filtering ? `${plural(allExps.length, 'match', 'matches')} · <strong>${fmt(sum(allExps, x => x.amount))}</strong>${allExps.length > exps.length ? ` · newest ${exps.length} shown` : ''}${ef.q || ef.cat ? ' · <button type="button" class="linklike small" data-action="exp-clear">Clear</button>' : ''}` : `This month · ${plural(monthExps.length, 'spend')} · <strong>${fmt(sum(monthExps, x => x.amount))}</strong>`}</span>${!filtering && olderCount ? `<span class="muted">${olderCount} older: search to find them</span>` : ''}</p>${jarLine ? `<p class="small muted">${jarLine}</p>` : ''}
+    ${dayList}
+  </section>`;
+  const monthTotal = sum(monthExps, x => x.amount);
+  const topSpend = cats.filter(c => c.actual > 0).sort((x, y) => y.actual - x.actual).slice(0, 6);
+  const topSum = sum(topSpend, c => c.actual) || 1;
+  const monthTile = `<div class="card bento-tile tile-green month-tile">
+    <span class="tile-label">${FULL_MONTHS[t.getMonth()]} so far</span>
+    <span class="big-num">${fmt(monthTotal)}</span>
+    ${topSpend.length ? `<span class="mt-stack" role="img" aria-label="Biggest categories this month">${topSpend.map((c, i) => `<i style="width:${(c.actual / topSum * 100).toFixed(2)}%;background:color-mix(in srgb, #0A0A0A ${[100, 70, 50, 35, 22, 12][i]}%, var(--primary))"></i>`).join('')}</span>
+    <span class="small mt-names">${topSpend.map(c => esc(c.name)).join(', ')}</span>` : ''}
+  </div>`;
+  // Weekend vs weekday, last 28 days of everyday spends (no rent-style repeats, no savings or loan payments)
+  const from28 = F.toISO(F.addDays(t, -27));
+  const everyday = state.budget.expenses.filter(x => x.date >= from28 && x.date <= tISO && !x.recurringId && (() => { const c = catOf(x.categoryId); return !c || (c.type !== 'savings' && !/loan|debt|emi/i.test(c.name)); })());
+  let insight = '';
+  if (everyday.length >= 5) {
+    const isWknd = iso => { const d = F.parseDate(iso).getDay(); return d === 0 || d === 6; };
+    let wkndDays = 0; for (let i = 0; i < 28; i++) if (isWknd(F.toISO(F.addDays(t, -i)))) wkndDays++;
+    const wk = everyday.filter(x => isWknd(x.date)), wd = everyday.filter(x => !isWknd(x.date));
+    const aWk = sum(wk, x => x.amount) / wkndDays, aWd = sum(wd, x => x.amount) / (28 - wkndDays);
+    const side = aWk >= aWd ? wk : wd, r = aWk >= aWd ? aWk / Math.max(aWd, 1) : aWd / Math.max(aWk, 1);
+    const byCat = {}; side.forEach(x => { byCat[x.categoryId] = (byCat[x.categoryId] || 0) + x.amount; });
+    const topC = Object.keys(byCat).sort((x, y) => byCat[y] - byCat[x]).slice(0, 2).map(id => (catOf(id) || { name: 'Deleted category' }).name);
+    const line = r < 1.2 ? 'Your weekdays and weekends cost <mark class="hl"><span>about the same</span></mark> per day.'
+      : `You spend <mark class="hl"><span>${r >= 10 ? Math.round(r) : r.toFixed(1)}× more</span></mark> a day on ${aWk >= aWd ? 'weekends than on weekdays' : 'weekdays than on weekends'}.`;
+    insight = `<div class="card insight-card"><p class="ins-tag">Insight</p><p class="ins-line">${line}</p><p class="small muted">Last 4 weeks of everyday spends. ${topC.length && r >= 1.2 ? `Most of it is ${topC.map(esc).join(' and ')}.` : ''}</p></div>`;
+  }
+  const soon = (state.recurring || []).filter(r => r.active).map(r => ({ r, d: recurringNext(r) })).filter(x => x.d && (x.d - t) / 864e5 <= 30).sort((x, y) => x.d - y.d).slice(0, 4);
+  const comingUp = soon.length ? `<div class="card coming-card"><h2 class="tile-h">Coming up</h2>${soon.map(x => `<div class="cu-row"><div><p class="sp-name">${esc(x.r.name)}</p><p class="small muted">${dayLabelFuture(x.d, t)}</p></div><span class="sp-amt">${fmt(x.r.amount)}</span></div>`).join('')}
+    <a class="small" href="#spend/recurring">All repeating spends</a></div>` : '';
+  const stsSp = monthlyIncome() > 0 ? studentSafeToSpend() : null;
+  const exactCard = stsSp ? `<div class="card exact-card"><div class="exact-grid">
+      <div><p class="stat-label">Left to spend today</p><p class="exact-val">${fmtExact(stsSp.leftToday)}</p></div>
+      <div><p class="stat-label">${stsSp.fromBank ? 'In your bank' : 'Left this period'}</p><p class="exact-val">${fmtExact(stsSp.balanceNow)}</p></div>
+      <div><p class="stat-label">Spent today</p><p class="exact-val">${fmtExact(stsSp.spentToday)}</p></div>
+      <div><p class="stat-label">Left this week</p><p class="exact-val">${fmtExact(stsSp.weekLeft)}</p></div>
+    </div></div>` : '';
+  const logTab = `<div class="budget-split">${logMain}<aside class="budget-aside">${monthTile}${exactCard}${insight}${comingUp}</aside></div>`;
+  const html = head + tabbed('spend', {
+    log: logTab,
+    categories: catBreakdown,
+    insights: ghostSpendingCard() + timeOfDayCard() + spendingHeatmapCard(),
+    recurring: recurringCard(),
+    cash: cashCard()
+  });
+
+  return {
+    html,
+    charts() {
+      if (sp.list.length) spendChart('spend-doughnut');
+      bindCommandBar();
+      bindGhostSpendingCard();
+      bindSpendingHeatmap();
+    }
+  };
+}
+
+/* ---------- Irregular income ---------- */
+function incomeForm(entry) {
+  formModal({
+    title: entry ? 'Edit income' : 'Income received', submitLabel: entry ? 'Save changes' : 'Log it', values: entry ? { amount: entry.amount, date: entry.date, note: entry.note } : { date: todayISO() },
+    fields: [
+      { name: 'amount', label: 'Amount (after tax)', kind: 'money', required: true, positive: true },
+      { name: 'date', label: 'Date', kind: 'date', required: true },
+      { name: 'note', label: 'From', kind: 'text', max: 80, placeholder: 'e.g. Client, sales, tips', wide: true }
+    ],
+    live: v => {
+      if (entry) return '';
+      const base = paycheckNet();
+      if (v && v.amount > 0 && base > 0 && Math.abs(v.amount - base) < 0.5) return `<div class="alert alert-warn" role="alert">That’s the same as your regular allowance (${fmtExact(base)}), which is already counted. Only log it if this is extra money on top.</div>`;
+      return '<div class="alert alert-info">This is added on top of your usual allowance for this month. Don’t log your regular allowance here, it’s already counted.</div>';
+    },
+    onSave: v => {
+      if (entry) { Object.assign(entry, { date: v.date, amount: v.amount, note: (v.note || '').slice(0, 80) }); commit(); toast('Income updated'); return; }
+      state.incomeLog.push({ id: uid(), date: v.date, amount: v.amount, note: v.note || '' });
+      commit(); toast(v.date.slice(0, 7) === todayISO().slice(0, 7) ? `${fmtExact(v.amount)} added to this month’s income` : `${fmtExact(v.amount)} logged`); awardXP(5, 'income', true);
+    }
+  });
+}
+function incomeLogCard() {
+  const ym = todayISO().slice(0, 7);
+  if (!state.income.irregular && !state.incomeLog.some(x => x.date.slice(0, 7) === ym)) return '';
+  const r = state.income.irregular ? irregularInfo() : null;
+  const list = state.incomeLog.slice().sort((a, b) => b.date.localeCompare(a.date)).filter((x, i) => x.date.slice(0, 7) === ym || i < 8);
+  return `<div class="card mb" id="income-log"><div class="card-head"><div><h2>Income this month</h2><p class="muted small">${fmtExact(loggedThisMonth())} logged this month, added on top of your usual ${fmtExact(baseMonthlyIncome())}. Total: ${fmtExact(baseMonthlyIncome() + loggedThisMonth())}.</p></div>
+    <div class="actions no-print"><button type="button" class="btn btn-sm" data-action="log-income">${ICON.plus}<span>Log income</span></button></div></div>
+    ${list.length ? `<ul class="cal-list">${list.map(x => `<li><span class="cal-when">${fmtDate(F.parseDate(x.date)).replace(/ \d{4}$/, '')}</span><span class="cal-what">${esc(x.note || 'Income')}${x.date.slice(0, 7) === ym ? '' : ' <span class="small muted">(earlier)</span>'}</span><span class="num tone-success-text">+${fmt(x.amount)}</span><span class="inc-act no-print"><button type="button" class="icon-btn" data-action="edit-income" data-id="${x.id}" aria-label="Edit ${esc(x.note || 'income')}">${ICON.edit}</button><button type="button" class="icon-btn danger" data-action="delete-income" data-id="${x.id}" aria-label="Delete ${esc(x.note || 'income')}">${ICON.trash}</button></span></li>`).join('')}</ul>`
+      : '<p class="muted small">Nothing logged yet. Each time money comes in, log it here.</p>'}</div>`;
+}
+
+/* ---------- Yearly bills ---------- */
+function yearlyRows() {
+  const t = todayDate();
+  const own = state.yearlyBills.map(x => {
+    const next = F.nextAnnualOccurrence(F.parseDate(x.due) || t, t);
+    const months = Math.max(1, F.monthsBetween(t, next) + (next.getDate() >= t.getDate() ? 0 : 0));
+    return { x, name: x.name, amount: x.amount, next, months, sub: false };
+  });
+  const subs = state.subscriptions.filter(x => x.cycle === 'yearly').map(x => ({ x, name: x.name, amount: x.amount, next: null, months: 12, sub: true }));
+  return own.concat(subs).sort((a, b) => (a.next ? a.next - b.next : 1) || a.name.localeCompare(b.name));
+}
+const YEARLY_CAT = /^yearly bills?$/i;
+function yearlyCard() {
+  const rows = yearlyRows(), monthly = sum(rows, r => r.amount / 12);
+  const cat = state.budget.categories.find(c => YEARLY_CAT.test(c.name));
+  const body = rows.map(r => {
+    const catchUp = !r.sub && r.months < 12 ? r.amount / r.months : 0;
+    return `<tr><td>${esc(r.name)}${r.sub ? ' <span class="badge badge-neutral">subscription</span>' : ''}</td><td class="num">${fmt(r.amount)}</td>
+      <td>${r.next ? `${fmtDate(r.next)}<br><span class="small muted">${daysLabel(F.daysBetween(todayDate(), r.next))}</span>` : '<span class="muted small">Renews yearly</span>'}</td>
+      <td class="num"><strong>${fmt(r.amount / 12)}</strong>${catchUp > r.amount / 12 + 0.5 ? `<br><span class="small tone-warn-text">${fmt(catchUp)}/mo if you haven’t started</span>` : ''}</td>
+      <td class="actions no-print">${r.sub ? '' : `<button type="button" class="icon-btn" data-action="edit-yearly" data-id="${r.x.id}" aria-label="Edit ${esc(r.name)}">${ICON.edit}</button><button type="button" class="icon-btn danger" data-action="delete-yearly" data-id="${r.x.id}" aria-label="Delete ${esc(r.name)}">${ICON.trash}</button>`}</td></tr>`;
+  }).join('');
+  const status = !rows.length ? '' : cat ? (Math.abs(cat.planned - monthly) < 0.5 ? `<p class="small tone-success-text" style="margin-top:12px">Your “${esc(cat.name)}” budget category already sets this aside.</p>`
+      : `<p class="small" style="margin-top:12px">Your “${esc(cat.name)}” category plans ${fmt(cat.planned)} a month. <button type="button" class="linklike" data-action="yearly-to-budget">Change it to ${fmt(monthly)}</button></p>`)
+    : `<p class="small" style="margin-top:12px"><button type="button" class="linklike" data-action="yearly-to-budget">Add a “Yearly bills” category with ${fmt(monthly)} a month</button> so it comes out of every paycheck.</p>`;
+  return `<div class="card mb" id="yearly-card"><div class="card-head"><div><h2>Yearly bills</h2><p class="muted small">${rows.length ? `Put aside <strong>${fmt(monthly)}</strong> a month and these are covered when they’re due.` : 'Insurance, renewals, memberships: anything you pay once a year.'}</p></div>
+    <div class="actions no-print"><button type="button" class="btn btn-sm" data-action="add-yearly">${ICON.plus}<span>Add</span></button></div></div>
+    ${rows.length ? `<div class="table-wrap"><table><thead><tr><th scope="col">Bill</th><th class="num" scope="col">Amount</th><th scope="col">Next due</th><th class="num" scope="col">Set aside a month</th><th class="no-print"><span class="sr-only">Actions</span></th></tr></thead><tbody>${body}</tbody></table></div>${status}`
+      : '<div class="chart-empty"><p>Add one and it works out how much to put aside each month, so it doesn’t land all at once. Yearly subscriptions show up here too.</p></div>'}</div>`;
+}
+function yearlyForm(bill) {
+  formModal({
+    title: bill ? 'Edit yearly bill' : 'Add a yearly bill', submitLabel: bill ? 'Save changes' : 'Add bill', values: bill || { due: F.toISO(F.addMonths(todayDate(), 6)) },
+    fields: [
+      { name: 'name', label: 'What is it?', kind: 'text', required: true, max: 60, placeholder: 'e.g. Car insurance, domain renewal', wide: true },
+      { name: 'amount', label: 'Amount', kind: 'money', required: true, positive: true },
+      { name: 'due', label: 'Next due date', kind: 'date', required: true }
+    ],
+    live: v => v.amount > 0 ? `<div class="alert alert-info">That’s ${fmt(v.amount / 12)} a month to put aside.</div>` : '',
+    onSave: v => {
+      if (bill) Object.assign(bill, v); else state.yearlyBills.push(Object.assign({ id: uid() }, v));
+      commit(); toast(bill ? 'Bill updated' : `Added. Put aside ${fmt(v.amount / 12)} a month`);
+    }
+  });
+}
+
+/* ---------- Where did my money go? ---------- */
+function whereCard() {
+  const t = todayDate(), day = t.getDate(), ym = todayISO().slice(0, 7), pm = prevYM(ym);
+  const pdim = new Date(+pm.slice(0, 4), +pm.slice(5, 7), 0).getDate();
+  const thisTo = todayISO(), lastTo = `${pm}-${String(Math.min(day, pdim)).padStart(2, '0')}`;
+  const cats = state.budget.categories.filter(c => c.type !== 'savings');
+  const inRange = (from, to) => state.budget.expenses.filter(x => x.date >= from && x.date <= to);
+  const cur = inRange(ym + '-01', thisTo), prev = inRange(pm + '-01', lastTo);
+  const label = x => x.note.replace(/^🔁\s*/, '').trim().toLowerCase() || '(no note)';
+  const hist = state.history.find(h => h.month === pm);
+  const byExp = prev.length > 0;
+  if (!cur.length && !byExp && !hist) return '';
+  const rows = cats.map(c => {
+    const a = sum(cur.filter(x => x.categoryId === c.id), x => x.amount);
+    const hc = hist && hist.cats.find(k => k.name.toLowerCase() === c.name.toLowerCase());
+    const b = byExp ? sum(prev.filter(x => x.categoryId === c.id), x => x.amount) : (hc ? hc.actual : 0);
+    let why = '';
+    if (byExp && Math.abs(a - b) > 0.5) {
+      const d = {};
+      cur.filter(x => x.categoryId === c.id).forEach(x => { d[label(x)] = (d[label(x)] || 0) + x.amount; });
+      prev.filter(x => x.categoryId === c.id).forEach(x => { d[label(x)] = (d[label(x)] || 0) - x.amount; });
+      const top = Object.entries(d).sort((p, q) => (a > b ? q[1] - p[1] : p[1] - q[1]))[0];
+      if (top && (a > b ? top[1] > 0.5 : top[1] < -0.5)) {
+        const orig = (cur.concat(prev).find(x => label(x) === top[0]) || {}).note || top[0];
+        why = a > b ? `mostly ${esc(orig.replace(/^🔁\s*/, ''))}` : `less on ${esc(orig.replace(/^🔁\s*/, ''))}`;
+      }
+    }
+    return { c, a, b, d: a - b, why };
+  }).filter(r => Math.abs(r.d) > 0.5).sort((p, q) => Math.abs(q.d) - Math.abs(p.d));
+  const ta = sum(cats, c => sum(cur.filter(x => x.categoryId === c.id), x => x.amount));
+  const tb = byExp ? sum(cats, c => sum(prev.filter(x => x.categoryId === c.id), x => x.amount)) : (hist ? histSpent(hist) : 0);
+  const diff = ta - tb, lastName = FULL_MONTHS[+pm.slice(5) - 1];
+  const vs = byExp ? `at this point in ${lastName}` : `all of ${lastName}`;
+  const head = !tb ? `You’ve spent ${fmt(ta)} so far this month.`
+    : Math.abs(diff) < 0.5 ? `You’ve spent ${fmt(ta)} so far, the same as ${vs}.`
+    : `You’ve spent ${fmt(ta)} so far, <strong class="${diff > 0 ? 'tone-warn-text' : 'tone-success-text'}">${fmt(Math.abs(diff))} ${diff > 0 ? 'more' : 'less'}</strong> than ${vs}.`;
+  const list = rows.slice(0, 6).map(r => `<li class="where-row"><span class="where-name">${esc(r.c.name)}</span>
+      <span class="where-delta ${r.d > 0 ? 'tone-warn-text' : 'tone-success-text'}">${r.d > 0 ? '▲' : '▼'} ${fmt(Math.abs(r.d))}</span>
+      <span class="where-why small muted">${r.why || `${fmt(r.a)} vs ${fmt(r.b)}`}</span></li>`).join('');
+  return `<div class="card mb" id="where-card"><div class="card-head"><div><h2>Where did my money go?</h2><p class="muted small">This month so far, compared with ${byExp ? 'the same days last month' : 'last month'}. Savings aren’t counted.</p></div></div>
+    <p>${head}</p>${list ? `<ul class="where-list">${list}</ul>` : '<p class="muted small">Every category is about the same as last month.</p>'}</div>`;
+}
+
+/* Lists for the pick-from-a-list screens. Prices and rates were looked up on SUGGEST_CHECKED; each entry keeps its source.
+   To update: change the numbers, keep the source, bump SUGGEST_CHECKED. */
+let SUGGEST_CHECKED = '2026-09-30';
+let SUGGEST = {"US":{"cur":"USD","pc":"","subs":[{"g":"Streaming","n":"Netflix","c":"monthly","p":[["Standard with ads",8.99],["Standard",19.99],["Premium",26.99]],"s":"https://www.fox5ny.com/news/netflix-raising-prices-again-all-plans-how-much-more-youll-be-paying"},{"g":"Streaming","n":"Hulu","c":"monthly","p":[["Hulu (With Ads)",12.49],["Hulu (No Ads)",21.49]],"s":"https://www.thewrap.com/industry-news/business/disney-plus-hulu-price-increase-when-plans-september-2026/"},{"g":"Streaming","n":"Disney+","c":"monthly","p":[["Disney+ (With Ads)",12.49],["Disney+ Premium (No Ads)",21.49]],"s":"https://www.disneyplus.com/welcome/plans"},{"g":"Streaming","n":"HBO Max","c":"monthly","p":[["Basic with Ads",10.99],["Standard",18.49],["Premium",22.99]],"s":"https://help.hbomax.com/us/Answer/Detail/000002547"},{"g":"Streaming","n":"Peacock","c":"monthly","p":[["Select",8.99],["Premium",12.99],["Premium Plus",19.99]],"s":"https://www.consumeraffairs.com/news/peacock-raises-subscription-prices-heres-what-youll-pay-now-081926.html"},{"g":"Streaming","n":"Paramount+","c":"monthly","p":[["Essential",8.99],["Premium",13.99]],"s":"https://www.paramountplus.com/"},{"g":"Streaming","n":"Apple TV","c":"monthly","p":[["Apple TV",14.99]],"s":"https://macworld.com/article/3222857/apple-tv-just-got-another-price-increase.html"},{"g":"Streaming","n":"YouTube Premium","c":"monthly","p":[["Premium Lite",8.99],["Individual",15.99],["Family",26.99]],"s":"https://9to5google.com/2026/04/10/youtube-premium-us-price-hike/"},{"g":"Streaming","n":"YouTube TV","c":"monthly","p":[["Base Plan",82.99]],"s":"https://tv.youtube.com/welcome/"},{"g":"Music","n":"Spotify","c":"monthly","p":[["Premium Student",6.99],["Premium Individual",12.99],["Premium Duo",18.99],["Premium Family",21.99]],"s":"https://9to5google.com/2026/01/15/spotify-us-subscribers-price-hike-all-plans-2026/"},{"g":"Music","n":"Apple Music","c":"monthly","p":[["Student",6.99],["Individual",11.99],["Family",19.99]],"s":"https://www.macrumors.com/2026/07/17/apple-music-price-increase/"},{"g":"Music","n":"Amazon Music Unlimited","c":"monthly","p":[["Individual (Prime members)",11.99],["Individual",12.99]],"s":"https://routenote.com/blog/amazon-music-unlimited-price-increase-2026/"},{"g":"Music","n":"YouTube Music Premium","c":"monthly","p":[["Individual",11.99]],"s":"https://9to5google.com/2026/04/10/youtube-premium-us-price-hike/"},{"g":"Shopping memberships","n":"Amazon Prime","c":"monthly","p":[["Prime (monthly)",14.99]],"s":"https://aboutamazon.com/news/retail/how-to-sign-up-for-a-prime-membership"},{"g":"Shopping memberships","n":"Amazon Prime (yearly)","c":"yearly","p":[["Prime (annual)",139.0]],"s":"https://aboutamazon.com/news/retail/how-to-sign-up-for-a-prime-membership"},{"g":"Shopping memberships","n":"Costco","c":"yearly","p":[["Gold Star",65.0],["Executive",130.0]],"s":"https://www.kiplinger.com/personal-finance/shopping/costco-raises-membership-fees"},{"g":"Shopping memberships","n":"Sam's Club","c":"yearly","p":[["Club",60.0],["Plus",120.0]],"s":"https://www.samsclub.com/join"},{"g":"Shopping memberships","n":"Walmart+","c":"monthly","p":[["Walmart+ (monthly)",12.95]],"s":"https://clark.com/shopping-retail/walmart-plus/"},{"g":"Cloud storage","n":"iCloud+","c":"monthly","p":[["50 GB",0.99],["200 GB",2.99],["2 TB",9.99],["6 TB",29.99],["12 TB",59.99]],"s":"https://support.apple.com/en-us/108047"},{"g":"Cloud storage","n":"Google One","c":"monthly","p":[["Basic (100 GB)",1.99],["Premium (2 TB)",9.99],["Google AI Pro",19.99]],"s":"https://www.phonearena.com/news/googles-20-ai-plan-just-got-a-huge-storage-jump-and-the-math-is-hard-to-ignore_id179425"},{"g":"Cloud storage","n":"Dropbox","c":"monthly","p":[["Plus",11.99]],"s":"https://www.dropbox.com/plans?billing=monthly"},{"g":"Fitness","n":"Planet Fitness","c":"monthly","p":[["Classic",15.0],["PF Black Card",24.99]],"s":"https://www.planetfitness.com/memberships"},{"g":"Fitness","n":"Peloton","c":"monthly","p":[["App One",15.99],["App+",28.99],["All-Access",49.99]],"s":"https://www.retaildive.com/news/peloton-raises-membership-pricing-holidays/761567/"},{"g":"Phone plan","n":"Verizon","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"AT&T","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"T-Mobile","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Mint Mobile","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Visible","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Cricket Wireless","c":"monthly","p":[],"s":""},{"g":"News","n":"The New York Times","c":"monthly","p":[],"s":""},{"g":"News","n":"The Wall Street Journal","c":"monthly","p":[],"s":""},{"g":"Gaming","n":"Xbox Game Pass","c":"monthly","p":[["Essential",9.99],["Premium",14.99],["PC Game Pass",13.99],["Ultimate",22.99]],"s":"https://news.xbox.com/en-us/2026/04/21/xbox-game-pass-update/"},{"g":"Gaming","n":"PlayStation Plus","c":"monthly","p":[["Essential",10.99],["Extra",16.99],["Premium",19.99]],"s":"https://www.playstation.com/en-us/ps-plus/"},{"g":"Gaming","n":"Nintendo Switch Online","c":"yearly","p":[["Individual",19.99],["Family",34.99],["Expansion Pack (Individual)",49.99],["Expansion Pack (Family)",79.99]],"s":"https://en-americas-support.nintendo.com/app/answers/detail/a_id/41194"},{"g":"Apps & AI","n":"ChatGPT","c":"monthly","p":[["Go",8.0],["Plus",20.0],["Pro",200.0]],"s":"https://daringfireball.net/linked/2026/01/16/chatgpt-go"},{"g":"Apps & AI","n":"Claude","c":"monthly","p":[["Pro",20.0],["Max 5x",100.0],["Max 20x",200.0]],"s":"https://support.claude.com/en/articles/11049741-what-is-the-max-plan"},{"g":"Apps & AI","n":"Microsoft 365","c":"monthly","p":[["Personal",9.99],["Family",12.99],["Premium",19.99]],"s":"https://www.microsoft.com/en-us/microsoft-365/buy/compare-all-microsoft-365-products"},{"g":"Apps & AI","n":"Adobe Creative Cloud","c":"monthly","p":[["Photography (annual, billed monthly)",19.99],["Creative Cloud Standard (annual, billed monthly)",54.99],["Creative Cloud Pro (annual, billed monthly)",69.99]],"s":"https://www.adobe.com/creativecloud/plans.html"},{"g":"Apps & AI","n":"Duolingo","c":"monthly","p":[],"s":""}],"rates":{"card":{"t":"often around 21-22%","src":"Federal Reserve G.19","url":"https://www.federalreserve.gov/releases/g19/current/default.htm"},"car":{"t":"often around 6-7% for new cars (used cars higher)","src":"Federal Reserve G.19","url":"https://www.federalreserve.gov/releases/g19/current/default.htm"},"personal":{"t":"often around 12% at banks (online lenders can be much higher)","src":"Federal Reserve G.19","url":"https://www.federalreserve.gov/releases/g19/current/default.htm"},"mortgage":{"t":"often around 6.4-7% (15- to 30-year fixed)","src":"Freddie Mac PMMS","url":"https://www.freddiemac.com/pmms"},"student":{"t":"federal fixed 6.52% (undergrad) to 9.07% (PLUS) for 2026-27","src":"The College Investor (federal Direct Loan rates)","url":"https://thecollegeinvestor.com/80477/federal-student-loan-rates-set-to-rise-for-the-2026-27-school-year/"},"bnpl":{"t":"pay-in-4 is usually 0%; longer plans 0-36% APR","src":"Affirm disclosures","url":"https://www.affirm.com/disclosures"}},"lenders":{"card":["Chase","American Express","Capital One","Citi","Bank of America","Discover","Wells Fargo","U.S. Bank","Synchrony","Barclays"],"car":["Ally Financial","Capital One Auto Finance","Chase Auto","Wells Fargo Auto","Bank of America","Toyota Financial Services","American Honda Finance","Ford Credit","GM Financial","Santander Consumer USA","Navy Federal Credit Union","PenFed Credit Union"],"student":["MOHELA","Nelnet","Aidvantage","EdFinancial","Central Research Inc. (CRI)","Sallie Mae","SoFi","College Ave","Earnest","Citizens"],"personal":["SoFi","LightStream","Upstart","LendingClub","Best Egg","Avant","Upgrade","Prosper","OneMain Financial","Wells Fargo","Citi","Navy Federal Credit Union"],"mortgage":["Rocket Mortgage","United Wholesale Mortgage","Chase","Wells Fargo","Bank of America","U.S. Bank","loanDepot","Guild Mortgage","CrossCountry Mortgage","Fairway Independent Mortgage","PennyMac","Navy Federal Credit Union"],"bnpl":["Affirm","Klarna","Afterpay","PayPal Pay in 4","Zip","Sezzle","Shop Pay Installments","Splitit"]},"bills":{"Internet":["Xfinity","Spectrum","AT&T Fiber","Verizon Fios","T-Mobile Home Internet","Cox","Optimum","Google Fiber","Starlink"],"Phone":["Verizon","AT&T","T-Mobile","Mint Mobile","Visible","Cricket Wireless","Metro by T-Mobile","Boost Mobile","Xfinity Mobile","US Mobile"],"Power & gas":["Duke Energy","PG&E","Southern California Edison","Florida Power & Light","Georgia Power","Dominion Energy","Con Edison","Xcel Energy","Consumers Energy","National Grid"],"Insurance":["State Farm","GEICO","Progressive","Allstate","USAA","Liberty Mutual","Farmers","Nationwide","Travelers","American Family"]}},"GB":{"cur":"GBP","pc":"","subs":[{"g":"Streaming","n":"Netflix","c":"monthly","p":[["Standard with adverts",7.99],["Standard",13.99],["Premium",20.99]],"s":"https://help.netflix.com/en/node/24926/gb"},{"g":"Streaming","n":"Disney+","c":"monthly","p":[["Standard with Ads",5.99],["Standard",9.99],["Premium",14.99]],"s":"https://www.cordbusters.co.uk/disney-plus-price-increases-all-uk-tiers/"},{"g":"Streaming","n":"NOW","c":"monthly","p":[["Entertainment",7.99],["Entertainment & HBO Max",9.99],["Cinema",9.99],["Sports (month)",34.99]],"s":"https://www.nowtv.com/gb/help/article/what-is-now"},{"g":"Streaming","n":"Apple TV","c":"monthly","p":[["Apple TV",9.99]],"s":"https://www.apple.com/uk/apple-tv/"},{"g":"Streaming","n":"YouTube Premium","c":"monthly","p":[],"s":""},{"g":"Streaming","n":"Paramount+","c":"monthly","p":[["Basic with Ads",5.99],["Standard",9.99],["Premium",12.99]],"s":"https://www.cordbusters.co.uk/paramount-plus-uk-hikes-prices-all-tiers/"},{"g":"Streaming","n":"TV Licence","c":"yearly","p":[["Colour TV Licence",180.0]],"s":"https://www.itv.com/news/2026-02-06/tv-licence-fee-will-rise-to-180-a-year-in-april"},{"g":"Music","n":"Spotify","c":"monthly","p":[["Premium Individual",12.99],["Premium Student",5.99],["Premium Duo",17.99],["Premium Family",21.99]],"s":"https://www.spotify.com/uk/premium/"},{"g":"Music","n":"Apple Music","c":"monthly","p":[["Student",5.99],["Individual",11.99],["Family",19.99]],"s":"https://www.apple.com/uk/apple-music/"},{"g":"Music","n":"Amazon Music Unlimited","c":"monthly","p":[["Individual (Prime members)",11.99],["Individual (non-Prime)",12.99],["Family",21.99]],"s":"https://www.musicbusinessworldwide.com/amazon-music-raises-subscription-prices-in-the-us-and-uk/"},{"g":"Shopping memberships","n":"Amazon Prime","c":"monthly","p":[["Prime",8.99],["Prime Student / Young Adult",4.49]],"s":"https://www.aboutamazon.co.uk/news/retail/how-much-is-amazon-prime-membership-cost-benefits"},{"g":"Shopping memberships","n":"Costco","c":"yearly","p":[["Individual (inc VAT)",42.0],["Online membership",15.0]],"s":"https://www.thefinancialwilderness.com/review-is-costco-membership-worth-it/"},{"g":"Shopping memberships","n":"Tesco Clubcard Plus","c":"monthly","p":[["Clubcard Plus",7.99]],"s":"https://www.tesco.com/clubcard/clubcard-plus"},{"g":"Cloud storage","n":"iCloud+","c":"monthly","p":[["50 GB",0.99],["200 GB",2.99],["2 TB",8.99],["6 TB",26.99],["12 TB",54.99]],"s":"https://support.apple.com/en-gb/108047"},{"g":"Cloud storage","n":"Google One","c":"monthly","p":[["Basic (100 GB)",1.99],["Standard (200 GB)",2.99],["Google AI Plus (400 GB)",4.49],["Google AI Pro (5 TB)",18.99]],"s":"https://one.google.com/about/?hl=en-GB&gl=GB"},{"g":"Fitness","n":"PureGym","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"The Gym Group","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"EE","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"O2","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Vodafone","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Three","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"giffgaff","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Tesco Mobile","c":"monthly","p":[],"s":""},{"g":"News","n":"The Times","c":"monthly","p":[],"s":""},{"g":"News","n":"The Economist","c":"monthly","p":[],"s":""},{"g":"News","n":"The Guardian","c":"monthly","p":[],"s":""},{"g":"Gaming","n":"Xbox Game Pass","c":"monthly","p":[["Essential",6.99],["Premium",10.99],["Ultimate",16.99],["PC Game Pass",10.99]],"s":"https://www.nme.com/news/gaming-news/xbox-game-pass-is-getting-cheaper-3941776"},{"g":"Gaming","n":"PlayStation Plus","c":"monthly","p":[["Essential",7.99],["Extra",11.99],["Premium",14.99]],"s":"https://www.pushsquare.com/news/2026/05/ps-plus-price-increases-also-hit-extra-premium-tiers-here-are-all-the-new-prices"},{"g":"Gaming","n":"Nintendo Switch Online","c":"yearly","p":[["Individual Membership",17.99],["Family Membership",31.49],["+ Expansion Pack (Individual)",34.99],["+ Expansion Pack (Family)",59.99]],"s":"https://www.nintendo.com/en-gb/Nintendo-Switch-Online/Nintendo-Switch-Online-Overview-1183143.html"},{"g":"Apps & AI","n":"ChatGPT Plus","c":"monthly","p":[],"s":""},{"g":"Apps & AI","n":"Microsoft 365","c":"monthly","p":[["Personal",8.49],["Family",10.49],["Premium",18.99]],"s":"https://www.microsoft.com/en-gb/microsoft-365/buy/compare-all-microsoft-365-products"},{"g":"Apps & AI","n":"Duolingo","c":"monthly","p":[],"s":""}],"rates":{"card":{"t":"about 22% on average; advertised APRs often up to ~36%","src":"Bank of England (Moneyfacts for advertised APR)","url":"https://www.bankofengland.co.uk/statistics/money-and-credit/2026/august-2026"},"personal":{"t":"often around 7–13% APR; about 10% on average","src":"Bank of England","url":"https://www.bankofengland.co.uk/statistics/money-and-credit/2026/august-2026"},"mortgage":{"t":"often around 4.5–6%","src":"Bank of England (Moneyfacts for new fixes)","url":"https://www.bankofengland.co.uk/statistics/money-and-credit/2026/august-2026"},"student":{"t":"Plan 2: 4.1–6% (capped); Plan 5: 4.1% (Sep 2026–Aug 2027)","src":"GOV.UK (Department for Education)","url":"https://www.gov.uk/government/news/student-loans-interest-rates-and-repayment-threshold-announcement--7"},"bnpl":{"t":"usually 0% interest if paid on time; late fees may apply","src":"Financial Conduct Authority","url":"https://www.fca.org.uk/consumers/buy-now-pay-later"}},"lenders":{"card":["Barclaycard","American Express","HSBC","Lloyds Bank","NatWest","Santander","Capital One","MBNA","Tesco Bank","Virgin Money","Halifax","Vanquis"],"car":["Black Horse","Santander Consumer Finance","Close Brothers Motor Finance","MotoNovo Finance","Startline Motor Finance","Blue Motor Finance","Moneybarn","Oodle Car Finance","Carmoola"],"student":["Student Loans Company","Student Finance England","Student Finance Wales","Student Finance NI","Student Awards Agency Scotland (SAAS)"],"personal":["Barclays","HSBC","Lloyds Bank","NatWest","Santander","Nationwide","Halifax","Tesco Bank","M&S Bank","Novuna Personal Finance","Zopa","Admiral"],"mortgage":["Nationwide","Lloyds Bank","Halifax","NatWest","Santander","Barclays","HSBC","Coventry Building Society","Yorkshire Building Society","Virgin Money","TSB","Skipton Building Society"],"bnpl":["Klarna","Clearpay","PayPal Pay in 3","Zilch","Monzo Flex","Payl8r"]},"bills":{"Internet":["BT","Sky","Virgin Media","TalkTalk","Vodafone","EE","Plusnet","Hyperoptic","Community Fibre","NOW Broadband"],"Phone":["EE","O2","Vodafone","Three","giffgaff","Tesco Mobile","Sky Mobile","VOXI","Lebara","iD Mobile"],"Power & gas":["British Gas","Octopus Energy","E.ON Next","EDF","OVO","ScottishPower","So Energy","Outfox the Market","Utility Warehouse"],"Insurance":["Aviva","Direct Line","Admiral","LV=","Churchill","Hastings Direct","AXA","Legal & General","Vitality","Bupa"]}},"IN":{"cur":"INR","pc":"","subs":[{"g":"Streaming","n":"Netflix","c":"monthly","p":[["Mobile",149.0],["Basic",199.0],["Standard",499.0],["Premium",649.0]],"s":"https://help.netflix.com/en/node/24926/in"},{"g":"Streaming","n":"JioHotstar","c":"monthly","p":[["Mobile",79.0],["Super",149.0],["Premium",299.0]],"s":"https://www.jiostar.com/news/jiohotstar-introduces-monthly-plans-across-tiers-giving-viewers-more-choice-in-how-they-watch/"},{"g":"Streaming","n":"SonyLIV","c":"yearly","p":[["Mobile Only",699.0],["LIV Premium",1499.0]],"s":"https://help.sonyliv.com/top-articles/what-are-the-types-of-subscription-available-on-liv-how-much-does-sony-liv-cost-1"},{"g":"Streaming","n":"ZEE5","c":"yearly","p":[],"s":""},{"g":"Streaming","n":"YouTube Premium","c":"monthly","p":[["Lite",89.0],["Student",89.0],["Individual",149.0],["Two-person",219.0],["Family",299.0]],"s":"https://www.business-standard.com/technology/tech-news/youtube-premium-lite-subscription-price-features-background-play-and-downloads-in-india-details-126022500521_1.html"},{"g":"Streaming","n":"Apple TV","c":"monthly","p":[],"s":""},{"g":"Music","n":"Spotify","c":"monthly","p":[["Premium Student",69.0],["Premium Standard",139.0],["Premium Platinum",299.0]],"s":"https://www.spotify.com/in-en/premium/"},{"g":"Music","n":"JioSaavn Pro","c":"monthly","p":[],"s":""},{"g":"Music","n":"Apple Music","c":"monthly","p":[["Student",69.0],["Individual",139.0],["Family",229.0]],"s":"https://www.businesstoday.in/amp/technology/news/story/apple-one-apple-music-gets-costlier-in-india-individual-plan-now-starts-at-543864-2026-07-20"},{"g":"Shopping memberships","n":"Amazon Prime (monthly)","c":"monthly","p":[["Prime",299.0]],"s":"https://www.cashify.in/amazon-prime-subscription-plans-mobile-lite-annual-more"},{"g":"Shopping memberships","n":"Amazon Prime (yearly)","c":"yearly","p":[["Prime Shopping Edition",399.0],["Prime Lite",799.0],["Prime",1499.0]],"s":"https://www.cashify.in/amazon-prime-subscription-plans-mobile-lite-annual-more"},{"g":"Shopping memberships","n":"Flipkart Black","c":"yearly","p":[["3 months (billed every 3 months)",1996.0]],"s":"https://www.flipkart.com/pages/fk-vip-tnc"},{"g":"Shopping memberships","n":"Swiggy One","c":"yearly","p":[],"s":""},{"g":"Shopping memberships","n":"Zomato Gold","c":"yearly","p":[],"s":""},{"g":"Cloud storage","n":"iCloud+","c":"monthly","p":[["50 GB",75.0],["200 GB",219.0],["2 TB",749.0],["6 TB",2999.0],["12 TB",5900.0]],"s":"https://support.apple.com/en-in/108047"},{"g":"Cloud storage","n":"Google One","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"cult.fit (cultpass)","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Jio","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Airtel","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Vi","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"BSNL","c":"monthly","p":[],"s":""},{"g":"News","n":"Times Prime","c":"yearly","p":[],"s":""},{"g":"News","n":"The Hindu","c":"yearly","p":[],"s":""},{"g":"Gaming","n":"Xbox Game Pass","c":"monthly","p":[],"s":""},{"g":"Gaming","n":"PlayStation Plus","c":"monthly","p":[["Essential",649.0],["Extra",979.0],["Deluxe",1109.0]],"s":"https://us.smartprix.com/bytes/sony-hikes-ps-plus-prices-in-india-all-three-tiers-now-cost-more-effective-july-19-2026"},{"g":"Apps & AI","n":"ChatGPT","c":"monthly","p":[],"s":""},{"g":"Apps & AI","n":"Google AI Pro","c":"monthly","p":[["AI Pro (5 TB)",1950.0]],"s":"https://www.businesstoday.in/amp/technology/story/google-upgrades-ai-pro-plan-with-expanded-storage-and-new-features-523688-2026-04-02"},{"g":"Apps & AI","n":"Microsoft 365","c":"yearly","p":[["Personal",6899.0],["Family",8199.0],["Premium",19999.0]],"s":"https://www.microsoft.com/en-in/microsoft-365/buy/compare-all-microsoft-365-products"},{"g":"Apps & AI","n":"Apple One","c":"monthly","p":[["Individual",195.0]],"s":"https://www.businesstoday.in/amp/technology/news/story/apple-one-apple-music-gets-costlier-in-india-individual-plan-now-starts-at-543864-2026-07-20"},{"g":"Apps & AI","n":"Duolingo Super","c":"yearly","p":[],"s":""}],"rates":{"card":{"t":"often around 30–48% a year (about 2.5–4% a month)","src":"BankBazaar","url":"https://www.bankbazaar.com/credit-card/interest-rates.html"},"personal":{"t":"usually about 9–24% a year","src":"BankBazaar","url":"https://www.bankbazaar.com/personal-loan-interest-rate.html"},"mortgage":{"t":"usually about 7–13.5% a year","src":"BankBazaar","url":"https://www.bankbazaar.com/home-loan-interest-rate.html"},"car":{"t":"new-car loans usually from about 7.4–9% a year","src":"BankBazaar","url":"https://www.bankbazaar.com/car-loan-interest-rate.html"},"student":{"t":"usually about 7–16% a year","src":"BankBazaar","url":"https://www.bankbazaar.com/education-loan-interest-rate.html"}},"lenders":{"card":["HDFC Bank","SBI Card","ICICI Bank","Axis Bank","Kotak Mahindra Bank","IDFC FIRST Bank","AU Small Finance Bank","RBL Bank","American Express","IndusInd Bank","Yes Bank","OneCard"],"car":["State Bank of India","HDFC Bank","ICICI Bank","Axis Bank","Kotak Mahindra Prime","Bank of Baroda","Canara Bank","Union Bank of India","Mahindra Finance","Tata Capital"],"student":["State Bank of India","Bank of Baroda","Canara Bank","Punjab National Bank","Union Bank of India","Credila","Avanse","Axis Bank","ICICI Bank","Auxilo"],"personal":["HDFC Bank","State Bank of India","ICICI Bank","Axis Bank","Kotak Mahindra Bank","Bajaj Finance","Tata Capital","IDFC FIRST Bank","IndusInd Bank","Aditya Birla Capital","KreditBee","Navi"],"mortgage":["State Bank of India","HDFC Bank","ICICI Bank","LIC Housing Finance","Axis Bank","Bank of Baroda","Punjab National Bank","Kotak Mahindra Bank","Bajaj Housing Finance","PNB Housing Finance","Canara Bank","Tata Capital"],"bnpl":["LazyPay","Amazon Pay Later","Flipkart Pay Later","Paytm Postpaid","Snapmint"]},"bills":{"Internet":["JioFiber","Airtel Xstream Fiber","ACT Fibernet","BSNL Bharat Fibre","Hathway","Excitel","Tata Play Fiber","You Broadband"],"Phone":["Jio","Airtel","Vi","BSNL"],"Power & gas":["Tata Power","Adani Electricity","BSES Rajdhani","MSEDCL (Mahavitaran)","BESCOM","TGSPDCL","Indane","HP Gas","Bharat Gas","Mahanagar Gas"],"Insurance":["LIC","HDFC Life","ICICI Prudential Life","SBI Life","ICICI Lombard","Star Health","HDFC ERGO","Bajaj General Insurance","Tata AIG","Niva Bupa"]}},"CA":{"cur":"CAD","pc":"","subs":[{"g":"Streaming","n":"Netflix","c":"monthly","p":[["Standard with ads",7.99],["Standard",18.99],["Premium",23.99]],"s":"https://help.netflix.com/en/node/24926/ca"},{"g":"Streaming","n":"Crave","c":"monthly","p":[["Standard with Ads",11.99]],"s":"https://www.bellmedia.ca/the-lede/press/crave-standard-with-ads-plan-launches-on-prime-video-subscriptions-in-canada/"},{"g":"Streaming","n":"Disney+","c":"monthly","p":[["Standard with Ads",8.99],["Standard",15.99],["Premium",16.99]],"s":"https://www.techradar.com/news/disney-plus-bundle"},{"g":"Streaming","n":"Apple TV","c":"monthly","p":[["Apple TV",14.99]],"s":"https://www.iphoneincanada.ca/2026/08/28/apple-tv-price-hike/"},{"g":"Streaming","n":"Paramount+","c":"monthly","p":[],"s":""},{"g":"Streaming","n":"YouTube Premium","c":"monthly","p":[],"s":""},{"g":"Music","n":"Spotify","c":"monthly","p":[["Premium Individual",13.99],["Premium Duo",19.99],["Premium Family",23.99],["Premium Student",6.39]],"s":"https://www.spotify.com/ca-en/premium/"},{"g":"Music","n":"Apple Music","c":"monthly","p":[["Individual",11.99],["Family",19.99],["Student",5.99]],"s":"https://www.iphoneincanada.ca/2026/07/17/apple-music-and-apple-one-monthly-prices-just-went-up-in-canada/"},{"g":"Music","n":"Apple One","c":"monthly","p":[["Individual",22.95],["Family",30.95],["Premier",46.95]],"s":"https://www.iphoneincanada.ca/2026/07/17/apple-music-and-apple-one-monthly-prices-just-went-up-in-canada/"},{"g":"Shopping memberships","n":"Amazon Prime","c":"monthly","p":[["Prime (monthly)",9.99],["Prime for Young Adults (monthly)",4.99]],"s":"https://milesopedia.com/en/reviews/products/amazon-prime-guide/"},{"g":"Shopping memberships","n":"Amazon Prime (annual)","c":"yearly","p":[["Prime (annual)",99.0],["Prime for Young Adults (annual)",49.0]],"s":"https://milesopedia.com/en/reviews/products/amazon-prime-guide/"},{"g":"Shopping memberships","n":"Walmart+","c":"monthly","p":[["Walmart+ (monthly)",8.97]],"s":"https://retail-insider.com/retail-insider/2026/06/walmart-membership-launched-in-canada/"},{"g":"Shopping memberships","n":"Walmart+ (annual)","c":"yearly","p":[["Walmart+ (annual)",89.0]],"s":"https://retail-insider.com/retail-insider/2026/06/walmart-membership-launched-in-canada/"},{"g":"Shopping memberships","n":"Costco","c":"yearly","p":[["Gold Star",65.0],["Executive",130.0]],"s":"https://www.blogto.com/city/2024/09/costco-canada-membership-price-increase"},{"g":"Shopping memberships","n":"PC Insiders","c":"yearly","p":[],"s":""},{"g":"Cloud storage","n":"iCloud+","c":"monthly","p":[["50 GB",1.29],["200 GB",3.99],["2 TB",12.99],["6 TB",39.99],["12 TB",79.99]],"s":"https://support.apple.com/en-ca/108047"},{"g":"Cloud storage","n":"Google One","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"GoodLife Fitness","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"Planet Fitness","c":"monthly","p":[["Classic (from)",15.0],["PF Black Card (from)",29.99]],"s":"https://www.planetfitness.ca/"},{"g":"Phone plan","n":"Rogers","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Bell","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Telus","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Freedom Mobile","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Fido","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Koodo","c":"monthly","p":[],"s":""},{"g":"News","n":"The Globe and Mail","c":"monthly","p":[],"s":""},{"g":"Gaming","n":"Xbox Game Pass","c":"monthly","p":[["Essential",13.99],["Premium",17.99],["Ultimate",25.99],["PC Game Pass",16.99]],"s":"https://www.xbox.com/en-CA/games/store/xbox-game-pass-ultimate/CFQ7TTC0KHS0"},{"g":"Gaming","n":"PlayStation Plus","c":"yearly","p":[["Essential",109.99],["Extra",189.99],["Premium",224.99]],"s":"https://mobilesyrup.com/2026/05/19/playstation-plus-essential-price-increase-canada/"},{"g":"Apps & AI","n":"ChatGPT Plus","c":"monthly","p":[],"s":""},{"g":"Apps & AI","n":"Microsoft 365","c":"yearly","p":[["Personal",115.0],["Family",145.0],["Premium",270.0]],"s":"https://www.microsoft.com/en-ca/microsoft-365/buy/compare-all-microsoft-365-products"},{"g":"Apps & AI","n":"Duolingo Super","c":"yearly","p":[],"s":""}],"rates":{"card":{"t":"often around 20–24%","src":"Ratehub.ca","url":"https://www.ratehub.ca/credit-cards/low-interest"},"mortgage":{"t":"about 3.4–4.6% for a 5-year term","src":"Ratehub.ca","url":"https://www.ratehub.ca/best-mortgage-rates"},"student":{"t":"0% on federal Canada Student Loans; provincial portions vary","src":"Government of Canada (ESDC)","url":"https://www.canada.ca/en/employment-social-development/news/2023/03/government-of-canada-provides-interest-free-loans-for-students-effective-april1.html"},"bnpl":{"t":"0% for pay-in-4; up to about 32% on longer plans","src":"Affirm Canada","url":"https://www.affirm.com/en-ca"},"car":{"t":"about 5–12% with good credit (Bank of Canada average ~6.6%, Apr 2026)","src":"Loans Canada (citing Bank of Canada)","url":"https://loanscanada.ca/auto/what-is-the-average-car-loan-interest-rate-in-canada/"},"personal":{"t":"about 4.5–20% at banks (average ~8%); alternative lenders up to the 35% legal cap","src":"Finder Canada (citing Statistics Canada)","url":"https://www.finder.com/ca/personal-loans/personal-loan-interest-rates-canada"}},"lenders":{"card":["RBC Royal Bank","TD","CIBC","Scotiabank","BMO","American Express","Capital One Canada","Tangerine","PC Financial","MBNA","Desjardins","Rogers Bank"],"car":["RBC Royal Bank","TD Auto Finance","Scotiabank","BMO","CIBC","National Bank","Desjardins","Toyota Financial Services","Honda Financial Services","Ford Credit Canada"],"student":["National Student Loans Service Centre","OSAP (Ontario)","StudentAid BC","Alberta Student Aid","Aide financière aux études (Québec)","RBC Royal Bank","TD","Scotiabank","CIBC"],"personal":["RBC Royal Bank","TD","CIBC","Scotiabank","BMO","Desjardins","Fairstone","easyfinancial","Spring Financial","Mogo"],"mortgage":["RBC Royal Bank","TD","Scotiabank","BMO","CIBC","National Bank","Desjardins","First National","MCAP","Tangerine","EQ Bank","nesto"],"bnpl":["Affirm","Klarna","Afterpay","Sezzle","PayPal Pay in 4"]},"bills":{"Internet":["Rogers","Bell","Telus","Vidéotron","Cogeco","Eastlink","Freedom Home Internet","Virgin Plus","TekSavvy","Start.ca"],"Phone":["Rogers","Bell","Telus","Freedom Mobile","Fido","Koodo","Virgin Plus","Public Mobile","Chatr","Vidéotron"],"Power & gas":["Hydro One","Toronto Hydro","Alectra Utilities","BC Hydro","Hydro-Québec","Enbridge Gas","FortisBC","ENMAX","EPCOR","SaskPower"],"Insurance":["Intact Insurance","Desjardins Insurance","TD Insurance","Aviva Canada","belairdirect","The Co-operators","Definity (Economical)","Sun Life","Manulife","Canada Life"]}},"AU":{"cur":"AUD","pc":"","subs":[{"g":"Streaming","n":"Netflix","c":"monthly","p":[["Standard with ads",9.99],["Standard",20.99],["Premium",28.99]],"s":"https://www.tomsguide.com/reference/netflix-price-australia"},{"g":"Streaming","n":"Stan","c":"monthly","p":[["Basic",9.99],["Standard",17.99],["Premium",23.99]],"s":"https://www.tomsguide.com/reference/stan-price-australia"},{"g":"Streaming","n":"Binge","c":"monthly","p":[["Basic",10.0],["Standard",19.0],["Premium",22.0]],"s":"https://tomsguide.com/entertainment/streaming/binge-is-increasing-the-cost-of-its-standard-tier-just-one-year-after-its-last-price-hike"},{"g":"Streaming","n":"Kayo Sports","c":"monthly","p":[["Standard",29.99],["Premium",45.99]],"s":"https://eftm.com/2026/01/kayo-premium-jumps-to-45-99-per-month-while-kayo-standard-drops-in-price-by-1c-270507"},{"g":"Streaming","n":"Foxtel","c":"monthly","p":[],"s":""},{"g":"Streaming","n":"Disney+","c":"monthly","p":[["Standard with Ads",9.99],["Standard",17.99],["Premium",24.99]],"s":"https://tvblackbox.com.au/page/2026/04/21/disney-launches-budget-plan-while-raising-premium-prices/"},{"g":"Streaming","n":"HBO Max","c":"monthly","p":[["Basic with Ads",11.99],["Standard",15.99],["Premium",21.99]],"s":"https://whistleout.com.au/PayTV/Guides/Max-Everything-You-Need-To-Know"},{"g":"Streaming","n":"Paramount+","c":"monthly","p":[["Basic with Ads",7.99],["Standard",12.99],["Premium",17.99]],"s":"https://www.tomsguide.com/news/streaming-service-prices-in-australia-year-netflix-binge-stan-disney-plus-and-more-compared"},{"g":"Streaming","n":"Apple TV","c":"monthly","p":[["Apple TV",15.99]],"s":"https://ia.acs.org.au/article/2025/apple-tv--price-rise-hits-australia.html"},{"g":"Streaming","n":"YouTube Premium","c":"monthly","p":[],"s":"https://pickr.com.au/news/2025/youtube-will-cut-the-ads-for-9-per-month-in-premium-lite"},{"g":"Music","n":"Spotify","c":"monthly","p":[["Premium Student",7.99],["Premium Individual",15.99],["Premium Duo",22.99],["Premium Family",27.99]],"s":"https://www.spotify.com/au/premium/"},{"g":"Music","n":"Apple Music","c":"monthly","p":[["Student",7.99],["Individual",14.99],["Family",23.99]],"s":"https://www.apple.com/au/apple-music/"},{"g":"Shopping memberships","n":"Amazon Prime","c":"monthly","p":[["Monthly",9.99]],"s":"https://www.techradar.com/news/amazon-prime-australia"},{"g":"Shopping memberships","n":"Costco","c":"yearly","p":[["Gold Star",65.0],["Executive",130.0]],"s":"https://www.costco.com.au/member-privileges-and-conditions"},{"g":"Shopping memberships","n":"Everyday Extra","c":"monthly","p":[["Everyday Extra",7.0]],"s":"https://www.canstar.com.au/news/coles-and-woolworths-make-changes-to-paid-memberships/"},{"g":"Shopping memberships","n":"Coles Plus","c":"monthly","p":[["Coles Plus Delivery",19.0]],"s":"https://www.canstar.com.au/news/coles-and-woolworths-make-changes-to-paid-memberships/"},{"g":"Cloud storage","n":"iCloud+","c":"monthly","p":[["50GB",1.49],["200GB",4.49],["2TB",14.99],["6TB",44.99],["12TB",89.99]],"s":"https://support.apple.com/en-au/108047"},{"g":"Cloud storage","n":"Google One","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"Anytime Fitness","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"Fitness First","c":"monthly","p":[],"s":""},{"g":"Fitness","n":"Snap Fitness","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Telstra","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Optus","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Vodafone","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Boost Mobile","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"amaysim","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Belong","c":"monthly","p":[],"s":""},{"g":"News","n":"The Australian","c":"monthly","p":[],"s":""},{"g":"News","n":"The Sydney Morning Herald","c":"monthly","p":[],"s":""},{"g":"News","n":"The Age","c":"monthly","p":[],"s":""},{"g":"News","n":"Herald Sun","c":"monthly","p":[],"s":""},{"g":"Gaming","n":"Xbox Game Pass","c":"monthly","p":[["Essential",12.95],["PC Game Pass",16.45],["Premium",17.95],["Ultimate",25.95]],"s":"https://press-start.com.au/news/xbox/2026/04/22/xbox-game-pass-ultimate-just-got-a-massive-price-drop-and-heres-the-new-aussie-pricing/"},{"g":"Gaming","n":"PlayStation Plus","c":"monthly","p":[["Essential",14.95]],"s":"https://stevivor.com/news/sony-raises-the-price-of-playstation-plus-including-in-australia/"},{"g":"Gaming","n":"Nintendo Switch Online","c":"yearly","p":[["Individual",29.95],["Individual + Expansion Pack",59.95]],"s":"https://www.nintendo.com/au/hardware/nintendo-switch-online/"},{"g":"Apps & AI","n":"ChatGPT Plus","c":"monthly","p":[],"s":""},{"g":"Apps & AI","n":"Microsoft 365","c":"monthly","p":[["Personal",16.0],["Family",18.0],["Premium",33.0]],"s":"https://www.microsoft.com/en-au/microsoft-365/buy/compare-all-microsoft-365-products"},{"g":"Apps & AI","n":"Duolingo","c":"monthly","p":[],"s":""}],"rates":{"card":{"t":"often around 18–21%","src":"Finder (RBA data)","url":"https://www.finder.com.au/credit-cards/credit-card-statistics"},"personal":{"t":"averaging about 14% (unsecured); offers range roughly 6.5–36% depending on credit","src":"Mozo (RBA data)","url":"https://www.mozo.com.au/personal-loans/articles/don-t-get-stung-by-high-personal-loan-rates.html"},"mortgage":{"t":"around 5.9–6.7% variable","src":"Mozo","url":"https://www.mozo.com.au/home-loans/interest-rates.html"},"car":{"t":"around 7.5–9% on average","src":"Mozo (RBA data)","url":"https://mozo.com.au/car-loans/interest-rates"},"student":{"t":"HELP debts indexed at 2.8% (1 June 2026); no interest charged","src":"ATO","url":"https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-indexation-rates"}},"lenders":{"card":["CommBank","Westpac","NAB","ANZ","American Express","Coles Financial Services","Latitude","Bankwest","St.George","ING","Macquarie","Qantas Money"],"car":["CommBank","Westpac","NAB","ANZ","Macquarie","Plenti","Toyota Finance","Latitude","Pepper Money","RACV"],"student":["HELP (ATO)"],"personal":["CommBank","Westpac","NAB","ANZ","Harmoney","Plenti","SocietyOne","Latitude","MoneyMe","Bendigo Bank"],"mortgage":["CommBank","Westpac","NAB","ANZ","Macquarie","ING","Bankwest","St.George","Suncorp Bank","Bendigo Bank","Athena","Ubank"],"bnpl":["Afterpay","Zip","Klarna","PayPal Pay in 4","Latitude (interest free)"]},"bills":{"Internet":["Telstra","Optus","TPG","Aussie Broadband","iiNet","Superloop","Vodafone","Dodo","Starlink","Leaptel"],"Phone":["Telstra","Optus","Vodafone","Boost Mobile","amaysim","Belong","Felix","Lebara","ALDImobile","Woolworths Mobile"],"Power & gas":["AGL","Origin Energy","EnergyAustralia","Red Energy","Alinta Energy","ENGIE","Momentum Energy","Powershop","Lumo Energy","GloBird Energy"],"Insurance":["NRMA Insurance","AAMI","Allianz","Suncorp","Budget Direct","RACV","Youi","Medibank","Bupa","HCF"]}},"EU":{"cur":"EUR","pc":"Germany","subs":[{"g":"Streaming","n":"Netflix","c":"monthly","p":[["Standard with ads",6.99],["Standard",15.99],["Premium",21.99]],"s":"https://www.techbook.de/streaming/anbieter/netflix-preiserhoehung-deutschland-2026"},{"g":"Streaming","n":"Disney+","c":"monthly","p":[["Standard with ads",6.99],["Standard",10.99],["Premium",15.99]],"s":"https://www.monsterdealz.de/magazin/disney-plus-kosten"},{"g":"Streaming","n":"WOW (Sky)","c":"monthly","p":[["Movies & Series",9.98],["Movies & Series + Premium (ad-free)",15.98],["Live Sport",44.99]],"s":"https://www.wowtv.de/"},{"g":"Streaming","n":"Apple TV","c":"monthly","p":[["Apple TV",9.99]],"s":"https://www.techbook.de/streaming/anbieter/apple-tv-preiserhoehung-2026"},{"g":"Streaming","n":"YouTube Premium","c":"monthly","p":[["Premium Lite",7.99],["Individual",14.99],["Family",27.99],["Student",8.99]],"s":"https://www.teltarif.de/arch/2026/kw24/s104034.html"},{"g":"Streaming","n":"Paramount+","c":"monthly","p":[["Basic with ads",5.99],["Standard",9.99],["Premium",12.99]],"s":"https://www.dslweb.de/paramount-plus-kosten.php"},{"g":"Streaming","n":"DAZN","c":"monthly","p":[["Super Sports (monthly flex)",24.99],["Super Sports (12-month plan)",19.99],["Unlimited (monthly flex)",44.99],["Unlimited (12-month plan)",34.99]],"s":"https://www.netzwelt.de/dazn/index.html"},{"g":"Music","n":"Spotify","c":"monthly","p":[["Premium Individual",12.99],["Premium Duo",17.99],["Premium Family",21.99],["Premium Student",6.99]],"s":"https://www.monsterdealz.de/magazin/spotify-kosten"},{"g":"Music","n":"Apple Music","c":"monthly","p":[["Individual",11.99],["Family",19.99],["Student",6.99]],"s":"https://www.macerkopf.de/2026/07/18/apple-music-in-deutschland-ab-sofort-teurer/"},{"g":"Music","n":"Deezer","c":"monthly","p":[["Premium",11.99],["Duo",15.99],["Family",19.99],["Student",5.99]],"s":"https://www.delamar.de/musikbusiness/deezer-vs-spotify-85837/"},{"g":"Music","n":"Amazon Music Unlimited","c":"monthly","p":[],"s":""},{"g":"Shopping memberships","n":"Amazon Prime","c":"monthly","p":[["Prime",8.99],["Prime + ad-free Prime Video",11.98]],"s":"https://www.homeandsmart.de/amazon-prime-kosten"},{"g":"Shopping memberships","n":"Amazon Prime (annual)","c":"yearly","p":[["Prime",89.9]],"s":"https://www.homeandsmart.de/amazon-prime-kosten"},{"g":"Cloud storage","n":"iCloud+","c":"monthly","p":[["50 GB",0.99],["200 GB",2.99],["2 TB",9.99],["6 TB",29.99],["12 TB",59.99]],"s":"https://support.apple.com/en-us/108047"},{"g":"Cloud storage","n":"Google One","c":"monthly","p":[["Basic 100 GB",1.99],["Google AI Plus 400 GB",4.99],["Google AI Plus 2 TB",9.99],["Google AI Pro 5 TB",21.99]],"s":"https://blog.internxt.com/de/google-one-preise-alle-tarife-stufen-und-eine-private-alternative/"},{"g":"Fitness","n":"McFit","c":"monthly","p":[["24-month Standard",24.9],["12-month Standard",29.9],["12-month Premium",39.9],["Flex (no contract)",49.9]],"s":"https://www.mcfit.com/de/mitgliedschaft/"},{"g":"Fitness","n":"Urban Sports Club","c":"monthly","p":[["Essential (from, varies by city)",34.0],["Classic (from, varies by city)",59.0],["Premium (from, varies by city)",99.0],["Max (from, varies by city)",149.0]],"s":"https://urbansportsclub.com/de/prices"},{"g":"Phone plan","n":"Telekom","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Vodafone","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"O2","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"1&1","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"congstar","c":"monthly","p":[],"s":""},{"g":"Phone plan","n":"Aldi Talk","c":"monthly","p":[],"s":""},{"g":"News","n":"DIE ZEIT (digital)","c":"yearly","p":[],"s":"https://www.monsterdealz.de/magazin/zeit-abo"},{"g":"News","n":"SPIEGEL+","c":"monthly","p":[],"s":""},{"g":"News","n":"SZ Plus","c":"monthly","p":[],"s":""},{"g":"News","n":"FAZ+","c":"monthly","p":[],"s":""},{"g":"Gaming","n":"Xbox Game Pass","c":"monthly","p":[["Essential",8.99],["Premium",12.99],["Ultimate",20.99],["PC Game Pass",12.99]],"s":"https://www.monsterdealz.de/magazin/xbox-game-pass-kosten"},{"g":"Gaming","n":"PlayStation Plus","c":"yearly","p":[["Essential",71.99],["Extra",125.99],["Premium",151.99]],"s":"https://tech-insider.org/de/die-neuen-ps-plus-preise-im-berblick/"},{"g":"Gaming","n":"Nintendo Switch Online","c":"yearly","p":[["Individual",19.99],["Family",34.99],["Individual + Expansion Pack",39.99],["Family + Expansion Pack",69.99]],"s":"https://www.giga.de/tipp/nintendo-switch-online-abo-kosten-erklaert/"},{"g":"Apps & AI","n":"ChatGPT","c":"monthly","p":[["Go",7.99],["Plus",22.99]],"s":"https://geotoolbox.ai/de/blog/chatgpt-kosten"},{"g":"Apps & AI","n":"Microsoft 365","c":"yearly","p":[["Single",99.0],["Family",129.0],["Premium",219.0]],"s":"https://www.microsoft.com/de-de/microsoft-365/buy/compare-all-microsoft-365-products"},{"g":"Apps & AI","n":"Duolingo Super","c":"yearly","p":[["Individual",89.99]],"s":"https://www.mydealz.de/magazin/?p=72922"}],"rates":{"card":{"t":"Revolving / instalment credit cards in Germany charge about 16–28% APR","src":"Capitalo","url":"https://www.capitalo.de/kreditkarte/ratgeber/kreditkarte-mit-ratenzahlung"},"personal":{"t":"Personal instalment loans in Germany typically 3–14% APR depending on credit score (euro-area average about 7.6%)","src":"Capitalo","url":"https://www.capitalo.de/kredit/vergleich"},"car":{"t":"Car loans in Germany range about 3–12% APR depending on lender and credit score","src":"Capitalo","url":"https://www.capitalo.de/kredit/autokredit"},"mortgage":{"t":"10-year fixed mortgages in Germany about 4.1–4.7% APR (Sept 2026) depending on loan-to-value; best offers around 4.1–4.4%","src":"Capitalo","url":"https://www.capitalo.de/baufinanzierung/zinsen"},"student":{"t":"KfW Student Loan: 6.53% effective, variable (set 1 Apr 2026; KfW resets it every 1 Apr and 1 Oct)","src":"KfW","url":"https://www.kfw.de/%C3%9Cber-die-KfW/Newsroom/Aktuelles/Q-As-Studienkredit.html"}},"lenders":{"card":["Deutsche Bank","Commerzbank","Sparkasse","ING","DKB","easybank (formerly Barclays)","American Express","Hanseatic Bank","Advanzia Bank","Consorsbank"],"car":["Santander Consumer Bank","Volkswagen Bank","BMW Bank","Mercedes-Benz Bank","Bank11","Creditplus Bank","Targobank","ING","DKB","Sparkasse"],"student":["KfW Student Loan (Studienkredit)","BAföG (federal student aid)","Bildungskredit (federal education loan)","Deutsche Bildung (study fund)","Brain Capital","Sparkasse"],"personal":["ING","DKB","Targobank","Santander Consumer Bank","Deutsche Bank","Commerzbank","Postbank","Sparkasse","norisbank","Creditplus Bank","SKG Bank","auxmoney"],"mortgage":["Sparkasse","Volksbanken Raiffeisenbanken","Deutsche Bank","Commerzbank","ING","DKB","Postbank","HypoVereinsbank","Interhyp","Dr. Klein"],"bnpl":["Klarna","PayPal Pay Later","Riverty","Ratepay","Scalapay","Alma"]},"bills":{"Internet":["Telekom","Vodafone","O2","1&1","Deutsche Glasfaser","PŸUR","congstar","NetCologne","M-net","EWE"],"Phone":["Telekom","Vodafone","O2","1&1","congstar","freenet","Aldi Talk","Lidl Connect"],"Power & gas":["E.ON","EnBW","Vattenfall","Stadtwerke (local utility)","Yello","E wie einfach","Octopus Energy","LichtBlick","Tibber","Naturstrom"],"Insurance":["Allianz","HUK-COBURG","AXA","ERGO","Generali","R+V","DEVK","Debeka","HanseMerkur","CosmosDirekt"]}}};
+/** A newer price list (prices.json next to the app) replaces the built-in one when it's valid. */
+function validPrices(p) {
+  return !!p && typeof p.checked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.checked) && !!p.regions && typeof p.regions === 'object'
+    && Object.values(p.regions).every(r => r && typeof r.cur === 'string' && Array.isArray(r.subs) && r.subs.every(x => x && typeof x.n === 'string' && Array.isArray(x.p) && x.p.every(q => Array.isArray(q) && typeof q[0] === 'string' && q[1] > 0))
+      && r.rates && typeof r.rates === 'object' && r.lenders && typeof r.lenders === 'object' && r.bills && typeof r.bills === 'object');
+}
+(function usePriceCache() {
+  try { const c = JSON.parse(localStorage.getItem('heist.prices') || 'null'); if (validPrices(c) && c.checked > SUGGEST_CHECKED) { SUGGEST = c.regions; SUGGEST_CHECKED = c.checked; } } catch (e) { /* keep the built-in list */ }
+})();
+/** When the app is online and hosted, pick up a newer prices.json without an app update. */
+function loadPriceUpdates() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  fetch('prices.json', { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).then(p => {
+    if (!validPrices(p) || p.checked <= SUGGEST_CHECKED) return;
+    SUGGEST = p.regions; SUGGEST_CHECKED = p.checked;
+    try { localStorage.setItem('heist.prices', JSON.stringify(p)); } catch (e) { /* storage full: still used this session */ }
+  }).catch(() => { /* offline: keep what we have */ });
+}
+const safeUrl = u => (/^https:\/\//.test(String(u || '')) ? u : '');
+

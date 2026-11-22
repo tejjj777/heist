@@ -1,0 +1,6 @@
+# HEIST · https://tejjj777.github.io/heist
+# Every crawler, search and AI, is welcome. The app keeps your data on your device, so there is nothing private to crawl.
+User-agent: *
+Allow: /
+
+Sitemap: https://tejjj777.github.io/heist/sitemap.xml

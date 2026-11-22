@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F4FF">
+<title>HEIST · Personal Finance Planner</title>
+<meta name="description" content="HEIST is a free money planner for students. Track pocket money, see what you can safely spend each day, split bills with roommates and reach savings goals.">
+<link rel="canonical" href="https://tejjj777.github.io/heist/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HEIST">
+<meta property="og:title" content="HEIST · Money planner for students">
+<meta property="og:description" content="Track pocket money, see what you can safely spend today, split bills with roommates and save for goals. Free, works offline.">
+<meta property="og:url" content="https://tejjj777.github.io/heist/">
+<meta property="og:image" content="https://tejjj777.github.io/heist/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="HEIST app showing what you can safely spend today">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HEIST · Money planner for students">
+<meta name="twitter:description" content="Track pocket money, see what you can safely spend today, split bills with roommates and save for goals.">
+<meta name="twitter:image" content="https://tejjj777.github.io/heist/assets/og-image.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"HEIST","url":"https://tejjj777.github.io/heist/","applicationCategory":"FinanceApplication","operatingSystem":"Any (web browser)","browserRequirements":"Requires JavaScript","description":"A free money planner for students: pocket money tracking, a daily safe-to-spend amount, bill splitting with roommates and savings goals.","offers":{"@type":"Offer","price":"0","priceCurrency":"INR"},"publisher":{"@type":"Organization","name":"HEIST","url":"https://tejjj777.github.io/heist/"}}
+</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="js/theme-boot.js"></script>
+<!-- Chart.js loads on demand (ensureChart in js/charts.js), so it doesn't slow the first load. -->
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/heist.css">
+</head>
+
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<noscript><p style="padding:24px;font:16px system-ui;color:#fff;background:#0a0a0a">HEIST is a free money planner for students. It needs JavaScript turned on to run. <a href="privacy.html" style="color:#7ED957">Privacy</a> · <a href="terms.html" style="color:#7ED957">Terms</a></p></noscript>
+
+<header class="topbar">
+  <button type="button" class="icon-btn side-toggle" id="side-toggle" data-action="toggle-sidebar" aria-label="Hide the side menu" aria-expanded="true" title="Hide the side menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
+  <a class="brand" href="#dashboard" aria-label="HEIST home"><img class="brand-logo" src="assets/heist-logo.png" alt="HEIST" width="102" height="40"></a>
+  <div class="topbar-actions">
+    <div class="menu-wrap">
+      <button type="button" class="btn btn-primary" id="quickadd-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="quickadd-menu" aria-label="Add">
+        <span id="plus-icon"></span><span class="hide-sm">Add</span>
+      </button>
+      <div class="menu" id="quickadd-menu" role="menu" aria-labelledby="quickadd-btn" hidden>
+        <p class="menu-label" role="presentation">Money in and out</p>
+        <button type="button" role="menuitem" data-action="add-expense">Expense</button>
+        <button type="button" role="menuitem" data-action="scan-receipt">Scan a receipt</button>
+        <button type="button" role="menuitem" data-action="split-expense">Split an expense</button>
+        <button type="button" role="menuitem" data-action="import-sms">Paste a bank message</button>
+        <button type="button" role="menuitem" data-action="cash-out">Cash in / out</button>
+        <button type="button" role="menuitem" data-action="split-bill">Split a bill</button>
+        <button type="button" role="menuitem" data-action="log-income">Income received</button>
+        <button type="button" role="menuitem" data-action="open-paycheck">Pocket money / Allowance</button>
+        <p class="menu-label" role="presentation">Plans</p>
+        <button type="button" role="menuitem" data-action="add-recurring">Recurring payment</button>
+        <button type="button" role="menuitem" data-action="add-yearly">Yearly / Semester fee</button>
+        <button type="button" role="menuitem" data-action="plan-something">Plan a trip or outing</button>
+        <button type="button" role="menuitem" data-action="heist-new">Crew heist (save with friends)</button>
+        <button type="button" role="menuitem" data-action="add-goal">Goal</button>
+        <button type="button" role="menuitem" data-action="add-gift">Gift</button>
+        <p class="menu-label" role="presentation">Other</p>
+        <button type="button" role="menuitem" data-action="add-subscription">Subscription</button>
+        <button type="button" role="menuitem" data-action="add-iou">IOU</button>
+        <button type="button" role="menuitem" data-action="add-transport">Transport</button>
+      </div>
+    </div>
+    <button type="button" class="icon-btn" data-action="open-palette" aria-label="Search and commands (Ctrl+K)" title="Search and commands (Ctrl+K)" id="palette-btn"></button>
+    <button type="button" class="icon-btn" data-action="toggle-dark" aria-label="Dark mode" aria-pressed="false" id="dark-btn"></button>
+    <button type="button" class="icon-btn" data-action="toggle-privacy" aria-label="Hide amounts" aria-pressed="false" id="privacy-btn"></button>
+    <button type="button" class="icon-btn settings-mobile" data-action="open-account" aria-label="Account" title="Account" id="account-mobile-btn"></button>
+    <button type="button" class="icon-btn settings-mobile" data-action="open-settings" aria-label="Settings" id="settings-mobile-btn"></button>
+  </div>
+</header>
+
+<aside class="sidebar" aria-label="Sections">
+  <nav aria-label="Primary"><ul class="nav-list" id="side-nav"></ul></nav>
+  <div class="side-foot">
+    <button type="button" class="nav-link" data-action="open-palette" id="side-palette"></button>
+    <button type="button" class="nav-link" data-action="open-settings" id="side-settings"></button>
+    <button type="button" class="nav-link" data-action="open-account" id="side-account"></button>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <main id="main" tabindex="-1">
+    <div class="print-brand"><img class="heist-logo" alt="HEIST"><span id="print-date"></span></div>
+    <section id="view-dashboard" class="view" aria-labelledby="h-dashboard" hidden></section>
+    <section id="view-spend" class="view" aria-labelledby="h-spend" hidden></section>
+    <section id="view-budget" class="view" aria-labelledby="h-budget" hidden></section>
+    <section id="view-split" class="view" aria-labelledby="h-split" hidden></section>
+    <section id="view-goals" class="view" aria-labelledby="h-goals" hidden></section>
+    <section id="view-debt" class="view" aria-labelledby="h-debt" hidden></section>
+    <section id="view-wallet" class="view" aria-labelledby="h-wallet" hidden></section>
+  </main>
+</div>
+
+<nav class="tabbar" aria-label="Primary (mobile)" id="tab-nav"></nav>
+<div id="modal-root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="undo-bar" class="undo-bar" role="status" aria-live="polite" hidden></div>
+
+
+<!-- Scripts run in this order and share one global scope. Order matters: see README-AGENTS.md. -->
+<script src="js/finmath.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/state.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ui-shared.js"></script>
+<script src="js/modes.js"></script>
+<script src="js/page-dashboard.js"></script>
+<script src="js/page-debt.js"></script>
+<script src="js/page-budget.js"></script>
+<script src="js/suggestions.js"></script>
+<script src="js/page-goals.js"></script>
+<script src="js/fun.js"></script>
+<script src="js/tour.js"></script>
+<script src="js/page-wallet.js"></script>
+<script src="js/payslip.js"></script>
+<script src="js/more.js"></script>
+<script src="js/import.js"></script>
+<script src="js/rewards.js"></script>
+<script src="js/pet.js"></script>
+<script src="js/challenges.js"></script>
+<script src="js/commands.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/commandbar.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/qrcode.js"></script>
+<script src="js/bill-split.js"></script>
+<script src="js/wrapped.js"></script>
+<script src="js/insights.js"></script>
+<script src="js/global.js"></script>
+<script src="js/receipt.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/sub-checkin.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/router.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/groups.js"></script>
+<script src="js/heists.js"></script>
+<script src="js/export.js"></script>
+<script src="js/actions.js"></script>
+<script src="js/init.js"></script>
+</body>
+</html>

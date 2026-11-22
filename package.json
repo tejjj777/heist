@@ -1,0 +1,17 @@
+{
+  "name": "heist",
+  "private": true,
+  "description": "HEIST. No build step: open index.html or serve this folder. `npm run build` makes the smaller copy Netlify serves (dist/).",
+  "type": "module",
+  "scripts": {
+    "test": "node tools/check-load-order.mjs && node tests/smoke.mjs",
+    "check": "node tools/check-load-order.mjs",
+    "serve": "python3 -m http.server 8080",
+    "build": "node tools/build.mjs"
+  },
+  "devDependencies": {
+    "acorn": "^8.18.0",
+    "esbuild": "^0.28.2",
+    "playwright": "^1.63.0"
+  }
+}
