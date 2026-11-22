@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#7053da">
+  <meta name="description" content="HEIST student money planner. Track spending, budget and save offline.">
+  <link rel="manifest" href="manifest.json">
+  <title>HEIST</title>
+  <style>body{background:#f7f6fc;color:#35275f;font-family:system-ui;margin:0}#loading{padding:15vh 24px;text-align:center}</style>
+</head>
+<body>
+  <div id="loading" role="status"><h1>HEIST</h1><p>Opening your planner…</p></div>
+  <script src="ocr-bridge.js"></script>
+  <script>
+    const oldHash = location.hash.slice(1);
+    if (oldHash && !oldHash.startsWith('/') && !/(access_token|error)=/.test(oldHash)) {
+      history.replaceState(null, '', location.pathname + location.search + '#/' + oldHash);
+    }
+    window.addEventListener('flutter-first-frame', () => document.getElementById('loading')?.remove());
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register(new URL('offline-sw.js', document.baseURI)).catch(error => {
+        console.warn('Offline installation could not complete:', error);
+      });
+    }
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

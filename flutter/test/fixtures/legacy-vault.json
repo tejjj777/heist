@@ -1,0 +1,15 @@
+{
+  "password": "synthetic-test-passphrase",
+  "recovery": "QJWT-4END-XWNY-G72M-VJMH-X331-HHN0-S0QD",
+  "key": "y9pTQHAyFbRUtGM31WoFKpGcxZYbJn3juF0Rv1m5gL0=",
+  "row": {
+    "kdf": {
+      "salt": "FPF98E9SfAA+jy4rpP00bg==",
+      "rsalt": "CtS9jsk1ibwtvCSZwjp98Q==",
+      "iter": 600000
+    },
+    "key_pass": "M7ujUmmK5GNgTynp5I6DyvaqhRkyTg97SoHExwn1C6pe36wMjNFcJDGnjZZIWMzPpoIUPsaic9dgqJ+Y",
+    "key_recovery": "WLEuu4YYno3hEM1W/8nGM3kyMH0URobnWsgfFPAIfRL1Y/EiGOL7N/SNqidoM8t751oMmkaaxvVjXjUD",
+    "data": "{\"v\":1,\"z\":1,\"c\":\"3D548gkwEJr/2MCI6i5FuLzCsXgjp79abzkV442ZIKbqSfx67hnwRT04vkJyp2IB0u7EPMJ4QmgHDR0l9FuKl4tOjLu3VtTXTQ6z3e2jGe3AdAquFerhLheh4x8ruwtYu2oV1ZUFU8eRgaKdKAYtmSsKOM0+txyBm/LvwPOQa6dYzOkRSKo4dm3w6e09iDQ4VGSbFgPim9j3ep3KB3ID\"}"
+  }
+}

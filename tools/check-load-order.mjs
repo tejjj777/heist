@@ -3,7 +3,8 @@
 // exist yet while an earlier file is running. Run: node tools/check-load-order.mjs
 import * as acorn from 'acorn';
 import fs from 'fs';
-const root = new URL('..', import.meta.url).pathname;
+import { fileURLToPath } from 'node:url';
+const root = fileURLToPath(new URL('..', import.meta.url));
 const files = [...fs.readFileSync(root + 'index.html', 'utf8').matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map(m => m[1]);
 const declFile = {}, fnNode = {}, parsed = [];
 files.forEach((f, idx) => {

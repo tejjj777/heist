@@ -6,9 +6,10 @@
    ========================================================= */
 const q = sel => document.querySelector(sel);
 const closestCard = sel => { const el = q(sel); return el ? el.closest('.card') : null; };
-const TOUR_VERSION = 44;   // bumped: Simple view
+const TOUR_VERSION = 45;   // bumped: Simple view
 const cardHead = sel => { const el = q(sel); return el ? (el.querySelector('.card-head') || el) : null; };
 const CHAPTERS = [
+  {id:'travel',icon:'Map',title:'Travel Agent',blurb:'Research, itinerary, stays and trip expenses.',route:'travel',steps:[{route:'travel',title:'Plan your next trip',text:'Create a trip, research current sources after signing in, save your itinerary offline, compare stays and split trip expenses. Maps and live booking pages need internet.'}]},
   { id: 'quick', icon: '👋', title: 'Start here', blurb: 'How the app is laid out, in a minute.', steps: [
     { title: 'Hey, welcome to HEIST', text: `<img class="welcome-logo" src="${logoUri()}" alt="HEIST">This app helps you see where your allowance goes before it’s gone. No bank login needed. Use the arrow keys or the buttons to move along, and Esc to stop whenever you like.` },
     { target: ['#side-nav', '#tab-nav'], title: 'Six main screens', text: 'Home, Spend, Budget, Split, Goals and Debt. Tap any of them at the bottom of the screen (or along the top on a laptop). Each screen has tabs along the top for the details.' },
@@ -388,6 +389,7 @@ function showWhatsNew() {
   openModal({
     title: 'What’s new in HEIST', hideSubmit: true, cancelLabel: 'Got it',
     body: `<p class="wn-tag">This update</p><ul class="whats-new">
+        <li><strong>Travel Agent:</strong> live travel research, saved itineraries, hotel discovery, maps and offline trip expenses. Open Travel in the navigation.</li>
         <li><strong>Simple view:</strong> a clean, plain look with bigger text, made for parents and grandparents. Every feature stays. Turn it on in Settings → About you, or type “simple view” in search.</li>
         <li><strong>Smarter screenshots:</strong> payment screenshots from GPay, PhonePe or Paytm are now read by AI, so the amount and who you paid come out right. No internet? It still reads them on your phone.</li>
         <li><strong>Student or working:</strong> pick what fits you in Settings → About you. Working mode talks about payday, flatmates and household costs. Tick every way you earn, like pocket money and a part-time job.</li>

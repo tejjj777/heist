@@ -4,7 +4,7 @@
 /* =========================================================
    RENDERING + ROUTER
    ========================================================= */
-const VIEWS = { dashboard: renderDashboard, spend: renderSpend, budget: renderBudget, split: renderSplit, goals: renderGoals, debt: renderDebt, wallet: renderWallet };
+const VIEWS = { travel: renderTravel, dashboard: renderDashboard, spend: renderSpend, budget: renderBudget, split: renderSplit, goals: renderGoals, debt: renderDebt, wallet: renderWallet };
 /** Old links redirect to appropriate student sections. */
 function redirectOldHash() {
   if (/^#gifts(\/|$)/.test(location.hash)) history.replaceState(null, '', '#goals/gifts');

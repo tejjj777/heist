@@ -1,7 +1,7 @@
 /* HEIST service worker: makes the installed app open offline.
    The page and its own code (js/, css/) are fetched fresh when online (so updates arrive together) and fall back to the cached copy offline.
    Everything else is cache-first; the large OCR files are cached the first time they're used. */
-const CACHE = 'heist-main-v76';   // bump the number every session
+const CACHE = 'heist-main-v77';   // bump the number every session
 const PREFIX = 'heist-main-';    // only ever delete our own caches (main HEIST may share this origin)
 const CORE = [
   './', './index.html', './manifest.webmanifest', './prices.json',
@@ -46,7 +46,7 @@ const CORE = [
   './js/calendar.js',
   './js/sub-checkin.js',
   './js/motion.js',
-  './js/router.js',
+  './js/page-travel.js', './js/router.js',
   './js/modals.js',
   './js/sync.js',
   './js/groups.js', './js/heists.js',

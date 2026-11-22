@@ -1,3 +1,5 @@
+import { GroqPool } from '../_shared/groq_pool.ts';
+const groqPool = new GroqPool([Deno.env.get('GROQ_API_KEY') || '', ...(Deno.env.get('GROQ_FALLBACK_KEYS') || '').split(',')]);
 // HEIST · AI helper (Supabase Edge Function "ai").
 // The app sends { task: "command", input: { text, context, today } }, or { task: "plan", input: { messages, currency, today } } for the planner. This asks an AI model to
 // understand the message and answers with JSON the app can act on, plus a short reply to show.
@@ -145,24 +147,16 @@ async function askGemini(key: string, model: string, system: string, user: strin
   return out ? { ok: true as const, out } : { ok: false as const, status: "empty", detail: JSON.stringify(g).slice(0, 300) };
 }
 
-async function askGroq(key: string, model: string, system: string, user: string, ms: number) {
-  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    signal: AbortSignal.timeout(ms),
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-      response_format: { type: "json_object" },
-      temperature: 0.4,
-      max_tokens: 4000,   // GPT OSS thinks first; leave room for the answer (a costed plan is long)
-      ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
-    }),
-  });
-  if (!r.ok) return { ok: false as const, status: r.status, detail: (await r.text()).slice(0, 500) };
-  const g = await r.json();
-  const out = g?.choices?.[0]?.message?.content || "";
-  return out ? { ok: true as const, out } : { ok: false as const, status: "empty", detail: JSON.stringify(g).slice(0, 300) };
+async function askGroq(_key: string, model: string, system: string, user: string, ms: number) {
+  try {
+    const g = await groqPool.complete({model, messages: [{role:'system', content:system}, {role:'user', content:user}],
+      response_format: {type:'json_object'}, temperature:0.4, max_tokens:4000,
+      ...(model.startsWith('openai/gpt-oss') ? {reasoning_effort:'low'} : {})}, ms);
+    const out = g?.choices?.[0]?.message?.content || '';
+    return out ? {ok:true as const, out} : {ok:false as const, status:'empty', detail:'Empty result'};
+  } catch {
+    return {ok:false as const, status:503, detail:'Groq keys unavailable; trying the next configured provider.'};
+  }
 }
 
 Deno.serve(async (req) => {
@@ -174,7 +168,7 @@ Deno.serve(async (req) => {
   const ip = (req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "unknown").split(",")[0].trim();
   if (overLimit(ip)) return json({ error: "limit", reply: "You’ve asked a lot today. Try again in a bit." }, 429);
   const gKey = Deno.env.get("GEMINI_API_KEY");
-  const qKey = Deno.env.get("GROQ_API_KEY");
+  const qKey = Deno.env.get("GROQ_API_KEY") || groqPool.keys[0];
   if (!gKey && !qKey) return json({ error: "No AI key set (GEMINI_API_KEY or GROQ_API_KEY)" }, 500);
 
   let body: any;

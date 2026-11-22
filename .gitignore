@@ -3,3 +3,4 @@ tests/out/
 .DS_Store
 Thumbs.db
 dist/
+supabase/.env*.local

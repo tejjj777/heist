@@ -37,6 +37,7 @@ function defaultState() {
   const country = detectCountry(), ci = countryInfo(country), k = scaleFor(ci.currency);
   return {
     version: 1,
+    travelTrips: [],
     currency: ci.currency,
     income: { mode: 'net', net: 0, gross: 0, deductions: defaultDeductions(), freq: 'monthly', nextPayDate: '', others: [], configured: false, irregular: false },
     split: { buckets: (() => { const b = defaultBuckets(); ds_buckets = b; return b; })() },
@@ -170,6 +171,7 @@ function normalizeState(raw) {
 
 /* ---------- State for the new features ---------- */
 function normalizeMore(s, raw) {
+  s.travelTrips = (Array.isArray(raw.travelTrips) ? raw.travelTrips : []).filter(t => t && typeof t.id === 'string' && typeof t.destination === 'string' && typeof t.currency === 'string' && F.parseDate(t.startDate) && Number.isInteger(t.days) && t.days >= 1 && t.days <= 14 && Number.isInteger(t.travelers) && t.travelers >= 1 && t.travelers <= 30 && Number.isFinite(t.budget) && t.budget > 0).slice(0, 100).map(t => ({...t, people:Array.isArray(t.people) && t.people.length === t.travelers && t.people.every(p => typeof p === 'string') ? t.people : Array.from({length:t.travelers}, (_,i) => 'Traveler '+(i+1)), expenses:Array.isArray(t.expenses) ? t.expenses : []}));
   const arr = v => Array.isArray(v) ? v : [];
   const str = (v, def = '', max = 80) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : def);
   const date = v => (F.parseDate(v) ? v : '');

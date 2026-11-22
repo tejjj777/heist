@@ -17,6 +17,8 @@
 
 ## What it does
 
+- **[Travel Agent](https://tejjj777.github.io/heist/#travel):** research destinations, save itineraries, compare stays, open maps and track shared trip expenses. Live research requires sign-in; saved plans and expenses work offline.
+
 - **Spend:** log what you spend in seconds. Paste bank SMS, import a statement, or scan a receipt.
 - **Budget:** see how much is safe to spend today and when your money will run out.
 - **Split:** split bills with friends and settle up over UPI.
