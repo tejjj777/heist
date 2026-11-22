@@ -39,7 +39,7 @@ After the first visit the app opens offline. Photo and scanned-payslip reading (
 
 ## 4. Accounts (Supabase)
 
-Set up for HEIST at `https://tejjj777.github.io/heist/` (the Site URL under Authentication → URL Configuration). The Level 1, 2 and 3 sites are on the same Redirect URLs list:
+Set up for HEIST at `https://tejjj777.github.io/heist/` (the Site URL under Authentication → URL Configuration). It is on the Redirect URLs list:
 - The `vaults` table and its security rules (from `supabase/setup.sql`).
 - Sign-in emails send a link back to that address (Authentication → URL Configuration).
 
